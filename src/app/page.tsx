@@ -25,20 +25,11 @@ import {
 } from "lucide-react";
 
 export default function HomePage() {
-  const user = useAppSelector((state) => state.auth.user);
-  const dispatch = useAppDispatch();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("home");
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
-  };
-
-  console.log(user?.isAdmin);
-  const handleLogout = () => {
-    dispatch(logout());
-    localStorage.removeItem("token");
-    window.location.reload();
   };
 
   return (

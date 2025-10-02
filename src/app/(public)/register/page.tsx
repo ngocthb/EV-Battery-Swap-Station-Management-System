@@ -13,7 +13,7 @@ import {
   Building,
 } from "lucide-react";
 import Link from "next/link";
-import { toast } from "react-toastify";
+
 interface RegisterPageProps {
   onNavigate: (page: string) => void;
 }

@@ -13,9 +13,9 @@ const api = axios.create({
 // Request Interceptor
 api.interceptors.request.use(
   (config) => {
-    // Lấy token từ localStorage (client-side) hoặc cookies
     if (typeof window !== "undefined") {
-      const token = localStorage.getItem("token");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
