@@ -114,15 +114,14 @@ export interface NavigationItem {
 export interface Station {
   id: string;
   name: string;
-  location: {
-    address: string;
-    latitude: number;
-    longitude: number;
-  };
-  batterySlots: number;
-  availableBatteries: number;
-  status: "active" | "maintenance" | "offline";
-  staffId?: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  status: "available" | "occupied" | "maintenance";
+  batteryCount: number;
+  openTime: string;
+  image: string;
+  swappableBatteries: number;
 }
 
 export interface Battery {

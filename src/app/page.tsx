@@ -7,11 +7,8 @@ import { logout } from "@/store/slices/authSlice";
 import {
   Battery,
   Zap,
-  Car,
   BarChart3,
   MapPin,
-  Users,
-  Settings,
   Phone,
   Mail,
   Menu,
@@ -19,7 +16,6 @@ import {
   Monitor,
   TrendingUp,
   Shield,
-  Clock,
   LogIn,
   UserPlus,
 } from "lucide-react";
