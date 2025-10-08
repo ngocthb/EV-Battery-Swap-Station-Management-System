@@ -125,7 +125,7 @@ function StationDetail({ setOpenStationDetail }: StationDetailProps) {
   // end station detail fake data
 
   return (
-    <div className="absolute top-4 bottom-4 left-[30.5%] w-[400px] bg-white shadow-lg z-20 border-l border-gray-200 flex flex-col rounded-xl overflow-hidden">
+    <div className="absolute top-0 bottom-0 lg:top-4 lg:bottom-4 lg:left-[30.5%] lg:w-[400px] bg-white shadow-lg z-20 border-l border-gray-200 flex flex-col rounded-xl overflow-hidden">
       {/*Image */}
       <div className="relative h-[200px]">
         <img

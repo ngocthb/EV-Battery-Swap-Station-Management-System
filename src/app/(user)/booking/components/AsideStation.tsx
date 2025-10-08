@@ -1,4 +1,3 @@
-
 import { Station } from "@/types";
 import {
   Battery,
@@ -12,85 +11,18 @@ import { memo, useState } from "react";
 
 interface AsideStationProps {
   setOpenStationDetail: React.Dispatch<React.SetStateAction<string | null>>;
+  stations: Station[];
+  handleGetDirection: (
+    start: [number, number],
+    end: [number, number]
+  ) => Promise<any>;
 }
 
-function AsideStation({ setOpenStationDetail }: AsideStationProps) {
-  const [stations] = useState<Station[]>([
-    {
-      id: "1",
-      name: "Brewery Electric Motorcycle Repair & Co",
-      address:
-        "Jl. Mega Kuningan Barat No.3, RW.2, Kuningan, Kuningan Timur, Jakarta Selatan",
-      latitude: 10.7769,
-      longitude: 106.7017,
-      status: "available",
-      batteryCount: 8,
-      openTime: "Monday, 10:00 - 21:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 2,
-    },
-    {
-      id: "2",
-      name: "District 3 Station",
-      address: "123 Vo Van Tan, District 3, Ho Chi Minh City",
-      latitude: 10.7834,
-      longitude: 106.6934,
-      status: "occupied",
-      batteryCount: 5,
-      openTime: "Monday, 08:00 - 22:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 1,
-    },
-    {
-      id: "3",
-      name: "Binh Thanh Station",
-      address: "456 Xo Viet Nghe Tinh, Binh Thanh, Ho Chi Minh City",
-      latitude: 10.8008,
-      longitude: 106.7122,
-      status: "available",
-      batteryCount: 12,
-      openTime: "Monday, 06:00 - 23:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 3,
-    },
-    {
-      id: "4",
-      name: "Tan Binh Station",
-      address: "789 Cong Hoa, Tan Binh, Ho Chi Minh City",
-      latitude: 10.8142,
-      longitude: 106.6438,
-      status: "available",
-      batteryCount: 7,
-      openTime: "Monday, 07:00 - 21:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 2,
-    },
-    {
-      id: "5",
-      name: "Go Vap Station",
-      address: "321 Nguyen Oanh, Go Vap, Ho Chi Minh City",
-      latitude: 10.8376,
-      longitude: 106.6676,
-      status: "occupied",
-      batteryCount: 0,
-      openTime: "Monday, 08:00 - 20:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 0,
-    },
-    {
-      id: "6",
-      name: "Thu Duc Station",
-      address: "654 Vo Van Ngan, Thu Duc, Ho Chi Minh City",
-      latitude: 10.8525,
-      longitude: 106.7517,
-      status: "available",
-      batteryCount: 15,
-      openTime: "Monday, 06:00 - 22:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 4,
-    },
-  ]);
-
+function AsideStation({
+  setOpenStationDetail,
+  stations,
+  handleGetDirection,
+}: AsideStationProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredStations = stations.filter(
@@ -99,8 +31,26 @@ function AsideStation({ setOpenStationDetail }: AsideStationProps) {
       station.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const handleGetInstructionDirection = async (lat: number, long: number) => {
+    if (!navigator.geolocation) {
+      alert("Không tìm thấy vị trí của bạn");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+
+        await handleGetDirection([userLng, userLat], [long, lat]);
+      },
+      () => alert("Không lấy được vị trí"),
+      { enableHighAccuracy: true }
+    );
+  };
+
   return (
-    <div className="w-full lg:w-[30%] bg-white shadow-lg overflow-hidden flex flex-col">
+    <div className="w-full max-h-[calc(70vh-64px)] lg:max-h-none lg:w-[30%] bg-white shadow-lg overflow-hidden flex flex-col">
       {/*search */}
       <div className="p-6 py-4 border-b border-gray-200">
         <h1 className="text-xl font-bold text-gray-900 mb-4">
@@ -189,7 +139,15 @@ function AsideStation({ setOpenStationDetail }: AsideStationProps) {
               </div>
               {/*Button */}
               <div className="flex space-x-2">
-                <button className="flex-1 py-2.5 px-4 text-sm font-medium text-blue-600 bg-white border border-blue-600 rounded-full hover:bg-blue-50 transition-colors flex items-center justify-center space-x-1 cursor-pointer">
+                <button
+                  onClick={() =>
+                    handleGetInstructionDirection(
+                      station.latitude,
+                      station.longitude
+                    )
+                  }
+                  className="flex-1 py-2.5 px-4 text-sm font-medium text-blue-600 bg-white border border-blue-600 rounded-full hover:bg-blue-50 transition-colors flex items-center justify-center space-x-1 cursor-pointer"
+                >
                   <Navigation className="w-4 h-4" />
                   <span>Tìm đường đi</span>
                 </button>

@@ -1,4 +1,5 @@
 import "./globals.css";
+import "mapbox-gl/dist/mapbox-gl.css";
 import Providers from "./Providers";
 
 export default function RootLayout({
