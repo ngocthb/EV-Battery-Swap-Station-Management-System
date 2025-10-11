@@ -115,9 +115,10 @@ export interface Station {
   id: string;
   name: string;
   address: string;
+  description: string;
   latitude: number;
   longitude: number;
-  status: "available" | "occupied" | "maintenance";
+  status: boolean;
   batteryCount: number;
   openTime: string;
   image: string;

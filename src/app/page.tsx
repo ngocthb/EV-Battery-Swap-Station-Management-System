@@ -67,6 +67,12 @@ export default function HomePage() {
                 Giới thiệu
               </Link>
               <Link
+                href="/booking"
+                className="text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                Đặt lịch
+              </Link>
+              <Link
                 href="#contact"
                 className="text-gray-600 hover:text-blue-600 transition-colors"
               >

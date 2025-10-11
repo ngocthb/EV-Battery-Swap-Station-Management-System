@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
 import {
   MapPin,
@@ -10,7 +10,13 @@ import {
   Edit,
   Trash2,
   MoreVertical,
+  X,
 } from "lucide-react";
+import useQuery from "@/hooks/useQuery";
+import { useDebounce } from "@/hooks/useDebounce";
+import useFetchList from "@/hooks/useFetchList";
+import { Station } from "@/types";
+import { getAllStationList } from "@/services/stationService";
 
 // Mock data cho stations
 const mockStations = [
@@ -61,47 +67,64 @@ const mockStations = [
   },
 ];
 
-export default function StationsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+interface QueryParams {
+  page: number;
+  limit: number;
+  search: string;
+  order: string;
+  status: boolean;
+}
 
-  const getStatusColor = (status: string) => {
+export default function StationsPage() {
+  const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
+    page: 1,
+    limit: 100,
+    search: "",
+    order: "asc",
+    status: true,
+  });
+
+  const debouncedSearch = useDebounce(query.search, 1500);
+  const debouncedQuery = useMemo(
+    () => ({ ...query, search: debouncedSearch }),
+    [query.status, debouncedSearch]
+  );
+
+  // fetch all station
+  const { data: stationList = [], loading } = useFetchList<
+    Station[],
+    QueryParams
+  >(getAllStationList, debouncedQuery);
+
+  const handleSearch = (data: string) => {
+    updateQuery({ search: data });
+  };
+
+  const handleChangStatus = (data: boolean) => {
+    updateQuery({ status: data });
+  };
+
+  const getStatusColor = (status: boolean) => {
     switch (status) {
-      case "active":
+      case true:
         return "bg-green-100 text-green-800";
-      case "maintenance":
+      case false:
         return "bg-yellow-100 text-yellow-800";
-      case "offline":
-        return "bg-red-100 text-red-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
   };
 
-  const getStatusText = (status: string) => {
+  const getStatusText = (status: boolean) => {
     switch (status) {
-      case "active":
+      case true:
         return "Hoạt động";
-      case "maintenance":
-        return "Bảo trì";
-      case "offline":
-        return "Offline";
+      case false:
+        return "Đóng cửa";
       default:
         return "Không xác định";
     }
   };
-
-  const filteredStations = mockStations.filter((station) => {
-    const matchesSearch =
-      station.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      station.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      station.code.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "all" || station.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
 
   return (
     <AdminLayout>
@@ -189,31 +212,37 @@ export default function StationsPage() {
           <div className="p-6 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
               <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                {/*Search */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <input
                     type="text"
                     placeholder="Tìm kiếm trạm..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-80"
+                    value={query.search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="px-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-80"
                   />
+                  {query.search && (
+                    <X
+                      onClick={resetQuery}
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5 cursor-pointer"
+                    />
+                  )}
                 </div>
 
+                {/*select status */}
                 <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
+                  value={String(query.status)}
+                  onChange={(e) => handleChangStatus(e.target.value === "true")}
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="all">Tất cả trạng thái</option>
-                  <option value="active">Hoạt động</option>
-                  <option value="maintenance">Bảo trì</option>
-                  <option value="offline">Offline</option>
+                  <option value={"true"}>Hoạt động</option>
+                  <option value={"false"}>Đóng cửa</option>
                 </select>
               </div>
 
               <p className="text-sm text-gray-600">
-                Hiển thị {filteredStations.length} / {mockStations.length} trạm
+                Hiển thị {stationList.length} trạm
               </p>
             </div>
           </div>
@@ -236,15 +265,12 @@ export default function StationsPage() {
                     Trạng thái
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Ngày tạo
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Thao tác
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredStations.map((station) => (
+                {stationList.map((station) => (
                   <tr key={station.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
@@ -253,33 +279,30 @@ export default function StationsPage() {
                         </div>
                         <div className="ml-4">
                           <div className="text-sm font-medium text-gray-900">
-                            {station.name}
+                            {station?.name}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {station.code}
+                            {station?.description}
                           </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900 max-w-xs">
-                        {station.address}
+                        {station?.address}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {station.cabins} cabin
+                      {station?.batteryCount} batteryCount
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                          station.status
+                          station?.status
                         )}`}
                       >
-                        {getStatusText(station.status)}
+                        {getStatusText(station?.status)}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {new Date(station.createdAt).toLocaleDateString("vi-VN")}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">

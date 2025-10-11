@@ -5,9 +5,10 @@ import mapboxgl from "mapbox-gl";
 import { Station } from "@/types";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
+import { getAllPublicStationList } from "@/services/stationService";
+import useFetchList from "@/hooks/useFetchList";
 
 interface MapBookingProps {
-  stations: Station[];
   routeGeoJSON: GeoJSON.Geometry | null;
   directionInstruction: {
     steps: Step[];
@@ -36,7 +37,6 @@ interface Step {
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 function MapBooking({
-  stations,
   routeGeoJSON,
   directionInstruction,
   handleGetDirection,
@@ -49,6 +49,12 @@ function MapBooking({
   const [userLocation, setUserLocation] = useState<[number, number] | null>(
     null
   );
+
+  const {
+    data: stationList = [],
+    loading,
+    refresh,
+  } = useFetchList<Station[]>(getAllPublicStationList);
 
   // fetch user location
   useEffect(() => {
@@ -103,7 +109,7 @@ function MapBooking({
   useEffect(() => {
     if (!mapRef.current || !userLocation) return;
 
-    const stationMarkers = stations.map((station) => {
+    const stationMarkers = stationList.map((station) => {
       const stationIcon = document.createElement("div");
       stationIcon.className = "station-marker";
 
@@ -150,7 +156,7 @@ function MapBooking({
     return () => {
       stationMarkers.forEach((marker) => marker.remove());
     };
-  }, [userLocation, stations]);
+  }, [userLocation, stationList]);
 
   // vẽ đường đi khi có routeGeoJSON từ aside
   useEffect(() => {

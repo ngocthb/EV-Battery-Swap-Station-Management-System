@@ -6,6 +6,8 @@ import StationDetail from "./components/StationDetail";
 import BookingHeader from "./components/BookingHeader";
 import MapBooking from "./components/MapBooking";
 import { Station } from "@/types";
+import useFetchList from "@/hooks/useFetchList";
+import { getAllPublicStationList } from "@/services/stationService";
 
 interface Step {
   maneuver: {
@@ -93,6 +95,12 @@ function BookingPage() {
     },
   ]);
 
+  const {
+    data: stationList,
+    loading,
+    refresh,
+  } = useFetchList(getAllPublicStationList);
+
   const [directionInstruction, setDirectionInstruction] = useState<{
     steps: Step[];
     duration: number;
@@ -137,13 +145,11 @@ function BookingPage() {
         {/*Aside */}
         <AsideStation
           setOpenStationDetail={setOpenStationDetail}
-          stations={stations}
           handleGetDirection={handleGetDirection}
         />
 
         {/*Map */}
         <MapBooking
-          stations={stations}
           routeGeoJSON={routeGeoJSON}
           handleGetDirection={handleGetDirection}
           directionInstruction={directionInstruction}

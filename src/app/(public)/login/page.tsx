@@ -98,7 +98,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                   <input
                     id="email"
                     name="email"
-                    type="email"
+                    type="text"
                     required
                     value={formData.email}
                     onChange={handleInputChange}
