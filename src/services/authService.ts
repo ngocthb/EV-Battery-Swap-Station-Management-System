@@ -1,19 +1,19 @@
 ﻿import api from "@/lib/axios";
-import { LoginFormData, User, Permission } from "@/types";
+import { User } from "@/types";
 
 class AuthService {
-  async login(formData: LoginFormData): Promise<{ token: string; user: User }> {
+  async login(formData: any): Promise<{ token: string; user: User }> {
     try {
       const response = await api.post("auth/login", {
         usernameOrEmail: formData.email,
         password: formData.password,
       });
-
+      console.log("Login response:", response);
       if (!response || !response.data) {
         throw new Error("Đăng nhập thất bại");
       }
 
-      const token = response.data.access_token;
+      const token = response.data.data.access_token;
 
       // Save token to localStorage/sessionStorage
       if (formData.rememberMe) {
@@ -46,7 +46,7 @@ class AuthService {
       console.log("API response:", response.data);
 
       // Transform backend data to User format
-      const backendUser = response.data;
+      const backendUser = response.data.data;
       const user: User = {
         id: backendUser.id,
         username: backendUser.username,

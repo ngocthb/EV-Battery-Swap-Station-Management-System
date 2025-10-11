@@ -71,10 +71,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <Link
-                  href="/staff/dashboard"
-                  className="flex items-center mr-8"
-                >
+                <Link href="/" className="flex items-center mr-8">
                   <div className="w-10 h-10 relative">
                     <Image
                       src="/logo.png"
@@ -85,14 +82,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   </div>
                   <h1 className="text-2xl font-bold text-gray-900">amply</h1>
                 </Link>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="Tìm kiếm..."
-                    className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  />
-                </div>
               </div>
 
               <div className="flex items-center space-x-4">
