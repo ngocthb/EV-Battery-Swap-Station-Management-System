@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import {
-  Battery,
   Eye,
   EyeOff,
   ArrowLeft,
@@ -15,11 +14,7 @@ import {
 import Link from "next/link";
 import Image from "next/image";
 
-interface RegisterPageProps {
-  onNavigate: (page: string) => void;
-}
-
-const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
+const RegisterPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({

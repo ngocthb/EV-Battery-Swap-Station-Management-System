@@ -64,12 +64,10 @@ const UpdateMembershipForm: React.FC<UpdateMembershipFormProps> = ({
         } else {
           setError("Không thể tải thông tin gói thành viên");
         }
-      } catch (err: any) {
-        setError(
-          err?.response?.data?.message ||
-            err?.message ||
-            "Có lỗi xảy ra khi tải dữ liệu"
-        );
+      } catch (err: unknown) {
+        const errorMessage =
+          err instanceof Error ? err.message : "Có lỗi xảy ra khi tải dữ liệu";
+        setError(errorMessage);
       } finally {
         setInitialLoading(false);
       }
@@ -147,12 +145,10 @@ const UpdateMembershipForm: React.FC<UpdateMembershipFormProps> = ({
       } else {
         setError(response.message || "Cập nhật gói thất bại");
       }
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Cập nhật gói thành viên thất bại"
-      );
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Cập nhật gói thành viên thất bại";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

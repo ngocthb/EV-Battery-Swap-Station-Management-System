@@ -12,8 +12,6 @@ import {
   CreditCard,
   BarChart3,
   Bell,
-  Search,
-  Home,
 } from "lucide-react";
 import { RolePermission } from "@/hooks/rolePermission";
 import Image from "next/image";
