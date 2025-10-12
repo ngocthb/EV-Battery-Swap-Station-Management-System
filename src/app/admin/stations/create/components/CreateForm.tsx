@@ -182,10 +182,10 @@ const CreateForm: React.FC<CreateFormProps> = ({
       } else {
         toast.error(response.message);
       }
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message || err?.message || "Tạo trạm thất bại"
-      );
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Tạo trạm thất bại";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

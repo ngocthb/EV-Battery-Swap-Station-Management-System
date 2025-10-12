@@ -20,7 +20,7 @@ interface AsideStationProps {
   handleGetDirection: (
     start: [number, number],
     end: [number, number]
-  ) => Promise<any>;
+  ) => Promise<unknown>;
 }
 
 interface QueryParams {

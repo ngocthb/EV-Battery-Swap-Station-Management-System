@@ -105,12 +105,10 @@ const CreateMembershipForm: React.FC = () => {
       } else {
         setError(response.message || "Tạo gói thất bại");
       }
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Tạo gói thành viên thất bại"
-      );
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Tạo gói thành viên thất bại";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

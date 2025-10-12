@@ -9,11 +9,7 @@ import { LoginFormData } from "@/types";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import Image from "next/image";
 
-interface LoginPageProps {
-  onNavigate: (page: string) => void;
-}
-
-const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
+const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
   const { isLoading, login } = useAuth();

@@ -138,12 +138,12 @@ export default function MembershipsPage() {
       } else {
         toast.error(response.message);
       }
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Có lỗi xảy ra khi xóa gói thành viên"
-      );
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Có lỗi xảy ra khi xóa gói thành viên";
+      toast.error(errorMessage);
     } finally {
       setDeleteModal((prev) => ({ ...prev, loading: false }));
     }
@@ -176,12 +176,12 @@ export default function MembershipsPage() {
       } else {
         toast.error(response.message || "Khôi phục gói thất bại!");
       }
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Có lỗi xảy ra khi khôi phục gói thành viên"
-      );
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Có lỗi xảy ra khi khôi phục gói thành viên";
+      toast.error(errorMessage);
     } finally {
       setRestoreModal((prev) => ({ ...prev, loading: false }));
     }

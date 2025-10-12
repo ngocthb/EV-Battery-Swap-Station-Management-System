@@ -137,12 +137,10 @@ export default function StationsPage() {
       } else {
         toast.error(response.message);
       }
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Có lỗi xảy ra khi xóa trạm"
-      );
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Có lỗi xảy ra khi xóa trạm";
+      toast.error(errorMessage);
     } finally {
       setDeleteModal((prev) => ({ ...prev, loading: false }));
     }
@@ -175,12 +173,12 @@ export default function StationsPage() {
       } else {
         toast.error(response.message || "Khôi phục trạm thất bại!");
       }
-    } catch (error: any) {
-      toast.error(
-        error?.response?.data?.message ||
-          error?.message ||
-          "Có lỗi xảy ra khi khôi phục trạm"
-      );
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Có lỗi xảy ra khi khôi phục trạm";
+      toast.error(errorMessage);
     } finally {
       setRestoreModal((prev) => ({ ...prev, loading: false }));
     }

@@ -77,7 +77,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({
           toast.error("Không thể tải thông tin trạm");
           router.push("/admin/stations");
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Error loading station:", err);
         toast.error("Không thể tải thông tin trạm");
         router.push("/admin/stations");
@@ -198,10 +198,10 @@ const UpdateForm: React.FC<UpdateFormProps> = ({
       } else {
         setError(response.message);
       }
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message || err?.message || "Cập nhật trạm thất bại"
-      );
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Cập nhật trạm thất bại";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

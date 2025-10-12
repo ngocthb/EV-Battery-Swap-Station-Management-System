@@ -28,9 +28,11 @@ export const useAuth = () => {
           const userProfile = await authService.fetchProfile();
           console.log("User profile fetched:", userProfile);
           dispatch(setUser(userProfile));
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error("Auth init error:", error);
-          dispatch(setError(error.message));
+          const errorMessage =
+            error instanceof Error ? error.message : "Lỗi xác thực";
+          dispatch(setError(errorMessage));
           // Nếu token không hợp lệ, logout
           dispatch(logout());
         } finally {
@@ -88,8 +90,10 @@ export const useAuth = () => {
     try {
       const userProfile = await authService.fetchProfile();
       dispatch(setUser(userProfile));
-    } catch (error: any) {
-      dispatch(setError(error.message));
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Lỗi làm mới thông tin";
+      dispatch(setError(errorMessage));
       // Nếu refresh thất bại, có thể token hết hạn
       dispatch(logout());
     } finally {
