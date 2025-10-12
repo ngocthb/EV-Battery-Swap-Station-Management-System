@@ -4,9 +4,10 @@ import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { StaffLayout } from "@/layout/StaffLayout";
+import { RootState } from "@/store";
 
 export default function StaffDashboard() {
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state: RootState) => state.auth.user);
   const router = useRouter();
 
   return (

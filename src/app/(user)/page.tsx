@@ -3,9 +3,10 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 export default function UserPage() {
-  const user = useSelector((state: any) => state.auth.user);
+  const user = useSelector((state: RootState) => state.auth.user);
   const router = useRouter();
 
   useEffect(() => {
@@ -25,7 +26,7 @@ export default function UserPage() {
           User Dashboard
         </h1>
         <p className="text-lg text-gray-600 mb-8 text-center">
-          Welcome, {user.name}!
+          Welcome, {user.fullName}!
         </p>
         {/* Add user features here */}
       </div>

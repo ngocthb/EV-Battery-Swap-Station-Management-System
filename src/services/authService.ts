@@ -1,8 +1,14 @@
 ﻿import api from "@/lib/axios";
 import { User } from "@/types";
 
+interface LoginFormData {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
+
 class AuthService {
-  async login(formData: any): Promise<{ token: string; user: User }> {
+  async login(formData: LoginFormData): Promise<{ token: string; user: User }> {
     try {
       const response = await api.post("auth/login", {
         usernameOrEmail: formData.email,
@@ -30,8 +36,10 @@ class AuthService {
       const user = await this.fetchProfile();
 
       return { token, user };
-    } catch (error: any) {
-      throw new Error(error?.message);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Đăng nhập thất bại";
+      throw new Error(errorMessage);
     }
   }
 
@@ -57,9 +65,13 @@ class AuthService {
       };
 
       return user;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logout();
-      throw new Error(error?.message || "Không thể lấy thông tin người dùng");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Không thể lấy thông tin người dùng";
+      throw new Error(errorMessage);
     }
   }
 

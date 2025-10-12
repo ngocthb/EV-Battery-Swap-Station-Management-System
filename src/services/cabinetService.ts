@@ -6,8 +6,10 @@ export const getCabinetsByStationId = async (stationId: number) => {
       params: { stationId },
     });
     return response.data;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching cabinets:", error);
-    return { success: false, message: error.message };
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error";
+    return { success: false, message: errorMessage };
   }
 };
