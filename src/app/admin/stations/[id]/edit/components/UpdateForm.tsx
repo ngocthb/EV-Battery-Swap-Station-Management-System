@@ -5,7 +5,6 @@ import { updateStation, getStationById } from "@/services/stationService";
 import { useRouter } from "next/navigation";
 import { useDebounce } from "@/hooks/useDebounce";
 import { geocodeAddress } from "@/utils/geocoding";
-import { Station } from "@/types";
 
 import {
   MapPin,

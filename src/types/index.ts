@@ -144,3 +144,14 @@ export interface Transaction {
   cost: number;
   status: "completed" | "pending" | "failed";
 }
+
+export interface Membership {
+  id: number;
+  name: string;
+  description: string;
+  duration: number;
+  status: boolean;
+  price: number;
+  createdAt?: string;
+  updatedAt?: string;
+}

@@ -27,14 +27,17 @@ export const createStation = async (data: {
   return { success: resData.success, message: resData.message };
 };
 
-export const updateStation = async (id: number, data: {
-  name: string;
-  description: string;
-  address: string;
-  latitude: number;
-  longitude: number;
-  temperature: number;
-}): Promise<{
+export const updateStation = async (
+  id: number,
+  data: {
+    name: string;
+    description: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    temperature: number;
+  }
+): Promise<{
   success: boolean;
   message: string;
 }> => {
