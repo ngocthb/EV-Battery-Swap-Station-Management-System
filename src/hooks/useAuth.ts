@@ -50,7 +50,11 @@ export const useAuth = () => {
   }, [dispatch, user, isLoading]); // Include dependencies to ensure proper updates
 
   // Login function
-  const login = async (formData: any) => {
+  const login = async (formData: {
+    email: string;
+    password: string;
+    rememberMe?: boolean;
+  }) => {
     dispatch(setLoading(true));
     dispatch(setError(null));
 
@@ -59,8 +63,10 @@ export const useAuth = () => {
       dispatch(setUser(userData));
       toast.success("Đăng nhập thành công!");
       return userData;
-    } catch (error: any) {
-      dispatch(setError(error.message));
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Đăng nhập thất bại";
+      dispatch(setError(errorMessage));
       throw error;
     } finally {
       dispatch(setLoading(false));

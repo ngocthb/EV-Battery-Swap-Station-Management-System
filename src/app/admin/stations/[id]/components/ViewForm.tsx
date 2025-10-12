@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { getStationById } from "@/services/stationService";
 import { useRouter } from "next/navigation";
 import { getCabinetsByStationId } from "@/services/cabinetService";
+import { Station, Cabinet } from "@/types";
 import {
   MapPin,
   FileText,
@@ -20,8 +21,8 @@ interface ViewFormProps {
 
 const ViewForm: React.FC<ViewFormProps> = ({ stationId }) => {
   const router = useRouter();
-  const [station, setStation] = useState<any>(null);
-  const [cabinets, setCabinets] = useState<any[]>([]);
+  const [station, setStation] = useState<Station | null>(null);
+  const [cabinets, setCabinets] = useState<Cabinet[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -37,7 +38,7 @@ const ViewForm: React.FC<ViewFormProps> = ({ stationId }) => {
         if (cabinetResponse.success) {
           setCabinets(cabinetResponse.data || []);
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("Error fetching station or cabinets:", error);
       } finally {
         setLoading(false);
