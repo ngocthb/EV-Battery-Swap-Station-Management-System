@@ -2,16 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { logout } from "@/store/slices/authSlice";
 import {
   Battery,
   Zap,
-  Car,
   BarChart3,
   MapPin,
-  Users,
-  Settings,
   Phone,
   Mail,
   Menu,
@@ -19,26 +14,17 @@ import {
   Monitor,
   TrendingUp,
   Shield,
-  Clock,
   LogIn,
   UserPlus,
 } from "lucide-react";
+import Image from "next/image";
 
 export default function HomePage() {
-  const user = useAppSelector((state) => state.auth.user);
-  const dispatch = useAppDispatch();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("home");
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
-  };
-
-  console.log(user?.isAdmin);
-  const handleLogout = () => {
-    dispatch(logout());
-    localStorage.removeItem("token");
-    window.location.reload();
   };
 
   return (
@@ -47,12 +33,17 @@ export default function HomePage() {
       <header className="bg-white shadow-sm relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Battery className="w-5 h-5 text-white" />
+            <Link href="/" className="flex items-center mr-8">
+              <div className="w-10 h-10 relative">
+                <Image
+                  src="/logo.png"
+                  alt="Logo"
+                  fill
+                  className="object-contain"
+                />
               </div>
-              <span className="text-xl font-bold text-gray-900">EVSwap</span>
-            </div>
+              <h1 className="text-2xl font-bold text-gray-900">amply</h1>
+            </Link>
 
             <nav className="hidden lg:flex space-x-8">
               <Link
@@ -78,6 +69,12 @@ export default function HomePage() {
                 className="text-gray-600 hover:text-blue-600 transition-colors"
               >
                 Giới thiệu
+              </Link>
+              <Link
+                href="/booking"
+                className="text-gray-600 hover:text-blue-600 transition-colors"
+              >
+                Đặt lịch
               </Link>
               <Link
                 href="#contact"

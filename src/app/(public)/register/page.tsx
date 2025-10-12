@@ -13,7 +13,8 @@ import {
   Building,
 } from "lucide-react";
 import Link from "next/link";
-import { toast } from "react-toastify";
+import Image from "next/image";
+
 interface RegisterPageProps {
   onNavigate: (page: string) => void;
 }
@@ -104,10 +105,15 @@ const RegisterPage: React.FC<RegisterPageProps> = ({ onNavigate }) => {
             </Link>
 
             <div className="flex items-center justify-center space-x-2 mb-6">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Battery className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 relative">
+                <Image
+                  src="/logo.png"
+                  alt="Logo"
+                  fill
+                  className="object-contain"
+                />
               </div>
-              <span className="text-2xl font-bold text-gray-900">EVSwap</span>
+              <span className="text-3xl font-bold text-gray-900">amply</span>
             </div>
 
             <h2 className="text-3xl font-bold text-gray-900">Tạo tài khoản</h2>

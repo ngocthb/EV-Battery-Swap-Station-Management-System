@@ -2,12 +2,12 @@
 
 import React, { useState } from "react";
 import { Battery, Eye, EyeOff, ArrowLeft, Mail, Lock } from "lucide-react";
-import api from "@/lib/axios";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAppDispatch } from "@/store/hooks";
-import { userData } from "@/store/slices/authSlice";
-import { toast } from "react-toastify";
+import { useAuth } from "@/hooks/useAuth";
+import { LoginFormData } from "@/types";
+import { LoadingSpinner } from "@/components/LoadingSpinner";
+import Image from "next/image";
 
 interface LoginPageProps {
   onNavigate: (page: string) => void;
@@ -15,11 +15,9 @@ interface LoginPageProps {
 
 const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const dispatch = useAppDispatch();
-
-  const [formData, setFormData] = useState({
+  const { isAuthenticated, isLoading, user, login } = useAuth();
+  const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
     rememberMe: false,
@@ -33,35 +31,26 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!formData.email || !formData.password) {
-      return;
-    }
-    setLoading(true);
+
     try {
-      // chi tra ve token
-      const res = await api.post("/user/login", formData);
-      if (res && res.data && res.data.token && res.data.user) {
-        localStorage.setItem("token", res.data.token);
+      const user = await login(formData);
+      console.log("User data:", user);
+      console.log("User role:", user.role);
 
-        // const userData = await api.get("/user/me")
-        // localStorage.setItem("token", userData.data.token);
-        // dispatch(userData(userData.data.user));
-
-        // if(userData.data.user.isAdmin){
-        //   router.push("/admin/dashboard");
-        // } else {
-        //   router.push("/");
-        // }
-        toast.success("Đăng nhập thành công!");
-        router.push("/");
+      if (user.role === "ADMIN") {
+        console.log("Redirecting to /admin/dashboard");
+        router.push("/admin/dashboard");
+      } else if (user.role === "STAFF") {
+        console.log("Redirecting to /staff/dashboard");
+        router.push("/staff/dashboard");
       } else {
+        console.log("Redirecting to /");
+        router.push("/");
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || "Đăng nhập thất bại!");
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -81,10 +70,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
             </Link>
 
             <div className="flex items-center justify-center space-x-2 mb-6">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Battery className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 relative">
+                <Image
+                  src="/logo.png"
+                  alt="Logo"
+                  fill
+                  className="object-contain"
+                />
               </div>
-              <span className="text-2xl font-bold text-gray-900">EVSwap</span>
+              <span className="text-3xl font-bold text-gray-900">amply</span>
             </div>
 
             <h2 className="text-3xl font-bold text-gray-900">Đăng nhập</h2>
@@ -110,7 +104,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                   <input
                     id="email"
                     name="email"
-                    type="email"
+                    type="text"
                     required
                     value={formData.email}
                     onChange={handleInputChange}
@@ -187,9 +181,14 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
             <div>
               <button
                 type="submit"
-                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                disabled={isLoading}
+                className="group relative w-full flex justify-center items-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Đăng nhập
+                {isLoading ? (
+                  <LoadingSpinner size="sm" color="text-white mr-3" />
+                ) : (
+                  "Đăng nhập"
+                )}
               </button>
             </div>
 

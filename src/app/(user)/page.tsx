@@ -1,11 +1,11 @@
 "use client";
 
-import { useAppSelector } from "@/store/hooks";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { useSelector } from "react-redux";
 
 export default function UserPage() {
-  const user = useAppSelector((state) => state.auth.user);
+  const user = useSelector((state: any) => state.auth.user);
   const router = useRouter();
 
   useEffect(() => {
