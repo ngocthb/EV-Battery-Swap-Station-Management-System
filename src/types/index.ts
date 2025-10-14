@@ -120,6 +120,7 @@ export interface Station {
   longitude: number;
   status: boolean;
   batteryCount: number;
+  temperature: string;
   openTime: string;
   image: string;
   swappableBatteries: number;

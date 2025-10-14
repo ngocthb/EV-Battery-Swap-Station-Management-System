@@ -255,8 +255,8 @@ export default function StationsPage() {
           </div>
         </div>
 
-        {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+          {/* Filters and Search */}
           <div className="p-6 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
               <div className="flex flex-col lg:flex-row gap-4">
