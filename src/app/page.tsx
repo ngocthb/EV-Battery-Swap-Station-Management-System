@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
+import { useRouter } from "next/navigation";
+
 import { logout } from "@/store/slices/authSlice";
 import {
   Battery,
@@ -24,6 +25,13 @@ import {
   UserPlus,
 } from "lucide-react";
 
+import { profile } from "console";
+import Image from "next/image";
+import { useAuth } from "@/hooks/useAuth";
+import { useState, useRef } from "react";
+import { useClickOutside } from "@/hooks/useClickOutside";
+import { User, KeyRound, LogOut } from "lucide-react"; // Import thêm các icon này
+
 export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("home");
@@ -31,6 +39,23 @@ export default function HomePage() {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+  const { user, logout } = useAuth();
+  const dispatch = useAppDispatch();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useClickOutside(dropdownRef, () => {
+    if (isDropdownOpen) {
+      setIsDropdownOpen(false);
+    }
+  });
 
   return (
     <div className="min-h-screen bg-white">
@@ -78,21 +103,88 @@ export default function HomePage() {
               </Link>
             </nav>
 
-            <div className="hidden lg:flex items-center space-x-4">
-              <Link
-                href={"/login"}
-                className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Đăng nhập</span>
-              </Link>
-              <Link
-                href={"/register"}
-                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Đăng ký</span>
-              </Link>
+            <div className="hidden lg:flex items-center gap-4">
+              {user ? (
+                <div ref={dropdownRef} className="relative">
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-3 focus:outline-none"
+                  >
+                    <Image
+                      src={user.avatar}
+                      alt={user.fullName ?? "User avatar"}
+                      className="w-8 h-8 rounded-full object-cover"
+                      width={32}
+                      height={32}
+                    />
+                    <span className="font-medium text-gray-900 hidden md:block">
+                      {user.fullName ?? user.username}
+                    </span>
+                  </button>
+
+                  {/* 3. Menu dropdown */}
+                  {isDropdownOpen && (
+                    <div
+                      className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 
+             transition ease-out duration-100 "
+                      style={{
+                        transform: isDropdownOpen
+                          ? "opacity(1) scale(1)"
+                          : "opacity(0) scale(0.95)",
+                        visibility: isDropdownOpen ? "visible" : "hidden",
+                      }}
+                    >
+                      <div className="py-1">
+                        <div className="px-4 py-2   border-b border-gray-100">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            Email: {user.email}
+                          </p>
+                        </div>
+                        <Link
+                          href="/profile"
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <User className="w-4 h-4 text-gray-500" />
+                          Thông tin cá nhân
+                        </Link>
+                        <Link
+                          href="/change-password"
+                          className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <KeyRound className="w-4 h-4 text-gray-500" />
+                          <span>Đổi mật khẩu</span>
+                        </Link>
+
+                        <div className="border-t border-gray-100 my-1"></div>
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        >
+                          <LogOut className="w-4 h-4" />
+                          <span>Đăng xuất</span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Link
+                    href={"/login"}
+                    className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
+                  >
+                    {/* <LogIn className="w-4 h-4" /> */}
+                    <span>Đăng nhập</span>
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+                  >
+                    {/* <UserPlus className="w-4 h-4" /> */}
+                    <span>Đăng ký</span>
+                  </Link>
+                </>
+              )}
             </div>
 
             <button
@@ -189,10 +281,16 @@ export default function HomePage() {
 
             <div className="relative">
               <div className="bg-blue-600 rounded-3xl transform rotate-3 h-96 relative overflow-hidden">
-                <img
+                {/* <img
                   src="https://images.pexels.com/photos/313782/pexels-photo-313782.jpeg?auto=compress&cs=tinysrgb&w=800"
                   alt="Cơ sở hạ tầng thành phố thông minh"
                   className="w-full h-full object-cover opacity-90"
+                /> */}
+                <Image
+                  src="https://images.pexels.com/photos/313782/pexels-photo-313782.jpeg?auto=compress&cs=tinysrgb&w=800"
+                  alt="Cơ sở hạ tầng thành phố thông minh"
+                  fill // <-- Thêm thuộc tính này
+                  className="object-cover" // <-- Giữ lại object-cover để ảnh không bị méo
                 />
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 to-purple-600/30"></div>
               </div>
