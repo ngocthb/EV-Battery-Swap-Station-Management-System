@@ -1,16 +1,11 @@
 import Image from "next/image";
 
-/**
- * Helper function to get initials from a name.
- * It's robust against null, undefined, or non-string inputs.
- */
 const getInitials = (name: string): string => {
-  // Safety check: if name is not a valid string, return a placeholder.
   if (!name || typeof name !== "string") {
     return "?";
   }
 
-  const words = name.split(" ").filter(Boolean); // Split by space and remove empty entries
+  const words = name.split(" ").filter(Boolean);
 
   if (words.length === 0) {
     return "?";
@@ -22,24 +17,16 @@ const getInitials = (name: string): string => {
   return `${firstInitial}${lastInitial}`.toUpperCase();
 };
 
-/**
- * Props for the Avatar component.
- */
 interface AvatarProps {
-  /** The source URL of the image. Can be an external URL. */
   src?: string | null;
-  /** The full name of the user, used for generating initials as a fallback. */
+
   name: string;
-  /** The size (width and height) of the avatar in pixels. Defaults to 32. */
+
   size?: number;
-  /** Additional CSS classes to apply to the avatar container. */
+
   className?: string;
 }
 
-/**
- * A versatile Avatar component that displays an image from a URL or falls back to user initials.
- * It automatically uses a Next.js API route proxy for external images to avoid hostname configuration issues.
- */
 export function Avatar({ src, name, size = 32, className = "" }: AvatarProps) {
   const initials = getInitials(name);
   const proxySrc = src
@@ -59,7 +46,7 @@ export function Avatar({ src, name, size = 32, className = "" }: AvatarProps) {
           width={size}
           height={size}
           className="object-cover"
-          unoptimized={true} // ✅ Thêm prop này vào
+          unoptimized={true}
         />
       ) : (
         <span>{initials}</span>

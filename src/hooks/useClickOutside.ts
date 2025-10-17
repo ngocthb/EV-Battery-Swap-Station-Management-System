@@ -10,11 +10,11 @@ export const useClickOutside = <T extends HTMLElement = HTMLElement>(
   useEffect(() => {
     const listener = (event: Event) => {
       const el = ref?.current;
-      // Nếu click vào bên trong element hoặc các element con thì không làm gì cả
+
       if (!el || el.contains((event?.target as Node) || null)) {
         return;
       }
-      handler(event); // Ngược lại thì gọi handler
+      handler(event);
     };
 
     document.addEventListener("mousedown", listener);
@@ -24,5 +24,5 @@ export const useClickOutside = <T extends HTMLElement = HTMLElement>(
       document.removeEventListener("mousedown", listener);
       document.removeEventListener("touchstart", listener);
     };
-  }, [ref, handler]); // Chỉ chạy lại effect nếu ref hoặc handler thay đổi
+  }, [ref, handler]);
 };

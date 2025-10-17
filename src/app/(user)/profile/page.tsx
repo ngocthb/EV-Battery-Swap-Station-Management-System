@@ -1,8 +1,16 @@
 "use client";
 
 import { useState, useEffect, useMemo, ChangeEvent, FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
-import { User as UserIcon, Mail, Save, ImageIcon, Shield } from "lucide-react";
+import {
+  User as UserIcon,
+  Mail,
+  Save,
+  ImageIcon,
+  Shield,
+  ArrowLeft,
+} from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { setUser } from "@/store/slices/authSlice";
 import { userService } from "@/services/userService";
@@ -12,6 +20,7 @@ function normalizeUrl(u: string) {
 }
 
 export default function ProfilePage() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector((s) => s.auth.user);
 
@@ -20,7 +29,6 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    console.log("Dữ liệu currentUser từ Redux:", currentUser);
     if (currentUser) {
       setFormData({
         fullName: currentUser.fullName ?? "",
@@ -44,8 +52,6 @@ export default function ProfilePage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Gợi ý thay thế cho hàm handleSubmit của bạn
-
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!currentUser || !hasChanges || isLoading) return;
@@ -61,20 +67,12 @@ export default function ProfilePage() {
 
       if (!payload.fullName) throw new Error("Họ và tên không được để trống.");
 
-      // 1. Chỉ gọi API cập nhật một lần
       await userService.updateProfile(payload);
-
-      // 2. Sau khi thành công, gọi API meNoCache để lấy dữ liệu MỚI NHẤT và ĐÁNG TIN CẬY NHẤT
       const latestUser = await userService.meNoCache();
-
-      // 3. Dispatch dữ liệu đáng tin cậy này vào Redux.
-      // useEffect sẽ tự động cập nhật lại formData cho bạn.
       dispatch(setUser(latestUser));
 
       alert("Cập nhật thông tin thành công!");
     } catch (err: any) {
-      // Nếu có lỗi, chúng ta không làm gì với state cả,
-      // UI sẽ tự động hiển thị lại dữ liệu cũ đúng từ Redux.
       setError(err?.message || "Có lỗi xảy ra.");
     } finally {
       setIsLoading(false);
@@ -200,7 +198,15 @@ export default function ProfilePage() {
 
               {error && <p className="text-sm text-red-600">{error}</p>}
 
-              <div className="flex justify-end">
+              <div className="flex justify-end items-center gap-4 pt-2">
+                <button
+                  type="button"
+                  onClick={() => router.back()}
+                  className="inline-flex items-center gap-2 justify-center rounded-lg border border-gray-300 bg-white py-2 px-6 font-semibold text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Quay lại
+                </button>
                 <button
                   type="submit"
                   disabled={isLoading || !hasChanges}

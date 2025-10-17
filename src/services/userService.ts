@@ -9,26 +9,18 @@ type UpdateProfilePayload = {
 };
 
 class UserService {
-  /**
-   * ✅ Private helper để bọc các API call và xử lý lỗi tập trung.
-   */
   private async _requestWrapper<T>(
-    // Sửa lại kiểu dữ liệu của apiCall
     apiCall: () => Promise<AxiosResponse<T>>,
     errorMessage: string
   ): Promise<T> {
     try {
       const response = await apiCall();
-      return response.data; // <-- Sửa ở đây, chỉ trả về response.data
+      return response.data;
     } catch (error: any) {
-      // Ném ra lỗi đã được chuẩn hóa
       throw new Error(error?.response?.data?.message || errorMessage);
     }
   }
 
-  /**
-   * Lấy thông tin user hiện tại.
-   */
   async me(): Promise<User> {
     return this._requestWrapper(
       () => api.get<User>("/user/me"),
@@ -36,9 +28,6 @@ class UserService {
     );
   }
 
-  /**
-   * Bản no-cache để revalidate UI.
-   */
   async meNoCache(): Promise<User> {
     return this._requestWrapper(
       () =>
@@ -53,9 +42,6 @@ class UserService {
     );
   }
 
-  /**
-   * Cập nhật profile hiện tại.
-   */
   async updateProfile(data: UpdateProfilePayload): Promise<User> {
     return this._requestWrapper(
       () => api.patch<User>("/user/update-profile", data),
