@@ -7,8 +7,6 @@ import { useRouter } from "next/navigation";
 
 import { logout } from "@/store/slices/authSlice";
 
-import { useState } from "react";
-
 import {
   Battery,
   Zap,
@@ -27,7 +25,6 @@ import {
 import Image from "next/image";
 
 import { profile } from "console";
-import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useRef } from "react";
 import { useClickOutside } from "@/hooks/useClickOutside";
