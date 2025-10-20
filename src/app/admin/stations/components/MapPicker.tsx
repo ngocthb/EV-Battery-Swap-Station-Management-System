@@ -5,19 +5,18 @@ import mapboxgl from "mapbox-gl";
 import { MapPin, Crosshair, Info } from "lucide-react";
 import "mapbox-gl/dist/mapbox-gl.css";
 
-// Set Mapbox token - fallback to a demo token if not set
-mapboxgl.accessToken =
-  process.env.NEXT_PUBLIC_MAPBOX_TOKEN ||
-  "pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw";
+mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
 interface Props {
   onSelect?: (lat: number, lng: number) => void;
+  onAddressChange?: (address: string) => void;
   initial?: { lat: number; lng: number } | null;
   coordinates?: { lat: number; lng: number } | null;
 }
 
 const MapPicker: React.FC<Props> = ({
   onSelect,
+  onAddressChange,
   initial = null,
   coordinates = null,
 }) => {
@@ -29,6 +28,35 @@ const MapPicker: React.FC<Props> = ({
     lng: number;
   } | null>(initial);
   const [mapLoaded, setMapLoaded] = useState(false);
+
+  // Helper function to safely format coordinates
+  const formatCoordinate = (value: any): string => {
+    if (typeof value === "number" && !isNaN(value)) {
+      return value.toFixed(6);
+    }
+    return "N/A";
+  };
+
+  // Reverse geocoding function to get address from coordinates
+  const reverseGeocode = async (lng: number, lat: number) => {
+    try {
+      const response = await fetch(
+        `https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?access_token=${mapboxgl.accessToken}`
+      );
+      const data = await response.json();
+      
+      if (data.features && data.features.length > 0) {
+        const address = data.features[0].place_name;
+        if (onAddressChange) {
+          onAddressChange(address);
+        }
+        return address;
+      }
+    } catch (error) {
+      console.error("Reverse geocoding error:", error);
+    }
+    return null;
+  };
 
   // Helper function to create a marker
   const createMarker = (lng: number, lat: number, color: string = "red") => {
@@ -97,13 +125,16 @@ const MapPicker: React.FC<Props> = ({
       createMarker(initial.lng, initial.lat, "red");
     }
 
-    mapRef.current.on("click", (e) => {
+    mapRef.current.on("click", async (e) => {
       const lng = e.lngLat.lng;
       const lat = e.lngLat.lat;
 
       console.log("Map clicked at:", { lng, lat });
       setSelectedCoords({ lat, lng });
       createMarker(lng, lat, "red");
+
+      // Get address from coordinates
+      await reverseGeocode(lng, lat);
 
       if (onSelect) onSelect(lat, lng);
     });
@@ -174,13 +205,13 @@ const MapPicker: React.FC<Props> = ({
                   <div>
                     <span className="text-gray-600">Latitude:</span>
                     <span className="ml-2 font-mono text-gray-900">
-                      {selectedCoords.lat.toFixed(6)}
+                      {formatCoordinate(selectedCoords?.lat)}
                     </span>
                   </div>
                   <div>
                     <span className="text-gray-600">Longitude:</span>
                     <span className="ml-2 font-mono text-gray-900">
-                      {selectedCoords.lng.toFixed(6)}
+                      {formatCoordinate(selectedCoords?.lng)}
                     </span>
                   </div>
                 </div>
