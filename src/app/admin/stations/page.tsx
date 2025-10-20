@@ -83,7 +83,7 @@ export default function StationsPage() {
     loading,
     refresh,
   } = useFetchList<Station[], QueryParams>(getAllStationList, debouncedQuery);
-
+  console.log(stationList);
   const handleSearch = (data: string) => {
     updateQuery({ search: data });
   };
@@ -255,8 +255,8 @@ export default function StationsPage() {
           </div>
         </div>
 
-        {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
+          {/* Filters and Search */}
           <div className="p-6 border-b border-gray-200">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
               <div className="flex flex-col lg:flex-row gap-4">
@@ -360,7 +360,7 @@ export default function StationsPage() {
                     Địa chỉ
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cabin
+                    Nhiệt độ
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Trạng thái
@@ -418,7 +418,7 @@ export default function StationsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {station?.batteryCount} pin
+                        {station?.temperature} °C
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span

@@ -120,8 +120,10 @@ export interface Station {
   longitude: number;
   status: boolean;
   batteryCount: number;
+  temperature: string;
   openTime: string;
-  image: string;
+  closeTime?: string;
+  image?: string;
   swappableBatteries: number;
 }
 
@@ -156,6 +158,12 @@ export interface Membership {
   updatedAt?: string;
 }
 
+export interface Slot {
+  id: number;
+  batteryId: number | null;
+  status: string; // "AVAILABLE" | "RESERVED" | "CHARGING" | "SWAPPING" | "MAINTENANCE"
+}
+
 export interface Cabinet {
   id: number;
   name: string;
@@ -163,6 +171,11 @@ export interface Cabinet {
   temperature: number;
   status: boolean;
   station?: Station;
+  slots?: Slot[];
+  // aggregate/status counts returned by API
+  availablePins?: number;
+  chargingPins?: number;
+  emptySlots?: number;
   createdAt?: string;
   updatedAt?: string;
 }

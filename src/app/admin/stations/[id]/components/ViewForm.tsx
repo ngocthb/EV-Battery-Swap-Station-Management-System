@@ -13,6 +13,8 @@ import {
   Loader2,
   Battery,
   Thermometer,
+  Image as ImageIcon,
+  Clock,
 } from "lucide-react";
 
 interface ViewFormProps {
@@ -85,56 +87,103 @@ const ViewForm: React.FC<ViewFormProps> = ({ stationId }) => {
 
         {/* Station Details */}
         <div className="flex-1 overflow-auto p-6">
-          <div>
-            {/* Basic Information */}
-            <div className=" rounded-lg p-4">
-              <div className="space-y-4">
+          <div className="rounded-lg">
+            {/* Image */}
+            <div className="mb-6">
+              {station?.image ? (
+                <div className="w-full h-56 rounded-lg overflow-hidden bg-gray-100">
+                  <img
+                    src={station.image}
+                    alt={station.name || "Station image"}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-full h-56 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400">
+                  <ImageIcon className="w-12 h-12" />
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-4">
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Building className="w-4 h-4 mr-2 text-gray-500" />
+                  Tên trạm sạc
+                </label>
+                <div className="w-full px-4 py-3 bg-white rounded-lg text-gray-900">
+                  {station?.name || "Không có dữ liệu"}
+                </div>
+              </div>
+
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <FileText className="w-4 h-4 mr-2 text-gray-500" />
+                  Mô tả
+                </label>
+                <div className="w-full px-4 py-3 bg-white rounded-lg text-gray-900 min-h-[80px]">
+                  {station?.description || "Không có dữ liệu"}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                    <Building className="w-4 h-4 mr-2 text-gray-500" />
-                    Tên trạm sạc
+                    <Clock className="w-4 h-4 mr-2 text-gray-500" />
+                    Giờ hoạt động
                   </label>
-                  <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                    {station?.name || "Không có dữ liệu"}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                    <FileText className="w-4 h-4 mr-2 text-gray-500" />
-                    Mô tả
-                  </label>
-                  <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900 min-h-[80px]">
-                    {station?.description || "Không có dữ liệu"}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                    <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                    Địa chỉ
-                  </label>
-                  <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                    {station?.address || "Không có dữ liệu"}
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Vĩ độ (Latitude)
-                    </label>
-                    <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                      {station?.latitude || "0.000000"}
+                  <div className="px-4 py-3 bg-white rounded-lg text-gray-900">
+                    <div className="flex items-center justify-between">
+                      <span>
+                        Open:{" "}
+                        <strong>{station?.openTime?.slice(0, 5) || "—"}</strong>
+                      </span>
+                      <span>
+                        Close:{" "}
+                        <strong>
+                          {station?.closeTime?.slice(0, 5) || "—"}
+                        </strong>
+                      </span>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Kinh độ (Longitude)
-                    </label>
-                    <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                      {station?.longitude || "0.000000"}
-                    </div>
+                </div>
+
+                <div>
+                  <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                    <Thermometer className="w-4 h-4 mr-2 text-gray-500" />
+                    Nhiệt độ
+                  </label>
+                  <div className="px-4 py-3 bg-white rounded-lg text-gray-900">
+                    {station?.temperature ? `${station.temperature}°C` : "—"}
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                  Địa chỉ
+                </label>
+                <div className="w-full px-4 py-3 bg-white rounded-lg text-gray-900">
+                  {station?.address || "Không có dữ liệu"}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Vĩ độ (Latitude)
+                  </label>
+                  <div className="w-full px-4 py-3 bg-white rounded-lg text-gray-900">
+                    {station?.latitude || "0.000000"}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Kinh độ (Longitude)
+                  </label>
+                  <div className="w-full px-4 py-3 bg-white rounded-lg text-gray-900">
+                    {station?.longitude || "0.000000"}
                   </div>
                 </div>
               </div>
@@ -184,6 +233,26 @@ const ViewForm: React.FC<ViewFormProps> = ({ stationId }) => {
                   <div className="flex items-center text-sm text-gray-600">
                     <Thermometer className="w-4 h-4 mr-1" />
                     <span>Nhiệt độ: {cabinet.temperature}°C</span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-gray-500">Khả dụng</span>
+                      <span className="px-2 py-1 bg-green-50 text-green-800 rounded-full text-xs font-medium">
+                        {cabinet.availablePins ?? 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-gray-500">Đang sạc</span>
+                      <span className="px-2 py-1 bg-yellow-50 text-yellow-800 rounded-full text-xs font-medium">
+                        {cabinet.chargingPins ?? 0}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-gray-500">Trống</span>
+                      <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+                        {cabinet.emptySlots ?? 0}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
