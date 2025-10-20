@@ -5,7 +5,21 @@ import Link from "next/link";
 import { AdminLayout } from "@/layout/AdminLayout";
 import { MapPin, Users, CreditCard, TrendingUp } from "lucide-react";
 
-const StatCard = ({ title, value, change, icon: Icon, color }: any) => (
+interface StatCardProps {
+  title: string;
+  value: string | number;
+  change: string;
+  icon: React.ComponentType<{ className?: string }>;
+  color: string;
+}
+
+const StatCard = ({
+  title,
+  value,
+  change,
+  icon: Icon,
+  color,
+}: StatCardProps) => (
   <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
     <div className="flex items-center justify-between mb-4">
       <div className={`p-3 rounded-lg ${color}`}>

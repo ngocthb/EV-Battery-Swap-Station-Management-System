@@ -27,7 +27,7 @@ api.interceptors.request.use(
 
 // Response Interceptor
 api.interceptors.response.use(
-  (response) => response.data,
+  (response) => response,
   (error) => {
     // Xử lý lỗi chung (401, 403, 500...)
     if (error.response?.status === 401) {

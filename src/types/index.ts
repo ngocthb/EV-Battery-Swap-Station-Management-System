@@ -93,7 +93,7 @@ export interface ApiError {
   status?: number;
 }
 
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
   success: boolean;
   message: string;
   data?: T;
@@ -104,7 +104,7 @@ export interface ApiResponse<T = any> {
 export interface NavigationItem {
   name: string;
   href: string;
-  icon?: any;
+  icon?: React.ComponentType<{ className?: string }>;
   requiredRoles?: string[];
   requiredPermissions?: string[];
   children?: NavigationItem[];
@@ -114,15 +114,15 @@ export interface NavigationItem {
 export interface Station {
   id: string;
   name: string;
-  location: {
-    address: string;
-    latitude: number;
-    longitude: number;
-  };
-  batterySlots: number;
-  availableBatteries: number;
-  status: "active" | "maintenance" | "offline";
-  staffId?: string;
+  address: string;
+  description: string;
+  latitude: number;
+  longitude: number;
+  status: boolean;
+  batteryCount: number;
+  openTime: string;
+  image: string;
+  swappableBatteries: number;
 }
 
 export interface Battery {
@@ -143,4 +143,26 @@ export interface Transaction {
   timestamp: string;
   cost: number;
   status: "completed" | "pending" | "failed";
+}
+
+export interface Membership {
+  id: number;
+  name: string;
+  description: string;
+  duration: number;
+  status: boolean;
+  price: number;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Cabinet {
+  id: number;
+  name: string;
+  stationId: number;
+  temperature: number;
+  status: boolean;
+  station?: Station;
+  createdAt?: string;
+  updatedAt?: string;
 }

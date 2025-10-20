@@ -1,14 +1,8 @@
 "use client";
 
-import { useSelector } from "react-redux";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { StaffLayout } from "@/layout/StaffLayout";
 
 export default function StaffDashboard() {
-  const user = useSelector((state: any) => state.auth.user);
-  const router = useRouter();
-
   return (
     <StaffLayout>
       <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center">
@@ -19,7 +13,7 @@ export default function StaffDashboard() {
                 Staff Dashboard
               </h1>
               <p className="text-lg text-gray-600 mb-2">
-                Welcome, {user?.fullName}! Manage your station operations here.
+                Welcome Manage your station operations here.
               </p>
             </div>
             <div className="flex gap-4">

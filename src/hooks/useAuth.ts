@@ -28,9 +28,11 @@ export const useAuth = () => {
           const userProfile = await authService.fetchProfile();
           console.log("User profile fetched:", userProfile);
           dispatch(setUser(userProfile));
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error("Auth init error:", error);
-          dispatch(setError(error.message));
+          const errorMessage =
+            error instanceof Error ? error.message : "Lỗi xác thực";
+          dispatch(setError(errorMessage));
           // Nếu token không hợp lệ, logout
           dispatch(logout());
         } finally {
@@ -50,7 +52,11 @@ export const useAuth = () => {
   }, [dispatch, user, isLoading]); // Include dependencies to ensure proper updates
 
   // Login function
-  const login = async (formData: any) => {
+  const login = async (formData: {
+    email: string;
+    password: string;
+    rememberMe?: boolean;
+  }) => {
     dispatch(setLoading(true));
     dispatch(setError(null));
 
@@ -59,9 +65,10 @@ export const useAuth = () => {
       dispatch(setUser(userData));
       toast.success("Đăng nhập thành công!");
       return userData;
-    } catch (error: any) {
-      dispatch(setError(error.message));
-      toast.error(error.message);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Đăng nhập thất bại";
+      dispatch(setError(errorMessage));
       throw error;
     } finally {
       dispatch(setLoading(false));
@@ -83,8 +90,10 @@ export const useAuth = () => {
     try {
       const userProfile = await authService.fetchProfile();
       dispatch(setUser(userProfile));
-    } catch (error: any) {
-      dispatch(setError(error.message));
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Lỗi làm mới thông tin";
+      dispatch(setError(errorMessage));
       // Nếu refresh thất bại, có thể token hết hạn
       dispatch(logout());
     } finally {

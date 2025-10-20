@@ -1,21 +1,18 @@
 "use client";
 
 import React, { useState } from "react";
-import { Battery, Eye, EyeOff, ArrowLeft, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, Mail, Lock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { LoginFormData } from "@/types";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import Image from "next/image";
 
-interface LoginPageProps {
-  onNavigate: (page: string) => void;
-}
-
-const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
+const LoginPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const { isAuthenticated, isLoading, user, login } = useAuth();
+  const { isLoading, login } = useAuth();
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
@@ -69,10 +66,15 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
             </Link>
 
             <div className="flex items-center justify-center space-x-2 mb-6">
-              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                <Battery className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 relative">
+                <Image
+                  src="/logo.png"
+                  alt="Logo"
+                  fill
+                  className="object-contain"
+                />
               </div>
-              <span className="text-2xl font-bold text-gray-900">EVSwap</span>
+              <span className="text-3xl font-bold text-gray-900">amply</span>
             </div>
 
             <h2 className="text-3xl font-bold text-gray-900">Đăng nhập</h2>
@@ -98,7 +100,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onNavigate }) => {
                   <input
                     id="email"
                     name="email"
-                    type="email"
+                    type="text"
                     required
                     value={formData.email}
                     onChange={handleInputChange}

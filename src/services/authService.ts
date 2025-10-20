@@ -1,5 +1,11 @@
 ﻿import api from "@/lib/axios";
-import { LoginFormData, User, Permission } from "@/types";
+import { User } from "@/types";
+
+interface LoginFormData {
+  email: string;
+  password: string;
+  rememberMe?: boolean;
+}
 
 class AuthService {
   async login(formData: LoginFormData): Promise<{ token: string; user: User }> {
@@ -8,12 +14,12 @@ class AuthService {
         usernameOrEmail: formData.email,
         password: formData.password,
       });
-
+      console.log("Login response:", response);
       if (!response || !response.data) {
         throw new Error("Đăng nhập thất bại");
       }
 
-      const token = response.data.access_token;
+      const token = response.data.data.access_token;
 
       // Save token to localStorage/sessionStorage
       if (formData.rememberMe) {
@@ -30,8 +36,10 @@ class AuthService {
       const user = await this.fetchProfile();
 
       return { token, user };
-    } catch (error: any) {
-      throw new Error(error?.message);
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Đăng nhập thất bại";
+      throw new Error(errorMessage);
     }
   }
 
@@ -46,7 +54,7 @@ class AuthService {
       console.log("API response:", response.data);
 
       // Transform backend data to User format
-      const backendUser = response.data;
+      const backendUser = response.data.data;
       const user: User = {
         id: backendUser.id,
         username: backendUser.username,
@@ -57,9 +65,13 @@ class AuthService {
       };
 
       return user;
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logout();
-      throw new Error(error?.message || "Không thể lấy thông tin người dùng");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Không thể lấy thông tin người dùng";
+      throw new Error(errorMessage);
     }
   }
 
