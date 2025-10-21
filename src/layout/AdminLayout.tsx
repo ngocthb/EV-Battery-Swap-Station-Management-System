@@ -12,6 +12,7 @@ import {
   CreditCard,
   BarChart3,
   Bell,
+  BatteryPlus,
 } from "lucide-react";
 import { RolePermission } from "@/hooks/rolePermission";
 import Image from "next/image";
@@ -41,6 +42,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       icon: MapPin,
     },
     { id: "cabins", label: "Quản lý Cabin", href: "/admin/cabins", icon: Zap },
+    {
+      id: "battery-types",
+      label: "Loại Pin",
+      href: "/admin/battery-types",
+      icon: BatteryPlus,
+    },
     {
       id: "batteries",
       label: "Quản lý Pin",

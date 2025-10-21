@@ -18,6 +18,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import Image from "next/image";
+import { Header } from "@/components/Header";
 
 export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -30,143 +31,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="bg-white shadow-sm relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link href="/" className="flex items-center mr-8">
-              <div className="w-10 h-10 relative">
-                <Image
-                  src="/logo.png"
-                  alt="Logo"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">amply</h1>
-            </Link>
-
-            <nav className="hidden lg:flex space-x-8">
-              <Link
-                href="#home"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Trang chủ
-              </Link>
-              <Link
-                href="#features"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Tính năng
-              </Link>
-              <Link
-                href="#dashboard"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Bảng điều khiển
-              </Link>
-              <Link
-                href="#about"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Giới thiệu
-              </Link>
-              <Link
-                href="/booking"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Đặt lịch
-              </Link>
-              <Link
-                href="#contact"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Liên hệ
-              </Link>
-            </nav>
-
-            <div className="hidden lg:flex items-center space-x-4">
-              <Link
-                href={"/login"}
-                className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                <LogIn className="w-4 h-4" />
-                <span>Đăng nhập</span>
-              </Link>
-              <Link
-                href={"/register"}
-                className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>Đăng ký</span>
-              </Link>
-            </div>
-
-            <button
-              onClick={toggleMenu}
-              className="lg:hidden p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-gray-100"
-            >
-              {isMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
-          </div>
-
-          {/* Mobile Menu */}
-          {isMenuOpen && (
-            <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 py-4 px-4 space-y-4 z-50">
-              <a
-                href="#home"
-                className="block text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Trang chủ
-              </a>
-              <a
-                href="#features"
-                className="block text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Tính năng
-              </a>
-              <a
-                href="#dashboard"
-                className="block text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Bảng điều khiển
-              </a>
-              <a
-                href="#about"
-                className="block text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Giới thiệu
-              </a>
-              <a
-                href="#contact"
-                className="block text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Liên hệ
-              </a>
-              <div className="border-t border-gray-200 pt-4 space-y-2">
-                <Link
-                  href={"/login"}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors w-full"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>Đăng nhập</span>
-                </Link>
-                <Link
-                  href={"/register"}
-                  className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full justify-center"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  <span>Đăng ký</span>
-                </Link>
-              </div>
-            </div>
-          )}
-        </div>
-      </header>
-
+      <Header />
       {/* Hero Section */}
       <section id="home" className="bg-gray-50 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

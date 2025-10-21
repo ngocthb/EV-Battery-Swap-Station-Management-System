@@ -19,17 +19,14 @@ export const useAuth = () => {
   useEffect(() => {
     const initAuth = async () => {
       const token = authService.getToken();
-      console.log("Auth init - Token exists:", !!token, "User exists:", !!user);
 
       if (token && !user && !isLoading) {
         dispatch(setLoading(true));
         try {
-          console.log("Fetching user profile...");
           const userProfile = await authService.fetchProfile();
-          console.log("User profile fetched:", userProfile);
+
           dispatch(setUser(userProfile));
         } catch (error: unknown) {
-          console.error("Auth init error:", error);
           const errorMessage =
             error instanceof Error ? error.message : "Lỗi xác thực";
           dispatch(setError(errorMessage));
@@ -39,8 +36,6 @@ export const useAuth = () => {
           dispatch(setLoading(false));
         }
       } else if (!token && user) {
-        // Nếu không có token nhưng có user trong store, logout
-        console.log("No token but user exists, logging out");
         dispatch(logout());
       } else if (!token && !user) {
         // Nếu không có token và không có user, set loading false
