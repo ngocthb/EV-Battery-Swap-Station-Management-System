@@ -14,6 +14,7 @@ interface FormErrors {
   name?: string;
   stationId?: string;
   temperature?: string;
+  slotCount?: string;
 }
 
 const CreateForm = () => {
@@ -24,6 +25,7 @@ const CreateForm = () => {
     name: "",
     stationId: 0,
     temperature: "",
+    slotCount: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -56,6 +58,10 @@ const CreateForm = () => {
       }
     }
 
+    if (!form.slotCount || Number(form.slotCount) <= 0) {
+      newErrors.slotCount = "Số slot phải lớn hơn 0";
+    }
+
     setErrors(newErrors);
 
     return Object.keys(newErrors).length === 0;
@@ -68,7 +74,12 @@ const CreateForm = () => {
 
     setForm((prev) => ({
       ...prev,
-      [name]: type === "number" || name === "stationId" ? Number(value) : value,
+      [name]:
+        name === "stationId" || name === "slotCount"
+          ? Number(value)
+          : type === "number"
+          ? Number(value)
+          : value,
     }));
 
     setErrors((prev) => ({
@@ -89,13 +100,15 @@ const CreateForm = () => {
     setLoading(true);
     try {
       const submitData = {
-        ...form,
+        name: form.name,
+        stationId: Number(form.stationId),
         temperature: Number(form.temperature),
+        slotCount: Number(form.slotCount),
       };
       const res = await createCabinetAPI(submitData);
       if (res.success) {
         toast.success(res.message);
-        setForm({ name: "", stationId: 0, temperature: "" });
+        setForm({ name: "", stationId: 0, temperature: "", slotCount: 0 });
       } else {
         toast.error(res.message);
       }
@@ -172,6 +185,28 @@ const CreateForm = () => {
             />
             {errors.temperature && (
               <p className="mt-1 text-sm text-red-600">{errors.temperature}</p>
+            )}
+          </div>
+
+          {/* Slot count */}
+          <div>
+            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+              <span>Số ô pin</span>
+            </label>
+            <input
+              name="slotCount"
+              type="number"
+              min={1}
+              value={form.slotCount}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                errors.slotCount
+                  ? "border-red-300 bg-red-50"
+                  : "border-gray-300"
+              }`}
+            />
+            {errors.slotCount && (
+              <p className="mt-1 text-sm text-red-600">{errors.slotCount}</p>
             )}
           </div>
 

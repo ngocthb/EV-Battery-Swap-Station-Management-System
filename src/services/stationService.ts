@@ -15,6 +15,9 @@ export const createStation = async (data: {
   name: string;
   description: string;
   address: string;
+  image: string;
+  openTime: string;
+  closeTime: string;
   latitude: number;
   longitude: number;
   temperature: number;
@@ -23,6 +26,7 @@ export const createStation = async (data: {
   message: string;
 }> => {
   const res = await api.post("/station", data);
+  console.log(data);
   const resData = res.data;
   return { success: resData.success, message: resData.message };
 };
@@ -33,6 +37,9 @@ export const updateStation = async (
     name: string;
     description: string;
     address: string;
+    image: string;
+    openTime: string;
+    closeTime: string;
     latitude: number;
     longitude: number;
     temperature: number;
@@ -42,6 +49,7 @@ export const updateStation = async (
   message: string;
 }> => {
   const res = await api.patch(`/station/${id}`, data);
+  console.log(data);
   const resData = res.data;
   return { success: resData.success, message: resData.message };
 };

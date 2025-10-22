@@ -51,9 +51,7 @@ class AuthService {
       }
 
       const response = await api.get("user/me");
-      console.log("API response:", response.data);
 
-      // Transform backend data to User format
       const backendUser = response.data.data;
       const user: User = {
         id: backendUser.id,
@@ -88,6 +86,46 @@ class AuthService {
   getToken(): string | null {
     if (typeof window === "undefined") return null; // SSR → trả về null
     return localStorage.getItem("token") || sessionStorage.getItem("token");
+  }
+
+  async updateProfile(data: { fullName?: string; avatar?: string }) {
+    try {
+      const response = await api.patch("user/update-profile", data);
+      return response.data.data;
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Cập nhật thất bại";
+      throw new Error(errorMessage);
+    }
+  }
+
+  async register(payload: {
+    username: string;
+    password: string;
+    email: string;
+  }) {
+    try {
+      const response = await api.post("auth/register", payload);
+      return response.data;
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Đăng ký thất bại";
+      throw new Error(errorMessage);
+    }
+  }
+
+  async changePassword(payload: {
+    currentPassword: string;
+    newPassword: string;
+  }) {
+    try {
+      const response = await api.patch("user/change-password", payload);
+      return response.data;
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Đổi mật khẩu thất bại";
+      throw new Error(errorMessage);
+    }
   }
 }
 

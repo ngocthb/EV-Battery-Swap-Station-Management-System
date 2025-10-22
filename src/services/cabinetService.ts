@@ -1,8 +1,12 @@
 import api from "@/lib/axios";
-import axios from "@/lib/axios";
 
 export const getCabinetsById = async (id: number) => {
   const res = await api.get(`/cabinet/${id}`);
+  return res.data;
+};
+
+export const getCabinetsByStationId = async (id: number) => {
+  const res = await api.get(`/cabinet/public/by-station/${id}`);
   return res.data;
 };
 
@@ -11,6 +15,10 @@ export const getAllCabinetListAPI = async <T>(params: T) => {
   return res.data;
 };
 
+export const getCabinetByIdAPI = async (id: number) => {
+  const res = await api.get(`/cabinet/${id}`);
+  return res.data;
+};
 export const createCabinetAPI = async <T>(data: T) => {
   const res = await api.post("/cabinet", data);
   return res.data;

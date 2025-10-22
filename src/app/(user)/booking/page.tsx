@@ -8,6 +8,7 @@ import MapBooking from "./components/MapBooking";
 import { Station } from "@/types";
 import useFetchList from "@/hooks/useFetchList";
 import { getAllPublicStationList } from "@/services/stationService";
+import { UserLayout } from "@/layout/UserLayout";
 
 interface Step {
   maneuver: {
@@ -30,6 +31,7 @@ function BookingPage() {
       longitude: 106.7017,
       status: true,
       batteryCount: 8,
+      temperature: "26.5",
       openTime: "Monday, 10:00 - 21:00",
       image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
       swappableBatteries: 2,
@@ -42,6 +44,7 @@ function BookingPage() {
       latitude: 10.7834,
       longitude: 106.6934,
       status: false,
+      temperature: "26.5",
       batteryCount: 5,
       openTime: "Monday, 08:00 - 22:00",
       image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
@@ -53,6 +56,7 @@ function BookingPage() {
       description: "Binh Thanh district battery swap station",
       address: "456 Xo Viet Nghe Tinh, Binh Thanh, Ho Chi Minh City",
       latitude: 10.8008,
+      temperature: "26.5",
       longitude: 106.7122,
       status: true,
       batteryCount: 12,
@@ -67,6 +71,7 @@ function BookingPage() {
       address: "789 Cong Hoa, Tan Binh, Ho Chi Minh City",
       latitude: 10.8142,
       longitude: 106.6438,
+      temperature: "26.5",
       status: true,
       batteryCount: 7,
       openTime: "Monday, 07:00 - 21:00",
@@ -80,6 +85,7 @@ function BookingPage() {
       address: "321 Nguyen Oanh, Go Vap, Ho Chi Minh City",
       latitude: 10.8376,
       longitude: 106.6676,
+      temperature: "26.5",
       status: false,
       batteryCount: 0,
       openTime: "Monday, 08:00 - 20:00",
@@ -93,6 +99,7 @@ function BookingPage() {
       address: "654 Vo Van Ngan, Thu Duc, Ho Chi Minh City",
       latitude: 10.8525,
       longitude: 106.7517,
+      temperature: "26.5",
       status: true,
       batteryCount: 15,
       openTime: "Monday, 06:00 - 22:00",
@@ -142,10 +149,7 @@ function BookingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <BookingHeader />
-
+    <UserLayout>
       {/*Body */}
       <div className="flex sm:flex-row flex-col-reverse sm:h-[calc(100vh-73px)] relative">
         {/*Aside */}
@@ -167,7 +171,7 @@ function BookingPage() {
           <StationDetail setOpenStationDetail={setOpenStationDetail} />
         )}
       </div>
-    </div>
+    </UserLayout>
   );
 }
 

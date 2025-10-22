@@ -16,7 +16,7 @@ import { toast } from "react-toastify";
 import useFetchList from "@/hooks/useFetchList";
 import { Station } from "@/types";
 import { getCabinetsById, updateCabinetAPI } from "@/services/cabinetService";
-import { useCabinAdmin } from "../../../context/CabinAdminContext";
+import { useCabinAdmin } from "../../../../cabins/context/CabinAdminContext";
 
 interface FormErrors {
   name?: string;
