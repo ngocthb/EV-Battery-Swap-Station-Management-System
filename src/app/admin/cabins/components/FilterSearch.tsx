@@ -1,16 +1,9 @@
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { Cabinet, Station } from "@/types";
+import { QueryParams, Station } from "@/types";
 import { Search, X } from "lucide-react";
 
 type FilterBarProps = {
-  query: {
-    search?: string;
-    page?: number;
-    limit?: number;
-    order?: string;
-    status?: boolean;
-    stationId: string | number | boolean | null | undefined;
-  };
+  query: QueryParams;
   loading: boolean;
   resultCount?: number;
   showStatus?: boolean;

@@ -8,22 +8,25 @@ import { createCabinetAPI } from "@/services/cabinetService";
 import useFetchList from "@/hooks/useFetchList";
 import { Station } from "@/types";
 import { getAllStationList } from "@/services/stationService";
-import { useCabinAdmin } from "../../context/CabinAdminContext";
+import { createBatteryAPI } from "@/services/batteryService";
+// import { useCabinAdmin } from "../../context/CabinAdminContext";
 
 interface FormErrors {
-  name?: string;
-  stationId?: string;
-  temperature?: string;
+  model?: string;
+  capacity?: number;
+  price?: number;
+  cycleLife?: number;
 }
 
 const CreateForm = () => {
-  const { setStationId } = useCabinAdmin();
+  // const { setStationId } = useCabinAdmin();
 
   const router = useRouter();
   const [form, setForm] = useState({
-    name: "",
-    stationId: 0,
-    temperature: "",
+    model: "",
+    capacity: 0,
+    price: 0,
+    cycleLife: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -35,26 +38,26 @@ const CreateForm = () => {
   const validateForm = () => {
     const newErrors: FormErrors = {};
 
-    if (!form.name.trim()) {
-      newErrors.name = "Tên tủ sạc không được để trống";
-    } else if (form.name.trim().length < 2) {
-      newErrors.name = "Tên tủ sạc phải có ít nhất 2 ký tự";
+    if (!form.model.trim()) {
+      newErrors.model = "Tên tủ sạc không được để trống";
+    } else if (form.model.trim().length < 2) {
+      newErrors.model = "Tên tủ sạc phải có ít nhất 2 ký tự";
     }
 
-    if (!form.stationId || form.stationId <= 0) {
-      newErrors.stationId = "Vui lòng chọn trạm";
-    }
+    // if (!form.stationId || form.stationId <= 0) {
+    //   newErrors.stationId = "Vui lòng chọn trạm";
+    // }
 
-    if (form.temperature.trim() === "") {
-      newErrors.temperature = "Vui lòng nhập nhiệt độ";
-    } else {
-      const temp = Number(form.temperature);
-      if (isNaN(temp)) {
-        newErrors.temperature = "Nhiệt độ phải là số";
-      } else if (temp < 0 || temp > 80) {
-        newErrors.temperature = "Nhiệt độ phải từ 0 đến 80 độ";
-      }
-    }
+    // if (form.temperature.trim() === "") {
+    //   newErrors.temperature = "Vui lòng nhập nhiệt độ";
+    // } else {
+    //   const temp = Number(form.temperature);
+    //   if (isNaN(temp)) {
+    //     newErrors.temperature = "Nhiệt độ phải là số";
+    //   } else if (temp < 0 || temp > 80) {
+    //     newErrors.temperature = "Nhiệt độ phải từ 0 đến 80 độ";
+    //   }
+    // }
 
     setErrors(newErrors);
 
@@ -90,12 +93,15 @@ const CreateForm = () => {
     try {
       const submitData = {
         ...form,
-        temperature: Number(form.temperature),
+        capacity: Number(form.capacity),
+        price: Number(form.price),
+        cycleLife: Number(form.cycleLife),
       };
-      const res = await createCabinetAPI(submitData);
+      console.log("create battery form", submitData);
+      const res = await createBatteryAPI(submitData);
       if (res.success) {
         toast.success(res.message);
-        setForm({ name: "", stationId: 0, temperature: "" });
+        setForm({ model: "", capacity: 0, price: 0, cycleLife: 0 });
       } else {
         toast.error(res.message);
       }
@@ -120,9 +126,7 @@ const CreateForm = () => {
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">
-              Tạo tủ sạc mới
-            </h1>
+            <h1 className="text-xl font-semibold text-gray-900">Tạo pin mới</h1>
             <p className="text-sm text-gray-600">Nhập thông tin và chọn trạm</p>
           </div>
         </div>
@@ -131,62 +135,106 @@ const CreateForm = () => {
       {/* Form */}
       <form className="flex-1 overflow-auto p-6">
         <div className="space-y-6">
-          {/* Cabin Name */}
+          {/* Pin model */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <Building className="w-4 h-4" />
-              <span>Tên tủ sạc</span>
+              <span>Mẫu pin sạc</span>
             </label>
             <input
-              name="name"
-              value={form.name}
+              name="model"
+              value={form.model}
               onChange={handleChange}
-              placeholder="VD: Tủ 3"
+              placeholder="VD: pin moi"
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.name ? "border-red-300 bg-red-50" : "border-gray-300"
+                errors.model ? "border-red-300 bg-red-50" : "border-gray-300"
               }`}
             />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+            {errors.model && (
+              <p className="mt-1 text-sm text-red-600">{errors.model}</p>
             )}
           </div>
 
-          {/* Temperature */}
+          {/* Capacity */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <Thermometer className="w-4 h-4" />
-              <span>Nhiệt độ hoạt động (°C)</span>
+              <span>Capacity</span>
             </label>
             <input
-              name="temperature"
+              name="capacity"
               type="text"
               min="0"
               max="80"
-              value={form.temperature}
+              value={form.capacity}
               onChange={handleChange}
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.temperature
+                errors.capacity ? "border-red-300 bg-red-50" : "border-gray-300"
+              }`}
+            />
+            {errors.capacity && (
+              <p className="mt-1 text-sm text-red-600">{errors.capacity}</p>
+            )}
+          </div>
+
+          {/* Cycle life */}
+          <div>
+            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+              <Thermometer className="w-4 h-4" />
+              <span>Cycle Life</span>
+            </label>
+            <input
+              name="cycleLife"
+              type="text"
+              min="0"
+              max="80"
+              value={form.cycleLife}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                errors.cycleLife
                   ? "border-red-300 bg-red-50"
                   : "border-gray-300"
               }`}
             />
-            {errors.temperature && (
-              <p className="mt-1 text-sm text-red-600">{errors.temperature}</p>
+            {errors.cycleLife && (
+              <p className="mt-1 text-sm text-red-600">{errors.cycleLife}</p>
+            )}
+          </div>
+
+          {/* Gía trị */}
+          <div>
+            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+              <Thermometer className="w-4 h-4" />
+              <span>Gía trị</span>
+            </label>
+            <input
+              name="price"
+              type="text"
+              min="0"
+              max="80"
+              value={form.price}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                errors.price ? "border-red-300 bg-red-50" : "border-gray-300"
+              }`}
+            />
+            {errors.price && (
+              <p className="mt-1 text-sm text-red-600">{errors.price}</p>
             )}
           </div>
 
           {/*Station */}
-          <div>
+          {/* <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4" />
               <span>Station</span>
             </label>
             <select
               name="stationId"
-              value={Number(form.stationId || 0)}
+              // value={Number(form.stationId || 0)}
               onChange={(e) => {
                 handleChange(e);
-                setStationId(Number(e.target.value));
+                // setStationId(Number(e.target.value));
               }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >
@@ -197,14 +245,14 @@ const CreateForm = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
           {/* Error Message */}
-          {error && (
+          {/* {error && (
             <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
               <p className="text-sm text-red-600">{error}</p>
             </div>
-          )}
+          )} */}
         </div>
       </form>
 
@@ -232,7 +280,7 @@ const CreateForm = () => {
             ) : (
               <>
                 <Plus className="w-4 h-4" />
-                <span>Tạo tủ sạc</span>
+                <span>Tạo pin</span>
               </>
             )}
           </button>

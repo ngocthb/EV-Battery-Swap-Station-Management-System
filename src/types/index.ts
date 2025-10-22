@@ -128,10 +128,15 @@ export interface Station {
 
 export interface Battery {
   id: string;
-  stationId: string;
-  batteryLevel: number;
-  status: "available" | "charging" | "in_use" | "maintenance";
-  health: number;
+  model: string;
+  capacity: number;
+  cycleLife: number;
+  price: string;
+  stationId?: string;
+  batteryType?: string;
+  batteryLevel?: number;
+  status: "AVAILABLE" | "CHARGING" | "IN_USE" | "MAINTENANCE";
+  health?: number;
   lastUsed?: string;
 }
 
@@ -166,4 +171,13 @@ export interface Cabinet {
   station?: Station;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface QueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  order?: string;
+  status?: boolean | string;
+  stationId?: string | number | boolean | null | undefined;
 }

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { getStationById } from "@/services/stationService";
 import { useRouter } from "next/navigation";
-import { getCabinetsByStationId } from "@/services/cabinetService";
+import { getCabinetsById } from "@/services/cabinetService";
 import { Station, Cabinet } from "@/types";
 import {
   MapPin,
@@ -29,7 +29,7 @@ const ViewForm: React.FC<ViewFormProps> = ({ stationId }) => {
     const fetchStationData = async () => {
       try {
         const stationResponse = await getStationById(stationId);
-        const cabinetResponse = await getCabinetsByStationId(stationId);
+        const cabinetResponse = await getCabinetsById(stationId);
 
         if (stationResponse.success) {
           setStation(stationResponse.data);

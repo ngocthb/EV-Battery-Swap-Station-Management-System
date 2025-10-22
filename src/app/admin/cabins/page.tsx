@@ -1,25 +1,12 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
-import {
-  Zap,
-  Settings,
-  ChevronRight,
-  Plus,
-  MapPin,
-  Search,
-  X,
-  Edit,
-  Trash2,
-  RotateCcw,
-  ChevronLeft,
-  Box,
-} from "lucide-react";
+import { Plus, Edit, Trash2, RotateCcw } from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import useQuery from "@/hooks/useQuery";
 import useFetchList from "@/hooks/useFetchList";
-import { Cabinet, Station } from "@/types";
+import { Cabinet, QueryParams, Station } from "@/types";
 import {
   deleteCabinetAPI,
   getAllCabinetListAPI,
@@ -28,46 +15,27 @@ import {
 import Link from "next/link";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
 import StatsList from "./components/StatsList";
 import { getAllStationList } from "@/services/stationService";
-import FilterBar from "@/components/AdminFilter";
 import FilterSearch from "./components/FilterSearch";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
 import RestoreConfirmModal from "./components/RestoreConfirmModal";
-
-interface QueryParams {
-  page: number;
-  limit: number;
-  search: string;
-  order: string;
-  status: boolean;
-  stationId: number | null;
-}
+import PaginationTable from "@/components/PaginationTable";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  openDeleteModal,
+  openRestoreModal,
+} from "@/store/slices/adminModalSlice";
 
 export default function CabinsPage() {
   const router = useRouter();
-  // Delete confirmation modal state
-  const [deleteModal, setDeleteModal] = useState<{
-    isOpen: boolean;
-    cabinet: Cabinet | null;
-    loading: boolean;
-  }>({
-    isOpen: false,
-    cabinet: null,
-    loading: false,
-  });
 
-  // Restore confirmation modal state
-  const [restoreModal, setRestoreModal] = useState<{
-    isOpen: boolean;
-    cabinet: Cabinet | null;
-    loading: boolean;
-  }>({
-    isOpen: false,
-    cabinet: null,
-    loading: false,
-  });
+  const dispatch = useAppDispatch();
+  const { deleteModal, restoreModal } = useSelector(
+    (state: RootState) => state.adminModal
+  );
 
   const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
     page: 1,
@@ -133,80 +101,6 @@ export default function CabinsPage() {
       default:
         return "Không xác định";
     }
-  };
-
-  // Delete handlers
-  const handleDeleteClick = (cabinet: Cabinet) => {
-    setDeleteModal({
-      isOpen: true,
-      cabinet,
-      loading: false,
-    });
-  };
-
-  const handleDeleteConfirm = async () => {
-    if (!deleteModal.cabinet) return;
-
-    setDeleteModal((prev) => ({ ...prev, loading: true }));
-
-    try {
-      const response = await deleteCabinetAPI(deleteModal.cabinet.id);
-      if (response.success) {
-        toast.success(response.message);
-        refresh();
-        setDeleteModal({ isOpen: false, cabinet: null, loading: false });
-      } else {
-        toast.error(response.message);
-      }
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Có lỗi xảy ra khi xóa tủ";
-      toast.error(errorMessage);
-    } finally {
-      setDeleteModal((prev) => ({ ...prev, loading: false }));
-    }
-  };
-
-  const handleDeleteCancel = () => {
-    setDeleteModal({ isOpen: false, cabinet: null, loading: false });
-  };
-
-  // Restore handlers
-  const handleRestoreClick = (cabinet: Cabinet) => {
-    setRestoreModal({
-      isOpen: true,
-      cabinet,
-      loading: false,
-    });
-  };
-
-  const handleRestoreConfirm = async () => {
-    if (!restoreModal.cabinet) return;
-
-    setRestoreModal((prev) => ({ ...prev, loading: true }));
-
-    try {
-      const response = await restoreCabinetAPI(restoreModal.cabinet.id);
-      if (response.success) {
-        toast.success(response.message || "Khôi phục tủ thành công!");
-        refresh();
-        setRestoreModal({ isOpen: false, cabinet: null, loading: false });
-      } else {
-        toast.error(response.message || "Khôi phục tủ thất bại!");
-      }
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Có lỗi xảy ra khi khôi phục tủ";
-      toast.error(errorMessage);
-    } finally {
-      setRestoreModal((prev) => ({ ...prev, loading: false }));
-    }
-  };
-
-  const handleRestoreCancel = () => {
-    setRestoreModal({ isOpen: false, cabinet: null, loading: false });
   };
 
   return (
@@ -348,7 +242,10 @@ export default function CabinsPage() {
                           </button>
                           {cabinet?.status === false ? (
                             <button
-                              onClick={() => handleRestoreClick(cabinet)}
+                              // onClick={() => handleRestoreClick(cabinet)}
+                              onClick={() =>
+                                dispatch(openRestoreModal(cabinet))
+                              }
                               className="text-green-600 hover:text-green-900 p-1 disabled:opacity-50"
                               disabled={loading}
                               title="Khôi phục trạm"
@@ -357,7 +254,7 @@ export default function CabinsPage() {
                             </button>
                           ) : (
                             <button
-                              onClick={() => handleDeleteClick(cabinet)}
+                              onClick={() => dispatch(openDeleteModal(cabinet))}
                               className="text-red-600 hover:text-red-900 p-1 disabled:opacity-50"
                               disabled={loading}
                               title="Xóa trạm"
@@ -375,77 +272,27 @@ export default function CabinsPage() {
           </div>
 
           {/* Pagination footer */}
-          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-700">
-                Hiển thị{" "}
-                <span className="font-medium">
-                  {Array.isArray(cabinList) ? cabinList.length : 0}
-                </span>{" "}
-                tủ trên trang {query.page}
-              </div>
-              <div className="text-sm text-gray-500">
-                ({query.limit} tủ/trang)
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() =>
-                  updateQuery({ page: Math.max(1, query.page - 1) })
-                }
-                disabled={query.page <= 1 || loading}
-                className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border ${
-                  query.page <= 1 || loading
-                    ? "text-gray-400 bg-white border-gray-200 cursor-not-allowed"
-                    : "text-gray-700 bg-white border-gray-300 hover:bg-gray-50 hover:text-gray-500"
-                } transition-colors`}
-              >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Trước
-              </button>
-
-              <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md">
-                Trang {query.page}
-              </div>
-
-              <button
-                onClick={() => updateQuery({ page: query.page + 1 })}
-                disabled={
-                  loading ||
-                  (Array.isArray(cabinList) && cabinList.length < query.limit)
-                }
-                className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border ${
-                  loading ||
-                  (Array.isArray(cabinList) && cabinList.length < query.limit)
-                    ? "text-gray-400 bg-white border-gray-200 cursor-not-allowed"
-                    : "text-gray-700 bg-white border-gray-300 hover:bg-gray-50 hover:text-gray-500"
-                } transition-colors`}
-              >
-                Sau
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </button>
-            </div>
-          </div>
+          <PaginationTable
+            data={cabinList}
+            query={query}
+            onUpdateQuery={updateQuery}
+            loading={loading}
+          />
         </div>
       </div>
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
-        isOpen={deleteModal.isOpen}
-        cabin={deleteModal.cabinet}
-        loading={deleteModal.loading}
-        onConfirm={handleDeleteConfirm}
-        onCancel={handleDeleteCancel}
+        cabin={deleteModal.data as Cabinet | null}
+        onConfirmAPI={deleteCabinetAPI}
+        refreshList={refresh}
       />
 
       {/* Restore Confirmation Modal */}
       <RestoreConfirmModal
-        isOpen={restoreModal.isOpen}
-        cabinet={restoreModal.cabinet}
-        loading={restoreModal.loading}
-        onConfirm={handleRestoreConfirm}
-        onCancel={handleRestoreCancel}
+        cabinet={restoreModal.data as Cabinet | null}
+        onConfirmAPI={restoreCabinetAPI}
+        refreshList={refresh}
       />
     </AdminLayout>
   );

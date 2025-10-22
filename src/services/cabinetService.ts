@@ -1,7 +1,7 @@
 import api from "@/lib/axios";
 import axios from "@/lib/axios";
 
-export const getCabinetsByStationId = async (id: number) => {
+export const getCabinetsById = async (id: number) => {
   const res = await api.get(`/cabinet/${id}`);
   return res.data;
 };

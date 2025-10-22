@@ -46,7 +46,7 @@ export const updateStation = async (
   return { success: resData.success, message: resData.message };
 };
 
-export const getStationById = async (id: number) => {
+export const getStationById = async (id: number | string | null) => {
   const res = await api.get(`/station/${id}`);
   return res.data;
 };

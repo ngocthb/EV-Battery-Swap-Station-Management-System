@@ -19,7 +19,7 @@ import {
 import useQuery from "@/hooks/useQuery";
 import { useDebounce } from "@/hooks/useDebounce";
 import useFetchList from "@/hooks/useFetchList";
-import { Station } from "@/types";
+import { QueryParams, Station } from "@/types";
 import {
   getAllStationList,
   deleteStation,
@@ -30,14 +30,8 @@ import Link from "next/link";
 import { toast } from "react-toastify";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
 import RestoreConfirmModal from "./components/RestoreConfirmModal";
+import PaginationTable from "@/components/PaginationTable";
 
-interface QueryParams {
-  page: number;
-  limit: number;
-  search: string;
-  order: string;
-  status: boolean;
-}
 
 export default function StationsPage() {
   const router = useRouter();
@@ -470,60 +464,12 @@ export default function StationsPage() {
           </div>
 
           {/* Pagination footer */}
-          <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="text-sm text-gray-700">
-                Hiển thị{" "}
-                <span className="font-medium">
-                  {Array.isArray(stationList) ? stationList.length : 0}
-                </span>{" "}
-                trạm trên trang {query.page}
-              </div>
-              <div className="text-sm text-gray-500">
-                ({query.limit} trạm/trang)
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() =>
-                  updateQuery({ page: Math.max(1, query.page - 1) })
-                }
-                disabled={query.page <= 1 || loading}
-                className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border ${
-                  query.page <= 1 || loading
-                    ? "text-gray-400 bg-white border-gray-200 cursor-not-allowed"
-                    : "text-gray-700 bg-white border-gray-300 hover:bg-gray-50 hover:text-gray-500"
-                } transition-colors`}
-              >
-                <ChevronLeft className="w-4 h-4 mr-1" />
-                Trước
-              </button>
-
-              <div className="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md">
-                Trang {query.page}
-              </div>
-
-              <button
-                onClick={() => updateQuery({ page: query.page + 1 })}
-                disabled={
-                  loading ||
-                  (Array.isArray(stationList) &&
-                    stationList.length < query.limit)
-                }
-                className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border ${
-                  loading ||
-                  (Array.isArray(stationList) &&
-                    stationList.length < query.limit)
-                    ? "text-gray-400 bg-white border-gray-200 cursor-not-allowed"
-                    : "text-gray-700 bg-white border-gray-300 hover:bg-gray-50 hover:text-gray-500"
-                } transition-colors`}
-              >
-                Sau
-                <ChevronRight className="w-4 h-4 ml-1" />
-              </button>
-            </div>
-          </div>
+          <PaginationTable
+            data={stationList}
+            query={query}
+            onUpdateQuery={updateQuery}
+            loading={loading}
+          />
         </div>
       </div>
 
