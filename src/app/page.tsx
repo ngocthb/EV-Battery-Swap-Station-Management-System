@@ -18,6 +18,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import Image from "next/image";
+import ChatWidget from "@/components/ChatWidget";
 
 export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -697,6 +698,9 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Chat Widget */}
+      <ChatWidget />
     </div>
   );
 }
