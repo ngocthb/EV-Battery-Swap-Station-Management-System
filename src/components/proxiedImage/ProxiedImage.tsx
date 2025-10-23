@@ -11,5 +11,5 @@ export function ProxiedImage({ src, ...props }: ImageProps) {
     finalSrc = src as string;
   }
 
-  return <Image src={finalSrc} {...props} />;
+  return finalSrc ? <Image src={finalSrc} {...props} /> : null;
 }
