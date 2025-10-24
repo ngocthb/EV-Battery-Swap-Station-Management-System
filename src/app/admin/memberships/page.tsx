@@ -19,7 +19,7 @@ import {
 import useQuery from "@/hooks/useQuery";
 import { useDebounce } from "@/hooks/useDebounce";
 import useFetchList from "@/hooks/useFetchList";
-import { Membership } from "@/types";
+import { Membership, QueryParams } from "@/types";
 import {
   getAllMembershipList,
   deleteMembership,
@@ -28,14 +28,6 @@ import {
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { toast } from "react-toastify";
 import DeleteMembershipModal from "./components/DeleteMembershipModal";
-
-interface QueryParams {
-  page: number;
-  limit: number;
-  search: string;
-  order: string;
-  status: boolean;
-}
 
 export default function MembershipsPage() {
   const router = useRouter();
@@ -478,11 +470,11 @@ export default function MembershipsPage() {
             <div className="flex items-center space-x-2">
               <button
                 onClick={() =>
-                  updateQuery({ page: Math.max(1, query.page - 1) })
+                  updateQuery({ page: Math.max(1, (query.page as number) - 1) })
                 }
-                disabled={query.page <= 1 || loading}
+                disabled={(query.page as number) <= 1 || loading}
                 className={`px-3 py-1 rounded border flex items-center space-x-1 ${
-                  query.page <= 1 || loading
+                  (query.page as number) <= 1 || loading
                     ? "text-gray-400 border-gray-200 cursor-not-allowed"
                     : "text-gray-700 border-gray-300 hover:bg-gray-50"
                 }`}
@@ -496,16 +488,18 @@ export default function MembershipsPage() {
               </div>
 
               <button
-                onClick={() => updateQuery({ page: query.page + 1 })}
+                onClick={() =>
+                  updateQuery({ page: (query.page as number) + 1 })
+                }
                 disabled={
                   loading ||
                   (Array.isArray(membershipList) &&
-                    membershipList.length < query.limit)
+                    membershipList.length < (query.limit as number))
                 }
                 className={`px-3 py-1 rounded border flex items-center space-x-1 ${
                   loading ||
                   (Array.isArray(membershipList) &&
-                    membershipList.length < query.limit)
+                    membershipList.length < (query.limit as number))
                     ? "text-gray-400 border-gray-200 cursor-not-allowed"
                     : "text-gray-700 border-gray-300 hover:bg-gray-50"
                 }`}

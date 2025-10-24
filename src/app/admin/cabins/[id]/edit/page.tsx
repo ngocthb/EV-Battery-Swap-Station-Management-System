@@ -1,13 +1,16 @@
-import React from "react";
+"use client";
+
+import React, { use } from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
 import UpdateForm from "./components/UpdateForm";
+import StationDetailInCabin from "./components/StationDetailInCabin";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function EditStationPage({ params }: PageProps) {
-  const resolvedParams = await params;
+export default function EditStationPage({ params }: PageProps) {
+  const resolvedParams = use(params);
   const cabinId = parseInt(resolvedParams.id);
 
   return (
@@ -15,7 +18,7 @@ export default async function EditStationPage({ params }: PageProps) {
       <div className="h-[calc(100vh-120px)] bg-gray-50">
         <div className="flex h-full">
           <UpdateForm cabinId={cabinId} />
-          <div>alo alo</div>
+          <StationDetailInCabin />
         </div>
       </div>
     </AdminLayout>

@@ -8,6 +8,7 @@ import MapBooking from "./components/MapBooking";
 import { Station } from "@/types";
 import useFetchList from "@/hooks/useFetchList";
 import { getAllPublicStationList } from "@/services/stationService";
+import { UserLayout } from "@/layout/UserLayout";
 
 interface Step {
   maneuver: {
@@ -148,10 +149,7 @@ function BookingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header */}
-      <BookingHeader />
-
+    <UserLayout>
       {/*Body */}
       <div className="flex sm:flex-row flex-col-reverse sm:h-[calc(100vh-73px)] relative">
         {/*Aside */}
@@ -173,7 +171,7 @@ function BookingPage() {
           <StationDetail setOpenStationDetail={setOpenStationDetail} />
         )}
       </div>
-    </div>
+    </UserLayout>
   );
 }
 

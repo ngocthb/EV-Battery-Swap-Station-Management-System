@@ -3,23 +3,59 @@
 import React from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { Cabinet } from "@/types";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  closeDeleteModal,
+  setDeleteLoading,
+} from "@/store/slices/adminModalSlice";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import { toast } from "react-toastify";
+
+interface ApiResponse<T = unknown> {
+  success?: boolean;
+  message?: string;
+  data?: T;
+}
 
 interface DeleteConfirmModalProps {
-  isOpen: boolean;
   cabin: Cabinet | null;
-  loading: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
+  onConfirmAPI: (id: number) => Promise<ApiResponse>;
+  refreshList: () => void;
 }
 
 const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
-  isOpen,
   cabin,
-  loading,
-  onConfirm,
-  onCancel,
+  onConfirmAPI,
+  refreshList,
 }) => {
-  if (!isOpen || !cabin) return null;
+  const dispatch = useAppDispatch();
+  const { deleteModal } = useSelector((state: RootState) => state.adminModal);
+
+  if (!deleteModal.isOpen || !cabin) return null;
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.data) return;
+
+    dispatch(setDeleteLoading(true));
+
+    try {
+      const response = await onConfirmAPI((deleteModal.data as Cabinet).id);
+      if (response.success) {
+        toast.success(response.message);
+        refreshList();
+        dispatch(closeDeleteModal());
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Có lỗi xảy ra khi xóa tủ";
+      toast.error(errorMessage);
+    } finally {
+      dispatch(setDeleteLoading(false));
+    }
+  };
 
   const getStatusText = (status: boolean) => {
     return status ? "Hoạt động" : "Đóng cửa";
@@ -45,8 +81,8 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
             </h3>
           </div>
           <button
-            onClick={onCancel}
-            disabled={loading}
+            onClick={() => dispatch(closeDeleteModal())}
+            disabled={deleteModal.loading}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -57,8 +93,8 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
         <div className="p-6">
           <div className="mb-4">
             <p className="text-gray-600 mb-4">
-              Bạn có chắc chắn muốn xóa tủ sạc này? Hành động này không thể
-              hoàn tác.
+              Bạn có chắc chắn muốn xóa tủ sạc này? Hành động này không thể hoàn
+              tác.
             </p>
 
             {/* cabin details */}
@@ -67,14 +103,14 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
                 <span className="text-sm font-medium text-gray-700">
                   Tên tủ:
                 </span>
-                <p className="text-gray-900">{cabin.name}</p>
+                <p className="text-gray-900">{cabin?.name}</p>
               </div>
 
               <div>
                 <span className="text-sm font-medium text-gray-700">
                   Nhiệt độ:
                 </span>
-                <p className="text-gray-900">{cabin.temperature}</p>
+                <p className="text-gray-900">{cabin?.temperature}</p>
               </div>
 
               <div className="flex justify-between items-center">
@@ -84,10 +120,10 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
                   </span>
                   <span
                     className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                      cabin.status
+                      cabin?.status
                     )}`}
                   >
-                    {getStatusText(cabin.status)}
+                    {getStatusText(cabin?.status)}
                   </span>
                 </div>
               </div>
@@ -105,21 +141,21 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
         {/* Actions */}
         <div className="flex justify-end space-x-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
           <button
-            onClick={onCancel}
-            disabled={loading}
+            onClick={() => dispatch(closeDeleteModal())}
+            disabled={deleteModal.loading}
             className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             Hủy
           </button>
           <button
-            onClick={onConfirm}
-            disabled={loading}
+            onClick={handleDeleteConfirm}
+            disabled={deleteModal.loading}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
           >
-            {loading && (
+            {deleteModal.loading && (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             )}
-            <span>{loading ? "Đang xóa..." : "Xóa tủ"}</span>
+            <span>{deleteModal.loading ? "Đang xóa..." : "Xóa tủ"}</span>
           </button>
         </div>
       </div>

@@ -2,7 +2,7 @@ import { useDebounce } from "@/hooks/useDebounce";
 import useFetchList from "@/hooks/useFetchList";
 import useQuery from "@/hooks/useQuery";
 import { getAllPublicStationList } from "@/services/stationService";
-import { Station } from "@/types";
+import { QueryParams, Station } from "@/types";
 import {
   Battery,
   Calendar,
@@ -23,12 +23,6 @@ interface AsideStationProps {
   ) => Promise<unknown>;
 }
 
-interface QueryParams {
-  page: number;
-  limit: number;
-  search: string;
-  order: string;
-}
 
 function AsideStation({
   setOpenStationDetail,

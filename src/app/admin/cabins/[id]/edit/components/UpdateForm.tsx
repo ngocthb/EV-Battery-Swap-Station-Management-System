@@ -15,10 +15,8 @@ import {
 import { toast } from "react-toastify";
 import useFetchList from "@/hooks/useFetchList";
 import { Station } from "@/types";
-import {
-  getCabinetsByStationId,
-  updateCabinetAPI,
-} from "@/services/cabinetService";
+import { getCabinetsById, updateCabinetAPI } from "@/services/cabinetService";
+import { useCabinAdmin } from "../../../context/CabinAdminContext";
 
 interface FormErrors {
   name?: string;
@@ -31,6 +29,7 @@ interface UpdateFormProps {
 }
 
 const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
+  const { setStationId } = useCabinAdmin();
   const router = useRouter();
   const [form, setForm] = useState({
     name: "",
@@ -47,12 +46,14 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
   const fetchCabinById = async () => {
     setLoading(true);
     try {
-      const res = await getCabinetsByStationId(cabinId);
+      const res = await getCabinetsById(cabinId);
+      console.log("res cabin id", res.data);
       setForm({
         name: res.data?.name,
-        stationId: res.data?.station?.id,
+        stationId: res.data?.stationId,
         temperature: res.data?.temperature,
       });
+      setStationId(res.data?.stationId);
     } catch (error: unknown) {
       console.error("loi fetch cabin detail:", error);
     } finally {
@@ -119,6 +120,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
 
     setLoading(true);
     try {
+      console.log("update cabin form", form);
       const response = await updateCabinetAPI(cabinId, form);
 
       if (response.success) {
@@ -219,15 +221,18 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4" />
-              <span>Nhiệt độ hoạt động (°C)</span>
+              <span>Trạm</span>
             </label>
             <select
               name="stationId"
               value={Number(form.stationId || 0)}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                setStationId(Number(e.target.value));
+              }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >
-              <option value="">Tìm theo tên trạm</option>
+              <option value={0}>Tìm theo tên trạm</option>
               {stationList.map((station) => (
                 <option key={station.id} value={station.id}>
                   {station.name}

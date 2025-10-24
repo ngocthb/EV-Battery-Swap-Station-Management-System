@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { getCabinetsById } from "@/services/cabinetService";
 import {
   getCabinetByIdAPI,
   getCabinetsByStationId,
@@ -17,7 +18,8 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
   const fetchCabinById = async () => {
     setLoading(true);
     try {
-      const res = await getCabinetByIdAPI(cabinId);
+      const res = await getCabinetsById(cabinId);
+
       setCabinDetail(res.data);
       console.log(cabinDetail);
     } catch (error: unknown) {

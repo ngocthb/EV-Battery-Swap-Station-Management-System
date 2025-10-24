@@ -8,6 +8,7 @@ import { createCabinetAPI } from "@/services/cabinetService";
 import useFetchList from "@/hooks/useFetchList";
 import { Station } from "@/types";
 import { getAllStationList } from "@/services/stationService";
+import { useCabinAdmin } from "../../context/CabinAdminContext";
 
 interface FormErrors {
   name?: string;
@@ -17,6 +18,8 @@ interface FormErrors {
 }
 
 const CreateForm = () => {
+  const { setStationId } = useCabinAdmin();
+
   const router = useRouter();
   const [form, setForm] = useState({
     name: "",
@@ -211,15 +214,18 @@ const CreateForm = () => {
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4" />
-              <span>Nhiệt độ hoạt động (°C)</span>
+              <span>Station</span>
             </label>
             <select
               name="stationId"
               value={Number(form.stationId || 0)}
-              onChange={handleChange}
+              onChange={(e) => {
+                handleChange(e);
+                setStationId(Number(e.target.value));
+              }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >
-              <option value="">Tìm theo tên trạm</option>
+              <option value={0}>Tìm theo tên trạm</option>
               {stationList.map((station) => (
                 <option key={station.id} value={station.id}>
                   {station.name}
