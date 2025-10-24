@@ -42,7 +42,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
     },
     {
       id: "chat",
-      label: "Tin nhắn khác hàng",
+      label: "Tin nhắn người dùng",
       href: "/staff/chat",
       icon: MessageCircleMore,
     },

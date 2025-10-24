@@ -13,6 +13,7 @@ import {
   BarChart3,
   Bell,
   BatteryPlus,
+  Bike,
 } from "lucide-react";
 import { RolePermission } from "@/hooks/rolePermission";
 import Image from "next/image";
@@ -59,6 +60,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       label: "Quản lý Người dùng",
       href: "/admin/users",
       icon: Users,
+    },
+    {
+      id: "vehicle",
+      label: "Quản lý Loại phương tiện",
+      href: "/admin/vehicle-types",
+      icon: Bike,
     },
     {
       id: "memberships",

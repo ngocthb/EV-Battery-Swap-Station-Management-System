@@ -2,38 +2,40 @@
 
 import React, { useMemo } from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
-import { Plus, Edit, Trash2, RotateCcw } from "lucide-react";
-import { useDebounce } from "@/hooks/useDebounce";
-import useQuery from "@/hooks/useQuery";
-import useFetchList from "@/hooks/useFetchList";
-import { Cabinet, QueryParams, Station } from "@/types";
-import {
-  deleteCabinetAPI,
-  getAllCabinetListAPI,
-  restoreCabinetAPI,
-} from "@/services/cabinetService";
+import { Edit, MapPin, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
 import Link from "next/link";
+import useQuery from "@/hooks/useQuery";
+import { BatteryType, QueryParams, VehicleType } from "@/types";
+import { useDebounce } from "@/hooks/useDebounce";
+import useFetchList from "@/hooks/useFetchList";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useRouter } from "next/navigation";
-import StatsList from "./components/StatsList";
-import { getAllStationList } from "@/services/stationService";
-import FilterSearch from "./components/FilterSearch";
-import DeleteConfirmModal from "./components/DeleteConfirmModal";
-import RestoreConfirmModal from "./components/RestoreConfirmModal";
 import PaginationTable from "@/components/PaginationTable";
-import { useSelector } from "react-redux";
-import { RootState } from "@/store";
-import { useAppDispatch } from "@/store/hooks";
+import {
+  deleteBatteryTypeAPI,
+  restoreBatteryTypeAPI,
+} from "@/services/batteryTypeService";
+import StatsList from "./components/StatsList";
+import FilterSearch from "./components/FilterSearch";
 import {
   openDeleteModal,
   openRestoreModal,
 } from "@/store/slices/adminModalSlice";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { RootState } from "@/store";
+import DeleteConfirmModal from "./components/DeleteConfirmModal";
+import RestoreConfirmModal from "./components/RestoreConfirmModal";
+import {
+  deleteVehicleTypeAPI,
+  getAllVehicleTypeListAPI,
+  restoreVehicleTypeAPI,
+} from "@/services/vehicleService";
 
-export default function CabinsPage() {
+export default function BatteryTypePage() {
   const router = useRouter();
 
   const dispatch = useAppDispatch();
-  const { deleteModal, restoreModal } = useSelector(
+  const { deleteModal, restoreModal } = useAppSelector(
     (state: RootState) => state.adminModal
   );
 
@@ -43,37 +45,24 @@ export default function CabinsPage() {
     search: "",
     order: "asc",
     status: true,
-    stationId: null,
   });
   const debouncedSearch = useDebounce(query.search, 500);
   const debouncedQuery = useMemo(
     () => ({ ...query, search: debouncedSearch }),
-    [
-      query.page,
-      query.limit,
-      query.order,
-      query.status,
-      query.stationId,
-      debouncedSearch,
-    ]
+    [query.page, query.limit, query.order, query.status, debouncedSearch]
   );
 
-  // fetch all cabinet
+  // fetch all pin
   const {
-    data: cabinList = [],
+    data: vehicleTypeList = [],
     loading,
     refresh,
-  } = useFetchList<Cabinet[], QueryParams>(
-    getAllCabinetListAPI,
+  } = useFetchList<VehicleType[], QueryParams>(
+    getAllVehicleTypeListAPI,
     debouncedQuery
   );
 
-  console.log("cabinList", cabinList);
-
-  // fetch all station
-  const { data: stationList = [] } = useFetchList<Station[], QueryParams>(
-    getAllStationList
-  );
+  console.log("vehicleTypeList", vehicleTypeList);
 
   const handleSearch = (data: string) => {
     updateQuery({ search: data });
@@ -97,36 +86,36 @@ export default function CabinsPage() {
   const getStatusText = (status: boolean) => {
     switch (status) {
       case true:
-        return "Hoạt động";
+        return "Tồn tại";
       case false:
-        return "Đóng cửa";
+        return "Đã ẩn";
       default:
         return "Không xác định";
     }
   };
-
   return (
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Quản lý Tủ Sạc</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              Quản lý Loại Phương tiện
+            </h1>
             <p className="text-gray-600 mt-1">
-              Quản lý tất cả các tủ sạc pin trong hệ thống
+              Quản lý các loại phương tiện trong hệ thống
             </p>
           </div>
           <Link
-            href="/admin/cabins/create"
+            href="/admin/vehicle-types/create"
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
           >
             <Plus className="w-4 h-4" />
-            <span>Thêm tủ mới</span>
+            <span>Thêm loại phương tiện mới</span>
           </Link>
         </div>
 
-        {/* Stats Cards */}
-        <StatsList cabinList={cabinList} />
+        <StatsList vehicleTypeList={vehicleTypeList} />
 
         {/*Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
@@ -134,9 +123,7 @@ export default function CabinsPage() {
           <FilterSearch
             query={query}
             loading={loading}
-            resultCount={cabinList.length}
-            showStation={true}
-            stationList={stationList}
+            resultCount={vehicleTypeList.length}
             onSearch={handleSearch}
             onChangeStatus={handleChangeStatus}
             onUpdateQuery={updateQuery}
@@ -147,24 +134,23 @@ export default function CabinsPage() {
                 search: "",
                 order: "asc",
                 status: true,
-                stationId: 0,
               })
             }
           />
 
-          {/* Stations Table */}
+          {/* vehicle type Table */}
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tên
+                    Mẫu
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trạm
+                    Mô tả
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nhiệt độ
+                    Tên loại pin
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Trạng thái
@@ -184,49 +170,49 @@ export default function CabinsPage() {
                       </div>
                     </td>
                   </tr>
-                ) : cabinList.length === 0 ? (
+                ) : vehicleTypeList.length === 0 ? (
                   <tr>
                     <td
                       colSpan={5}
                       className="px-6 py-8 text-center text-gray-500"
                     >
-                      Không tìm thấy tủ nào
+                      Không tìm thấy loại nào
                     </td>
                   </tr>
                 ) : (
-                  cabinList.map((cabinet) => (
-                    <tr key={cabinet.id} className="hover:bg-gray-50">
+                  vehicleTypeList.map((vehicleType) => (
+                    <tr key={vehicleType.id} className="hover:bg-gray-50">
                       {/*name */}
                       <td
                         className="px-6 py-4 whitespace-nowrap"
                         onClick={() =>
-                          router.push(`/admin/cabins/${cabinet.id}`)
+                          router.push(`/admin/vehicle-types/${vehicleType.id}`)
                         }
                       >
                         <div className="flex items-center">
                           <p className="text-sm font-medium text-gray-900">
-                            {cabinet?.name}
+                            {vehicleType?.model}
                           </p>
                         </div>
                       </td>
                       {/*name station */}
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900 max-w-xs">
-                          {cabinet?.station?.name}
+                          {vehicleType?.description}
                         </div>
                       </td>
-                      {/*temp */}
+                      {/*battery type name */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {cabinet?.temperature} độ
+                        {vehicleType?.batteryTypeName}
                       </td>
                       {/*Status */}
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                            cabinet?.status
+                            !!vehicleType?.status
                           )}`}
                         >
-                          {getStatusText(cabinet?.status)}
+                          {getStatusText(!!vehicleType?.status)}
                         </span>
                       </td>
                       {/*Action */}
@@ -234,19 +220,20 @@ export default function CabinsPage() {
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() =>
-                              router.push(`/admin/cabins/${cabinet.id}/edit`)
+                              router.push(
+                                `/admin/vehicle-types/${vehicleType.id}/edit`
+                              )
                             }
                             className="text-blue-600 hover:text-blue-900 p-1 disabled:opacity-50"
                             disabled={loading}
-                            title="Chỉnh sửa trạm"
+                            title="Chỉnh sửa loại pin"
                           >
                             <Edit className="w-4 h-4" />
                           </button>
-                          {cabinet?.status === false ? (
+                          {vehicleType?.status === false ? (
                             <button
-                              // onClick={() => handleRestoreClick(cabinet)}
                               onClick={() =>
-                                dispatch(openRestoreModal(cabinet))
+                                dispatch(openRestoreModal(vehicleType))
                               }
                               className="text-green-600 hover:text-green-900 p-1 disabled:opacity-50"
                               disabled={loading}
@@ -256,7 +243,9 @@ export default function CabinsPage() {
                             </button>
                           ) : (
                             <button
-                              onClick={() => dispatch(openDeleteModal(cabinet))}
+                              onClick={() =>
+                                dispatch(openDeleteModal(vehicleType))
+                              }
                               className="text-red-600 hover:text-red-900 p-1 disabled:opacity-50"
                               disabled={loading}
                               title="Xóa trạm"
@@ -275,7 +264,7 @@ export default function CabinsPage() {
 
           {/* Pagination footer */}
           <PaginationTable
-            data={cabinList}
+            data={vehicleTypeList}
             query={query}
             onUpdateQuery={updateQuery}
             loading={loading}
@@ -285,15 +274,15 @@ export default function CabinsPage() {
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
-        cabin={deleteModal.data as Cabinet | null}
-        onConfirmAPI={deleteCabinetAPI}
+        vehicleType={deleteModal.data as VehicleType | null}
+        onConfirmAPI={deleteVehicleTypeAPI}
         refreshList={refresh}
       />
 
       {/* Restore Confirmation Modal */}
       <RestoreConfirmModal
-        cabinet={restoreModal.data as Cabinet | null}
-        onConfirmAPI={restoreCabinetAPI}
+        vehicleType={restoreModal.data as VehicleType | null}
+        onConfirmAPI={restoreVehicleTypeAPI}
         refreshList={refresh}
       />
     </AdminLayout>

@@ -8,12 +8,12 @@ interface PageProps {
 
 export default async function ViewStationPage({ params }: PageProps) {
   const resolvedParams = await params;
-  const batteryId = parseInt(resolvedParams.id);
+  const vehicleTypeId = parseInt(resolvedParams.id);
 
   return (
     <AdminLayout>
       <div className="h-[calc(100vh-120px)] bg-gray-50">
-        <ViewForm batteryId={batteryId} />
+        <ViewForm vehicleTypeId={vehicleTypeId} />
       </div>
     </AdminLayout>
   );

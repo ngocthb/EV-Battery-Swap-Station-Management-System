@@ -2,43 +2,85 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getCabinetsById } from "@/services/cabinetService";
-import { Cabinet } from "@/types";
-import {
-  MapPin,
-  Building,
-  ArrowLeft,
-  Loader2,
-  Battery,
-} from "lucide-react";
+import type { Battery } from "@/types";
+import { MapPin, Building, ArrowLeft, Loader2 } from "lucide-react";
+import { getBatteryById } from "@/services/batteryService";
 
-const ViewForm = ({ cabinId }: { cabinId: number }) => {
+const ViewForm = ({ batteryId }: { batteryId: number }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [cabinDetail, setCabinDetail] = useState<Cabinet | null>(null);
+  const [batteryDetail, setBatteryDetail] = useState<Battery | null>(null);
 
-  const fetchCabinById = async () => {
+  const fetchBatteryById = async () => {
     setLoading(true);
     try {
-      const res = await getCabinetsById(cabinId);
-      setCabinDetail(res.data);
+      const res = await getBatteryById(batteryId);
+      setBatteryDetail(res.data);
     } catch (error: unknown) {
-      console.error("loi fetch cabin detail:", error);
+      console.error("loi fetch battery detail:", error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCabinById();
-  }, [cabinId, router]);
+    fetchBatteryById();
+  }, [batteryId, router]);
+
+  const getStatusBatteryColor = (status: string) => {
+    switch (status) {
+      case "AVAILABLE":
+        return "bg-green-100 text-green-800";
+      case "MAINTENANCE":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusBatteryText = (status: string) => {
+    switch (status) {
+      case "AVAILABLE":
+        return "Hoạt động";
+      case "MAINTENANCE":
+        return "Bảo trì";
+      case "CHARGING":
+        return "Đang sạc";
+      case "IN_USE":
+        return "Đang được sử dụng";
+      default:
+        return "Không xác định";
+    }
+  };
+
+  const getStatusBatteryTypeColor = (status: boolean) => {
+    switch (status) {
+      case true:
+        return "bg-green-100 text-green-800";
+      case false:
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getStatusBatteryTypeText = (status: boolean) => {
+    switch (status) {
+      case true:
+        return "Tồn tại";
+      case false:
+        return "Đã ẩn";
+      default:
+        return "Không xác định";
+    }
+  };
 
   if (loading) {
     return (
       <div className="w-1/2 bg-white border-r border-gray-200 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Đang tải thông tin tủ...</p>
+          <p className="text-gray-600">Đang tải thông tin pin...</p>
         </div>
       </div>
     );
@@ -46,30 +88,41 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
 
   return (
     <div className="flex h-full">
-      {/* Station Info - Left Side */}
+      {/* battery Info - Left Side */}
       <div className="w-1/2 bg-white border-r border-gray-200 flex flex-col">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 bg-white">
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => router.push("/admin/cabins")}
+              onClick={() => router.push("/admin/batteries")}
               className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
             </button>
             <div>
               <h1 className="text-xl font-semibold text-gray-900">
-                Thông tin tủ sạc
+                Thông tin pin
               </h1>
               <p className="text-sm text-gray-600">
-                Chi tiết về tủ sạc trong trạm
+                Chi tiết về pin trong trạm
               </p>
             </div>
           </div>
         </div>
 
-        {/* Cabinet Details */}
+        {/* battery Details */}
         <div className="flex-1 overflow-auto p-6">
+          {/*status */}
+          <div className="mb-3">
+            <span
+              className={`ml-4 px-4 py-2 ${getStatusBatteryColor(
+                String(batteryDetail?.status)
+              )} rounded-lg`}
+            >
+              {getStatusBatteryText(String(batteryDetail?.status)) ||
+                "Không có dữ liệu"}
+            </span>
+          </div>
           {/* Basic Information */}
           <div className=" rounded-lg p-4">
             <div className="space-y-4">
@@ -77,30 +130,41 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                   <Building className="w-4 h-4 mr-2 text-gray-500" />
-                  Tên tủ sạc
+                  Mẫu pin
                 </label>
                 <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {cabinDetail?.name || "Không có dữ liệu"}
+                  {batteryDetail?.model || "Không có dữ liệu"}
                 </div>
               </div>
-              {/*Nhiệt độ */}
+              {/*dung lượng */}
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Building className="w-4 h-4 mr-2 text-gray-500" />
+                  Dung lượng pin
+                </label>
+                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
+                  {batteryDetail?.capacity || "Không có dữ liệu"}
+                </div>
+              </div>
+              {/*Vòng đời */}
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <Building className="w-4 h-4 mr-2 text-gray-500" />
+                  Vòng đời pin
+                </label>
+                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
+                  {batteryDetail?.cycleLife || "Không có dữ liệu"}
+                </div>
+              </div>
+
+              {/*type */}
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                   <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                  Nhiệt độ
+                  Loại pin
                 </label>
                 <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {cabinDetail?.temperature || "Không có dữ liệu"}
-                </div>
-              </div>
-              {/*Station */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                  Trạm
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {cabinDetail?.station?.name || "Không có dữ liệu"}
+                  {batteryDetail?.batteryType?.name || "Không có dữ liệu"}
                 </div>
               </div>
             </div>
@@ -108,19 +172,30 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
         </div>
       </div>
 
-      {/* station */}
+      {/* battery type */}
       <div className="w-1/2 bg-white flex flex-col">
         {/* Header */}
         <div className="px-6 py-3 mt-1 border-b border-gray-200 bg-white">
           <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-            <Battery className="w-5 h-5 mr-2" />
-            Thông tin trạm
+            Thông tin loại pin
           </h2>
-          <p className="text-sm text-gray-600 mt-1">Chi tiết trạm</p>
+          <p className="text-sm text-gray-600 mt-1">Chi tiết loại pin</p>
         </div>
 
-        {/* Station Details */}
+        {/* battery type Details */}
         <div className="flex-1 overflow-auto p-6">
+          {/*status */}
+          <div className="mb-3">
+            <span
+              className={`ml-4 px-4 py-2 ${getStatusBatteryTypeColor(
+                Boolean(batteryDetail?.batteryType?.status)
+              )} rounded-lg`}
+            >
+              {getStatusBatteryTypeText(
+                Boolean(batteryDetail?.batteryType?.status)
+              ) || "Không có dữ liệu"}
+            </span>
+          </div>
           {/* Basic Information */}
           <div className=" rounded-lg p-4">
             <div className="space-y-4">
@@ -128,10 +203,10 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                   <Building className="w-4 h-4 mr-2 text-gray-500" />
-                  Tên trạm
+                  Tên loại pin
                 </label>
                 <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {cabinDetail?.station?.name || "Không có dữ liệu"}
+                  {batteryDetail?.batteryType?.name || "Không có dữ liệu"}
                 </div>
               </div>
               {/*Description */}
@@ -141,27 +216,30 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
                   Mô tả
                 </label>
                 <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {cabinDetail?.station?.description || "Không có dữ liệu"}
+                  {batteryDetail?.batteryType?.description ||
+                    "Không có dữ liệu"}
                 </div>
               </div>
-              {/*Nhiệt độ */}
+              {/*Dung lượng */}
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                   <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                  Nhiệt độ
+                  Dung lượng
                 </label>
                 <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {cabinDetail?.station?.temperature || "Không có dữ liệu"}
+                  {batteryDetail?.batteryType?.capacityKWh ||
+                    "Không có dữ liệu"}
                 </div>
               </div>
-              {/*address */}
+              {/*Price per swap */}
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                   <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                  Địa chỉ
+                  Gía lần đổi
                 </label>
                 <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {cabinDetail?.station?.address || "Không có dữ liệu"}
+                  {batteryDetail?.batteryType?.pricePerSwap ||
+                    "Không có dữ liệu"}
                 </div>
               </div>
             </div>

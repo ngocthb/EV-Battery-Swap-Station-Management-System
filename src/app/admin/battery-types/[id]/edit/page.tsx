@@ -3,7 +3,7 @@
 import React, { use } from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
 import UpdateForm from "./components/UpdateForm";
-import BatteryTypeDetail from "../../components/BatteryTypeDetail";
+import StationDetailInCabin from "./components/StationDetailInCabin";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -11,14 +11,14 @@ interface PageProps {
 
 export default function EditStationPage({ params }: PageProps) {
   const resolvedParams = use(params);
-  const batteryId = parseInt(resolvedParams.id);
+  const batteryTypeId = parseInt(resolvedParams.id);
 
   return (
     <AdminLayout>
       <div className="h-[calc(100vh-120px)] bg-gray-50">
         <div className="flex h-full">
-          <UpdateForm batteryId={batteryId} />
-          <BatteryTypeDetail />
+          <UpdateForm batteryTypeId={batteryTypeId} />
+          {/* <StationDetailInCabin /> */}
         </div>
       </div>
     </AdminLayout>

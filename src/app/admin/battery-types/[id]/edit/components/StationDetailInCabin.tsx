@@ -1,6 +1,6 @@
 import React from "react";
 import { Battery, Building, MapPin } from "lucide-react";
-import { useCabinAdmin } from "../../../../cabins/context/CabinAdminContext";
+import { useCabinAdmin } from "@/app/admin/cabins/context/CabinAdminContext";
 
 function StationDetailInCabin() {
   const { station } = useCabinAdmin();

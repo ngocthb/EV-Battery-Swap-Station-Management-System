@@ -134,11 +134,28 @@ export interface Battery {
   cycleLife: number;
   price: string;
   stationId?: string;
-  batteryType?: string;
+  batteryType?: BatteryType;
   batteryLevel?: number;
   status: "AVAILABLE" | "CHARGING" | "IN_USE" | "MAINTENANCE";
   health?: number;
   lastUsed?: string;
+}
+
+export interface BatteryType {
+  id: number;
+  name: string;
+  description?: string;
+  capacityKWh?: number;
+  pricePerSwap?: string;
+  status?: boolean;
+}
+
+export interface VehicleType {
+  id: number;
+  model: string;
+  description?: string;
+  batteryTypeName?: string;
+  status?: boolean;
 }
 
 export interface Transaction {

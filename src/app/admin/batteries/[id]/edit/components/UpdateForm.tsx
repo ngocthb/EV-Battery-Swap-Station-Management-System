@@ -14,46 +14,58 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import useFetchList from "@/hooks/useFetchList";
-import { Station } from "@/types";
-import { getCabinetsById, updateCabinetAPI } from "@/services/cabinetService";
-import { useCabinAdmin } from "../../../../cabins/context/CabinAdminContext";
+import { BatteryType } from "@/types";
+import { getAllBatteryTypeListAPI } from "@/services/batteryTypeService";
+import { getBatteryById, updateBatteryAPI } from "@/services/batteryService";
+import { useBatteryAdmin } from "../../../context/BatteryAdminContext";
 
 interface FormErrors {
-  name?: string;
-  stationId?: string;
-  temperature?: string;
+  batteryTypeId?: number;
+  model?: string;
+  capacity?: number;
+  cycleLife?: number;
+  status?: string;
+  price?: number;
 }
 
 interface UpdateFormProps {
-  cabinId: number;
+  batteryId: number;
 }
 
-const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
-  const { setStationId } = useCabinAdmin();
+const UpdateForm: React.FC<UpdateFormProps> = ({ batteryId }) => {
+  const { setBatteryTypeId } = useBatteryAdmin();
   const router = useRouter();
   const [form, setForm] = useState({
-    name: "",
-    stationId: 0,
-    temperature: "",
+    batteryTypeId: 0,
+    model: "",
+    capacity: 0,
+    cycleLife: 0,
+    status: "",
+    price: 0,
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
 
-  const { data: stationList = [] } = useFetchList<Station[]>(getAllStationList);
+  const { data: batteryTypeList = [] } = useFetchList<BatteryType[]>(
+    getAllBatteryTypeListAPI
+  );
 
-  const fetchCabinById = async () => {
+  const fetchBatteryById = async () => {
     setLoading(true);
     try {
-      const res = await getCabinetsById(cabinId);
-      console.log("res cabin id", res.data);
+      const res = await getBatteryById(batteryId);
+      console.log("res battery id", res.data);
       setForm({
-        name: res.data?.name,
-        stationId: res.data?.stationId,
-        temperature: res.data?.temperature,
+        batteryTypeId: res?.data?.batteryType?.id,
+        model: res?.data?.model,
+        capacity: res?.data?.capacity,
+        cycleLife: res?.data?.cycleLife,
+        status: res?.data?.status,
+        price: res?.data?.price,
       });
-      setStationId(res.data?.stationId);
+      setBatteryTypeId(res.data?.batteryType?.id);
     } catch (error: unknown) {
       console.error("loi fetch cabin detail:", error);
     } finally {
@@ -62,31 +74,16 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
   };
 
   useEffect(() => {
-    fetchCabinById();
-  }, [cabinId, router]);
+    fetchBatteryById();
+  }, [batteryId, router]);
 
   const validateForm = () => {
     const newErrors: FormErrors = {};
 
-    if (!form.name.trim()) {
-      newErrors.name = "Tên tủ sạc không được để trống";
-    } else if (form.name.trim().length < 2) {
-      newErrors.name = "Tên tủ sạc phải có ít nhất 2 ký tự";
-    }
-
-    if (!form.stationId || form.stationId <= 0) {
-      newErrors.stationId = "Vui lòng chọn trạm";
-    }
-
-    if (form.temperature.trim() === "") {
-      newErrors.temperature = "Vui lòng nhập nhiệt độ";
-    } else {
-      const temp = Number(form.temperature);
-      if (isNaN(temp)) {
-        newErrors.temperature = "Nhiệt độ phải là số";
-      } else if (temp < 0 || temp > 80) {
-        newErrors.temperature = "Nhiệt độ phải từ 0 đến 80 độ";
-      }
+    if (!form.model.trim()) {
+      newErrors.model = "Mẫu pin không được để trống";
+    } else if (form.model.trim().length < 2) {
+      newErrors.model = "Mẫu pin phải có ít nhất 2 ký tự";
     }
 
     setErrors(newErrors);
@@ -101,7 +98,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
 
     setForm((prev) => ({
       ...prev,
-      [name]: type === "number" || name === "stationId" ? Number(value) : value,
+      [name]: type === "number" || name === "batteryId" ? Number(value) : value,
     }));
 
     setErrors((prev) => ({
@@ -120,8 +117,8 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
 
     setLoading(true);
     try {
-      console.log("update cabin form", form);
-      const response = await updateCabinetAPI(cabinId, form);
+      console.log("update pin form", form);
+      const response = await updateBatteryAPI(batteryId, form);
 
       if (response.success) {
         toast.success(response.message);
@@ -130,7 +127,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
       }
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : "Cập nhật tủ thất bại";
+        err instanceof Error ? err.message : "Cập nhật pin thất bại";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -142,7 +139,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
       <div className="w-1/2 bg-white border-r border-gray-200 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Đang tải thông tin tủ...</p>
+          <p className="text-gray-600">Đang tải thông tin pin...</p>
         </div>
       </div>
     );
@@ -154,17 +151,17 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
       <div className="px-6 py-4 border-b border-gray-200 bg-white">
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => router.push("/admin/cabins")}
+            onClick={() => router.push("/admin/batteries")}
             className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <div>
             <h1 className="text-xl font-semibold text-gray-900">
-              Cập nhật tủ sạc
+              Cập nhật pin
             </h1>
             <p className="text-sm text-gray-600">
-              Cập nhật thông tin tủ sạc trong hệ thống
+              Cập nhật thông tin pin trong hệ thống
             </p>
           </div>
         </div>
@@ -173,69 +170,113 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
       {/* Form */}
       <form className="flex-1 overflow-auto p-6">
         <div className="space-y-6">
-          {/* Cabin Name */}
+          {/* Pin model */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <Building className="w-4 h-4" />
-              <span>Tên tủ sạc</span>
+              <span>Mẫu pin sạc</span>
             </label>
             <input
-              name="name"
-              value={form.name}
+              name="model"
+              value={form.model}
               onChange={handleChange}
-              placeholder="VD: Tủ 3"
+              placeholder="VD: pin moi"
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.name ? "border-red-300 bg-red-50" : "border-gray-300"
+                errors.model ? "border-red-300 bg-red-50" : "border-gray-300"
               }`}
             />
-            {errors.name && (
-              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+            {errors.model && (
+              <p className="mt-1 text-sm text-red-600">{errors.model}</p>
             )}
           </div>
 
-          {/* Temperature */}
+          {/* Capacity */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <Thermometer className="w-4 h-4" />
-              <span>Nhiệt độ hoạt động (°C)</span>
+              <span>Dung lượng</span>
             </label>
             <input
-              name="temperature"
+              name="capacity"
+              type="text"
+              min="0"
+              max="100"
+              value={form.capacity}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                errors.capacity ? "border-red-300 bg-red-50" : "border-gray-300"
+              }`}
+            />
+            {errors.capacity && (
+              <p className="mt-1 text-sm text-red-600">{errors.capacity}</p>
+            )}
+          </div>
+
+          {/* Cycle life */}
+          <div>
+            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+              <Thermometer className="w-4 h-4" />
+              <span>Vòng đời</span>
+            </label>
+            <input
+              name="cycleLife"
               type="text"
               min="0"
               max="80"
-              value={form.temperature}
+              value={form.cycleLife}
               onChange={handleChange}
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.temperature
+                errors.cycleLife
                   ? "border-red-300 bg-red-50"
                   : "border-gray-300"
               }`}
             />
-            {errors.temperature && (
-              <p className="mt-1 text-sm text-red-600">{errors.temperature}</p>
+            {errors.cycleLife && (
+              <p className="mt-1 text-sm text-red-600">{errors.cycleLife}</p>
             )}
           </div>
 
-          {/*Station */}
+          {/* Gía trị */}
+          <div>
+            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+              <Thermometer className="w-4 h-4" />
+              <span>Gía trị</span>
+            </label>
+            <input
+              name="price"
+              type="text"
+              min="0"
+              max="80"
+              value={form.price}
+              onChange={handleChange}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+                errors.price ? "border-red-300 bg-red-50" : "border-gray-300"
+              }`}
+            />
+            {errors.price && (
+              <p className="mt-1 text-sm text-red-600">{errors.price}</p>
+            )}
+          </div>
+
+          {/*battery type */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4" />
-              <span>Trạm</span>
+              <span>Loại pin</span>
             </label>
             <select
-              name="stationId"
-              value={Number(form.stationId || 0)}
+              name="batteryTypeId"
+              value={Number(form.batteryTypeId || 0)}
               onChange={(e) => {
                 handleChange(e);
-                setStationId(Number(e.target.value));
+                setBatteryTypeId(Number(e.target.value));
               }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >
-              <option value={0}>Tìm theo tên trạm</option>
-              {stationList.map((station) => (
-                <option key={station.id} value={station.id}>
-                  {station.name}
+              <option value={0}>Tìm theo loại pin</option>
+              {batteryTypeList.map((type) => (
+                <option key={type.id} value={type.id}>
+                  {type.name}
                 </option>
               ))}
             </select>
@@ -255,7 +296,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
         <div className="flex justify-end space-x-3">
           <button
             type="button"
-            onClick={() => router.push("/admin/cabins")}
+            onClick={() => router.push("/admin/batteries")}
             disabled={loading}
             className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
@@ -276,7 +317,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
             ) : (
               <>
                 <Save className="w-4 h-4" />
-                <span>Cập nhập tủ</span>
+                <span>Cập nhập pin</span>
               </>
             )}
           </button>

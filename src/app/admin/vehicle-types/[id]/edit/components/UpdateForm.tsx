@@ -1,33 +1,50 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getAllStationList, updateStation } from "@/services/stationService";
 import { useRouter } from "next/navigation";
-import { Building, ArrowLeft, Plus, Thermometer, MapPin } from "lucide-react";
+
+import {
+  MapPin,
+  Building,
+  ArrowLeft,
+  Save,
+  Loader2,
+  Thermometer,
+} from "lucide-react";
 import { toast } from "react-toastify";
 import useFetchList from "@/hooks/useFetchList";
-import { BatteryType } from "@/types";
-import { createBatteryAPI } from "@/services/batteryService";
-import { getAllBatteryTypeListAPI } from "@/services/batteryTypeService";
-import { useBatteryAdmin } from "../../context/BatteryAdminContext";
+import { BatteryType, Station } from "@/types";
+import { getCabinetsById, updateCabinetAPI } from "@/services/cabinetService";
+import {
+  getAllBatteryTypeListAPI,
+  getBatteryTypeById,
+  updateBatteryTypeAPI,
+} from "@/services/batteryTypeService";
+import { useBatteryAdmin } from "@/app/admin/batteries/context/BatteryAdminContext";
+import {
+  getVehicleTypeById,
+  updateVehicleTypeAPI,
+} from "@/services/vehicleService";
 
 interface FormErrors {
   batteryTypeId?: number;
   model?: string;
-  capacity?: number;
-  price?: number;
-  cycleLife?: number;
+  description?: string;
 }
 
-const CreateForm = () => {
+interface UpdateFormProps {
+  vehicleTypeId: number;
+}
+
+const UpdateForm: React.FC<UpdateFormProps> = ({ vehicleTypeId }) => {
   const { setBatteryTypeId } = useBatteryAdmin();
 
   const router = useRouter();
   const [form, setForm] = useState({
     batteryTypeId: 0,
     model: "",
-    capacity: 0,
-    price: 0,
-    cycleLife: 0,
+    description: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -38,13 +55,40 @@ const CreateForm = () => {
     getAllBatteryTypeListAPI
   );
 
+  const fetchVehicleById = async () => {
+    setLoading(true);
+    try {
+      const res = await getVehicleTypeById(vehicleTypeId);
+      console.log("res vehicleTypeId id", res.data);
+      setForm({
+        model: res.data?.model,
+        batteryTypeId: res?.data?.batteryTypeName,
+        description: res.data?.description,
+      });
+    } catch (error: unknown) {
+      console.error("loi fetch vehicleTypeId detail:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVehicleById();
+  }, [vehicleTypeId, router]);
+
   const validateForm = () => {
     const newErrors: FormErrors = {};
 
     if (!form.model.trim()) {
-      newErrors.model = "Mẫu pin không được để trống";
+      newErrors.model = "Tên loại pin không được để trống";
     } else if (form.model.trim().length < 2) {
-      newErrors.model = "Mẫu pin phải có ít nhất 2 ký tự";
+      newErrors.model = "Tên loại pin phải có ít nhất 2 ký tự";
+    }
+
+    if (!form.description.trim()) {
+      newErrors.description = "Mô tả không được để trống";
+    } else if (form.description.trim().length < 2) {
+      newErrors.description = "Mô tả phải có ít nhất 2 ký tự";
     }
 
     setErrors(newErrors);
@@ -71,7 +115,6 @@ const CreateForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("form", form);
     setError(null);
 
     if (!validateForm()) {
@@ -80,35 +123,35 @@ const CreateForm = () => {
 
     setLoading(true);
     try {
-      const submitData = {
-        ...form,
-        capacity: Number(form.capacity),
-        price: Number(form.price),
-        cycleLife: Number(form.cycleLife),
-      };
-      console.log("create battery form", submitData);
-      const res = await createBatteryAPI(submitData);
-      if (res.success) {
-        toast.success(res.message);
-        setForm({
-          batteryTypeId: 0,
-          model: "",
-          capacity: 0,
-          price: 0,
-          cycleLife: 0,
-        });
-        setBatteryTypeId(0);
+      console.log("update vehicleTypeId form", form);
+      const response = await updateVehicleTypeAPI(vehicleTypeId, form);
+
+      if (response.success) {
+        toast.success(response.message);
       } else {
-        toast.error(res.message);
+        setError(response.message);
       }
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : "Tạo pin thất bại";
+        err instanceof Error
+          ? err.message
+          : "Cập nhật loại phương tiện thất bại";
       setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="w-1/2 bg-white border-r border-gray-200 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Đang tải thông tin...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-1/2 bg-white border-r border-gray-200 flex flex-col">
@@ -116,14 +159,18 @@ const CreateForm = () => {
       <div className="px-6 py-4 border-b border-gray-200 bg-white">
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => router.push("/admin/batteries")}
+            onClick={() => router.push("/admin/vehicle-types")}
             className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">Tạo pin mới</h1>
-            <p className="text-sm text-gray-600">Nhập thông tin và chọn trạm</p>
+            <h1 className="text-xl font-semibold text-gray-900">
+              Cập nhật loại phương tiện
+            </h1>
+            <p className="text-sm text-gray-600">
+              Cập nhật thông tin loại phương tiện
+            </p>
           </div>
         </div>
       </div>
@@ -131,17 +178,17 @@ const CreateForm = () => {
       {/* Form */}
       <form className="flex-1 overflow-auto p-6">
         <div className="space-y-6">
-          {/* Pin model */}
+          {/* Name */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <Building className="w-4 h-4" />
-              <span>Mẫu pin sạc</span>
+              <span>Mẫu loại phương tiện</span>
             </label>
             <input
               name="model"
               value={form.model}
               onChange={handleChange}
-              placeholder="VD: pin moi"
+              placeholder="VD: Tủ 3"
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                 errors.model ? "border-red-300 bg-red-50" : "border-gray-300"
               }`}
@@ -151,76 +198,30 @@ const CreateForm = () => {
             )}
           </div>
 
-          {/* Capacity */}
+          {/* Description */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Thermometer className="w-4 h-4" />
-              <span>Dung lượng</span>
+              <Building className="w-4 h-4" />
+              <span>Mô tả loại phương tiện</span>
             </label>
             <input
-              name="capacity"
-              type="text"
-              min="0"
-              max="100"
-              value={form.capacity}
+              name="description"
+              value={form.description}
               onChange={handleChange}
+              placeholder="VD: Tủ 3"
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.capacity ? "border-red-300 bg-red-50" : "border-gray-300"
-              }`}
-            />
-            {errors.capacity && (
-              <p className="mt-1 text-sm text-red-600">{errors.capacity}</p>
-            )}
-          </div>
-
-          {/* Cycle life */}
-          <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Thermometer className="w-4 h-4" />
-              <span>Vòng đời</span>
-            </label>
-            <input
-              name="cycleLife"
-              type="text"
-              min="0"
-              max="80"
-              value={form.cycleLife}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.cycleLife
+                errors.description
                   ? "border-red-300 bg-red-50"
                   : "border-gray-300"
               }`}
             />
-            {errors.cycleLife && (
-              <p className="mt-1 text-sm text-red-600">{errors.cycleLife}</p>
-            )}
-          </div>
-
-          {/* Gía trị */}
-          <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Thermometer className="w-4 h-4" />
-              <span>Gía trị</span>
-            </label>
-            <input
-              name="price"
-              type="text"
-              min="0"
-              max="80"
-              value={form.price}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.price ? "border-red-300 bg-red-50" : "border-gray-300"
-              }`}
-            />
-            {errors.price && (
-              <p className="mt-1 text-sm text-red-600">{errors.price}</p>
+            {errors.description && (
+              <p className="mt-1 text-sm text-red-600">{errors.description}</p>
             )}
           </div>
 
           {/*battery type */}
-          <div>
+          {/* <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4" />
               <span>Loại pin</span>
@@ -241,7 +242,7 @@ const CreateForm = () => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
           {/* Error Message */}
           {error && (
@@ -252,16 +253,18 @@ const CreateForm = () => {
         </div>
       </form>
 
-      {/* Footer Actions */}
+      {/* Actions */}
       <div className="px-6 py-4 border-t border-gray-200 bg-white">
-        <div className="flex items-center justify-between">
+        <div className="flex justify-end space-x-3">
           <button
             type="button"
-            onClick={() => router.push("/admin/batteries")}
-            className="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+            onClick={() => router.push("/admin/vehicle-types")}
+            disabled={loading}
+            className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
-            Hủy bỏ
+            Hủy
           </button>
+
           <button
             type="button"
             onClick={handleSubmit}
@@ -271,12 +274,12 @@ const CreateForm = () => {
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Đang tạo...</span>
+                <span>Đang cập nhật...</span>
               </>
             ) : (
               <>
-                <Plus className="w-4 h-4" />
-                <span>Tạo pin</span>
+                <Save className="w-4 h-4" />
+                <span>Cập nhập</span>
               </>
             )}
           </button>
@@ -286,4 +289,4 @@ const CreateForm = () => {
   );
 };
 
-export default CreateForm;
+export default UpdateForm;

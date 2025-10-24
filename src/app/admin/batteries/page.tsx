@@ -7,14 +7,24 @@ import Link from "next/link";
 import useQuery from "@/hooks/useQuery";
 import { Battery, QueryParams } from "@/types";
 import { useDebounce } from "@/hooks/useDebounce";
-import { getAllBatteryListAPI } from "@/services/batteryService";
+import { deleteBatteryAPI, getAllBatteryListAPI, restoreBatteryAPI } from "@/services/batteryService";
 import useFetchList from "@/hooks/useFetchList";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import PaginationTable from "@/components/PaginationTable";
+import FilterSearch from "./components/FilterSearch";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { RootState } from "@/store";
+import DeleteConfirmModal from "./components/DeleteConfirmModal";
+import RestoreConfirmModal from "./components/RestoreConfirmModal";
 
 export default function BatteriesPage() {
   const router = useRouter();
+
+  const dispatch = useAppDispatch();
+  const { deleteModal, restoreModal } = useAppSelector(
+    (state: RootState) => state.adminModal
+  );
 
   const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
     page: 1,
@@ -43,7 +53,7 @@ export default function BatteriesPage() {
     updateQuery({ search: data });
   };
 
-  const handleChangStatus = (data: boolean) => {
+  const handleChangeStatus = (data: string) => {
     updateQuery({ status: data });
   };
 
@@ -140,98 +150,15 @@ export default function BatteriesPage() {
         {/*Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
           {/* Filters and Search */}
-          <div className="p-6 border-b border-gray-200">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-              <div className="flex flex-col lg:flex-row gap-4">
-                {/* Search */}
-                <div className="relative flex-1 max-w-md">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="Tìm kiếm theo tên pin..."
-                    value={query.search}
-                    onChange={(e) => handleSearch(e.target.value)}
-                    disabled={loading}
-                    className="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 disabled:text-gray-500"
-                  />
-                  {query.search && !loading && (
-                    <button
-                      onClick={() => updateQuery({ search: "", page: 1 })}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  )}
-                </div>
-                {/*Filter */}
-                <div className="flex gap-3">
-                  {/* Status filter */}
-                  <select
-                    value={String(query.status)}
-                    onChange={(e) =>
-                      handleChangStatus(e.target.value === "true")
-                    }
-                    disabled={loading}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[120px]"
-                  >
-                    <option value="AVAILABLE">Hoạt động</option>
-                    <option value="MAINTENANCE">Bảo trì</option>
-                    <option value="CHARGING">Đang sạc</option>
-                    <option value="IN_USE">Được sử dụng</option>
-                  </select>
-
-                  {/* Sort order */}
-                  <select
-                    value={query.order}
-                    onChange={(e) => updateQuery({ order: e.target.value })}
-                    disabled={loading}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[120px]"
-                  >
-                    <option value="ASC">A → Z</option>
-                    <option value="DESC">Z → A</option>
-                  </select>
-
-                  {/* Items per page */}
-                  <select
-                    value={String(query.limit)}
-                    onChange={(e) =>
-                      updateQuery({ limit: Number(e.target.value), page: 1 })
-                    }
-                    disabled={loading}
-                    className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[100px]"
-                  >
-                    <option value={5}>5/trang</option>
-                    <option value={10}>10/trang</option>
-                    <option value={20}>20/trang</option>
-                    <option value={50}>50/trang</option>
-                  </select>
-                </div>
-              </div>
-              {/*filter result */}
-              <div className="flex items-center space-x-4">
-                <p className="text-sm text-gray-600">
-                  {loading ? (
-                    <span className="flex items-center space-x-2">
-                      <LoadingSpinner size="sm" />
-                      <span>Đang tải...</span>
-                    </span>
-                  ) : (
-                    `Tìm thấy ${batteryList.length} pin`
-                  )}
-                </p>
-                {(query.search || !query.status) && !loading && (
-                  <button
-                    onClick={() =>
-                      updateQuery({ search: "", status: true, page: 1 })
-                    }
-                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    Xóa bộ lọc
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
+          <FilterSearch
+            query={query}
+            loading={loading}
+            resultCount={batteryList.length}
+            onSearch={handleSearch}
+            onChangeStatus={handleChangeStatus}
+            onUpdateQuery={updateQuery}
+            onReset={resetQuery}
+          />
 
           {/* batterys Table */}
           <div className="overflow-x-auto">
@@ -242,10 +169,7 @@ export default function BatteriesPage() {
                     Thông tin pin
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Capacity
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Gía
+                    Dung lượng
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Vòng đời
@@ -280,6 +204,7 @@ export default function BatteriesPage() {
                 ) : (
                   batteryList.map((battery) => (
                     <tr key={battery.id} className="hover:bg-gray-50">
+                      {/*Modal & type */}
                       <td
                         className="px-6 py-4 whitespace-nowrap"
                         onClick={() =>
@@ -295,7 +220,7 @@ export default function BatteriesPage() {
                               {battery?.model}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {battery?.batteryType}
+                              {battery?.batteryType?.description}
                             </div>
                           </div>
                         </div>
@@ -304,9 +229,6 @@ export default function BatteriesPage() {
                         <div className="text-sm text-gray-900 max-w-xs">
                           {battery?.capacity}
                         </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {battery?.price}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {battery?.cycleLife}
@@ -368,6 +290,20 @@ export default function BatteriesPage() {
           />
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        battery={deleteModal.data as Battery | null}
+        onConfirmAPI={deleteBatteryAPI}
+        refreshList={refresh}
+      />
+
+      {/* Restore Confirmation Modal */}
+      <RestoreConfirmModal
+        battery={restoreModal.data as Battery | null}
+        onConfirmAPI={restoreBatteryAPI}
+        refreshList={refresh}
+      />
     </AdminLayout>
   );
 }
