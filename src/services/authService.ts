@@ -1,5 +1,6 @@
 ﻿import api from "@/lib/axios";
 import { User } from "@/types";
+import { AxiosError } from "axios";
 
 interface LoginFormData {
   email: string;
@@ -106,11 +107,19 @@ class AuthService {
   }) {
     try {
       const response = await api.post("auth/register", payload);
+      console.log("Register response:", response);
       return response.data;
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Đăng ký thất bại";
-      throw new Error(errorMessage);
+      console.log("Register error:", error);
+      // Nếu là lỗi Axios
+      if (error instanceof AxiosError) {
+        const errorMessage =
+          error.response?.data?.message || "Đăng ký thất bại";
+        throw new Error(errorMessage);
+      }
+
+      // Nếu là lỗi khác
+      throw new Error("Đăng ký thất bại");
     }
   }
 
@@ -125,6 +134,42 @@ class AuthService {
       const errorMessage =
         error instanceof Error ? error.message : "Đổi mật khẩu thất bại";
       throw new Error(errorMessage);
+    }
+  }
+
+  async verifyEmail(token: string) {
+    try {
+      const res = await api.post("auth/verify-email", { token });
+      return res.data;
+    } catch (error) {
+      console.log("Verify email error:", error);
+    }
+  }
+
+  async resendVerification(email: string) {
+    try {
+      const res = await api.post("auth/resend-verification", { email });
+      return res.data;
+    } catch (error) {
+      console.log(" resend Verify email error:", error);
+    }
+  }
+
+  async resetPassword(data: { token: string; newPassword: string }) {
+    try {
+      const res = await api.post("auth/reset-password", data);
+      return res.data;
+    } catch (error) {
+      console.log(" reset password error:", error);
+    }
+  }
+
+  async forgotPassword(email: string) {
+    try {
+      const res = await api.post("auth/forgot-password", { email });
+      return res.data;
+    } catch (error) {
+      console.log(" reset password error:", error);
     }
   }
 }

@@ -10,6 +10,7 @@ import {
   User,
   Phone,
   Building,
+  Check,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
@@ -98,19 +99,19 @@ const RegisterPage: React.FC = () => {
             <div className="mt-8 grid grid-cols-1 gap-4 text-left">
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold">✓</span>
+                  <Check color="green" />
                 </div>
                 <span>Giám sát thời gian thực</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold">✓</span>
+                  <Check color="green" />
                 </div>
                 <span>Phân tích dữ liệu tiên tiến</span>
               </div>
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-bold">✓</span>
+                  <Check color="green" />
                 </div>
                 <span>Hỗ trợ 24/7</span>
               </div>
