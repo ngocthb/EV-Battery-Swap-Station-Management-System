@@ -1,5 +1,7 @@
+import { getStationById } from "@/services/stationService";
 import { Station } from "@/types";
-import { Clock, MapPin, Star, X } from "lucide-react";
+import { isStationOpen } from "@/utils/format";
+import { Battery, Clock, MapPin, Star, X } from "lucide-react";
 import { useState } from "react";
 
 interface BatterySlot {
@@ -10,10 +12,14 @@ interface BatterySlot {
 }
 
 interface StationDetailProps {
-  setOpenStationDetail: React.Dispatch<React.SetStateAction<string | null>>;
+  setOpenStationDetail: React.Dispatch<React.SetStateAction<Station | null>>;
+  openStationDetail: Station;
 }
 
-function StationDetail({ setOpenStationDetail }: StationDetailProps) {
+function StationDetail({
+  setOpenStationDetail,
+  openStationDetail,
+}: StationDetailProps) {
   const [stations] = useState<Station[]>([
     {
       id: "1",
@@ -142,8 +148,8 @@ function StationDetail({ setOpenStationDetail }: StationDetailProps) {
       <div className="relative h-[200px]">
         <img
           src={
-            stations[0]?.image ||
-            "https://images.pexels.com/photos/1267338/pexels-photo-1267338.jpeg"
+            openStationDetail?.image ||
+            "https://media.istockphoto.com/id/1222357475/vector/image-preview-icon-picture-placeholder-for-website-or-ui-ux-design-vector-illustration.jpg?s=612x612&w=0&k=20&c=KuCo-dRBYV7nz2gbk4J9w1WtTAgpTdznHu55W9FjimE="
           }
           alt={stations[0]?.name}
           className="w-full h-full object-cover"
@@ -162,12 +168,48 @@ function StationDetail({ setOpenStationDetail }: StationDetailProps) {
 
         {/* Status */}
         <div className="absolute bottom-6 left-6 flex gap-2">
-          <div className="bg-white px-3 py-1.5 rounded-full flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span className="text-sm font-medium text-gray-900">Open</span>
+          <div
+            className={`${
+              isStationOpen(
+                openStationDetail?.openTime,
+                openStationDetail?.closeTime
+              )
+                ? "text-green-700 bg-green-50"
+                : "text-red-700 bg-red-50"
+            } px-3 py-1.5 rounded-full flex items-center gap-1`}
+          >
+            <div
+              className={`w-2 h-2 rounded-full ${
+                isStationOpen(
+                  openStationDetail?.openTime,
+                  openStationDetail?.closeTime
+                )
+                  ? "bg-green-500"
+                  : "bg-red-500"
+              }`}
+            ></div>
+            <span className="pb-1">
+              {isStationOpen(
+                openStationDetail?.openTime,
+                openStationDetail?.closeTime
+              )
+                ? "Mở cửa"
+                : "Đóng cửa"}
+            </span>
           </div>
-          <div className="bg-orange-500 px-3 py-1.5 rounded-full flex items-center gap-1 text-white">
-            ⚡ {stations[0]?.swappableBatteries || 5} Batteries Swappable
+          <div
+            className={`${
+              Number(openStationDetail?.slotAvailable) > 0
+                ? "text-orange-700 bg-orange-200"
+                : "text-gray-500 bg-gray-100"
+            }  px-3 py-1.5 rounded-full flex items-center gap-2`}
+          >
+            <Battery className="w-4 h-4" />
+            <span className="pb-1">
+              {Number(openStationDetail?.slotAvailable) > 0
+                ? `${openStationDetail?.slotAvailable} Pin`
+                : "Hết pin"}{" "}
+            </span>
           </div>
         </div>
       </div>
@@ -175,27 +217,31 @@ function StationDetail({ setOpenStationDetail }: StationDetailProps) {
       {/* Info Section */}
       <div className="flex-1 overflow-y-auto px-6 py-5 scrollbar-custom">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          {stations[0]?.name || "Battery Station"}
+          {openStationDetail?.name || "Battery Station"}
         </h2>
 
         {/* Address */}
         <div className="flex items-start gap-3 mb-4">
           <MapPin size={18} className="text-gray-700 mt-0.5" />
           <p className="text-gray-600 text-sm leading-5">
-            {stations[0]?.address || "123 Đường ABC, Quận 1, TP. Hồ Chí Minh"}
+            {openStationDetail?.address ||
+              "123 Đường ABC, Quận 1, TP. Hồ Chí Minh"}
           </p>
         </div>
 
         {/* Time */}
         <div className="flex items-center gap-3 mb-6">
           <Clock size={20} className="text-gray-700" />
-          <p className="text-gray-900 text-sm">Monday, 10:00 - 21:00</p>
+          <p className="text-gray-900 text-sm">
+            {openStationDetail?.openTime?.slice(0, -3)} -
+            {openStationDetail?.closeTime?.slice(0, -3)}
+          </p>
         </div>
 
         {/* Battery Slots */}
         <div className="mt-4">
           <p className="text-xs font-semibold text-gray-500 uppercase mb-3 tracking-wide">
-            Batteries
+            Pin
           </p>
           {batterySlots.map((slot, index) => (
             <div
@@ -246,7 +292,7 @@ function StationDetail({ setOpenStationDetail }: StationDetailProps) {
         {/* Reviews */}
         <div className="mt-6">
           <p className="text-xs font-semibold text-gray-500 uppercase mb-3 tracking-wide">
-            Station Reviews
+            Đánh giá trạm
           </p>
           {reviews.map((review) => (
             <div
@@ -287,7 +333,7 @@ function StationDetail({ setOpenStationDetail }: StationDetailProps) {
           ))}
 
           <button className="text-blue-500 font-medium text-center w-full mt-2">
-            View all reviews
+            Xem thêm
           </button>
         </div>
       </div>

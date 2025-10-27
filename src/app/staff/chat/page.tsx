@@ -75,7 +75,8 @@ function ChatWithCustomer() {
 
   // connect socket first
   useEffect(() => {
-    const socket = io("http://localhost:8080/chat", {
+    console.log("Connecting to socket...");
+    const socket = io("http://146.190.95.182:8080/chat", {
       transports: ["websocket"],
       withCredentials: true,
     });

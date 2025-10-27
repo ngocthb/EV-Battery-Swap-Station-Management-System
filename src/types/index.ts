@@ -125,12 +125,14 @@ export interface Station {
   closeTime?: string;
   image?: string;
   swappableBatteries: number;
+  slotAvailable?: number;
 }
 
 export interface Battery {
   id: string;
   model: string;
   capacity: number;
+  currentCapacity?: number;
   cycleLife: number;
   price: string;
   stationId?: string;
@@ -156,6 +158,14 @@ export interface VehicleType {
   description?: string;
   batteryTypeName?: string;
   status?: boolean;
+  batteryTypeId?: number;
+}
+
+export interface Vehicle {
+  id?: number;
+  name?: string;
+  vehicleType?: VehicleType;
+  batteries?: Battery[];
 }
 
 export interface Transaction {
@@ -209,4 +219,6 @@ export interface QueryParams {
   order?: string;
   status?: boolean | string;
   stationId?: string | number | boolean | null | undefined;
+  month?: number;
+  year?: number;
 }

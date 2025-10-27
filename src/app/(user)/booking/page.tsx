@@ -16,103 +16,9 @@ interface Step {
   };
 }
 function BookingPage() {
-  const [openStationDetail, setOpenStationDetail] = useState<string | null>(
+  const [openStationDetail, setOpenStationDetail] = useState<Station | null>(
     null
   );
-
-  const [stations] = useState<Station[]>([
-    {
-      id: "1",
-      name: "Brewery Electric Motorcycle Repair & Co",
-      description: "Electric motorcycle repair and battery swap station",
-      address:
-        "Jl. Mega Kuningan Barat No.3, RW.2, Kuningan, Kuningan Timur, Jakarta Selatan",
-      latitude: 10.7769,
-      longitude: 106.7017,
-      status: true,
-      batteryCount: 8,
-      temperature: "26.5",
-      openTime: "Monday, 10:00 - 21:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 2,
-    },
-    {
-      id: "2",
-      name: "District 3 Station",
-      description: "Central district battery swap station",
-      address: "123 Vo Van Tan, District 3, Ho Chi Minh City",
-      latitude: 10.7834,
-      longitude: 106.6934,
-      status: false,
-      temperature: "26.5",
-      batteryCount: 5,
-      openTime: "Monday, 08:00 - 22:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 1,
-    },
-    {
-      id: "3",
-      name: "Binh Thanh Station",
-      description: "Binh Thanh district battery swap station",
-      address: "456 Xo Viet Nghe Tinh, Binh Thanh, Ho Chi Minh City",
-      latitude: 10.8008,
-      temperature: "26.5",
-      longitude: 106.7122,
-      status: true,
-      batteryCount: 12,
-      openTime: "Monday, 06:00 - 23:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 3,
-    },
-    {
-      id: "4",
-      name: "Tan Binh Station",
-      description: "Tan Binh district battery swap station",
-      address: "789 Cong Hoa, Tan Binh, Ho Chi Minh City",
-      latitude: 10.8142,
-      longitude: 106.6438,
-      temperature: "26.5",
-      status: true,
-      batteryCount: 7,
-      openTime: "Monday, 07:00 - 21:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 2,
-    },
-    {
-      id: "5",
-      name: "Go Vap Station",
-      description: "Go Vap district battery swap station",
-      address: "321 Nguyen Oanh, Go Vap, Ho Chi Minh City",
-      latitude: 10.8376,
-      longitude: 106.6676,
-      temperature: "26.5",
-      status: false,
-      batteryCount: 0,
-      openTime: "Monday, 08:00 - 20:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 0,
-    },
-    {
-      id: "6",
-      name: "Thu Duc Station",
-      description: "Thu Duc district battery swap station",
-      address: "654 Vo Van Ngan, Thu Duc, Ho Chi Minh City",
-      latitude: 10.8525,
-      longitude: 106.7517,
-      temperature: "26.5",
-      status: true,
-      batteryCount: 15,
-      openTime: "Monday, 06:00 - 22:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 4,
-    },
-  ]);
-
-  const {
-    data: stationList,
-    loading,
-    refresh,
-  } = useFetchList(getAllPublicStationList);
 
   const [directionInstruction, setDirectionInstruction] = useState<{
     steps: Step[];
@@ -168,7 +74,10 @@ function BookingPage() {
 
         {/*Station detail */}
         {openStationDetail && (
-          <StationDetail setOpenStationDetail={setOpenStationDetail} />
+          <StationDetail
+            setOpenStationDetail={setOpenStationDetail}
+            openStationDetail={openStationDetail}
+          />
         )}
       </div>
     </UserLayout>

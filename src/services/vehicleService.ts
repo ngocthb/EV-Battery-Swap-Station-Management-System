@@ -10,6 +10,11 @@ export const getAllVehicleTypeListAPI = async <T>(params: T) => {
   return res.data;
 };
 
+export const getAllVehicleTypeListForUserAPI = async <T>(params: T) => {
+  const res = await api.get("/vehicle-type/public", { params });
+  return res.data;
+};
+
 export const createVehicleTypeAPI = async <T>(data: T) => {
   const res = await api.post("/vehicle-type", data);
   return res.data;

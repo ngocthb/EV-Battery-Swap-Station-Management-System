@@ -42,7 +42,7 @@ export default function ChatWidget() {
       setMessages(res?.data?.messages);
 
       // connect socket
-      const socket = io("http://localhost:8080/chat", {
+      const socket = io("http://146.190.95.182:8080/chat", {
         transports: ["websocket"],
         withCredentials: true,
       });

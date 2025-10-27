@@ -7,6 +7,7 @@ import { uploadFileToCloudinary } from "@/lib/cloudinary";
 import { toast } from "react-toastify";
 import { Camera, Trash2, Loader2, Check } from "lucide-react";
 import { UserLayout } from "@/layout/UserLayout";
+import UserVehicleList from "./component/UserVehicleList";
 
 const ProfilePage: React.FC = () => {
   const { user, refreshProfile } = useAuth();
@@ -97,7 +98,7 @@ const ProfilePage: React.FC = () => {
 
   return (
     <UserLayout>
-      <div className="px-16">
+      <div className="px-16 py-8">
         <h2 className="text-2xl font-semibold mb-6">Hồ sơ của tôi</h2>
 
         <div className="grid grid-cols-12 gap-6">
@@ -307,103 +308,10 @@ const ProfilePage: React.FC = () => {
 
           {/* Right content */}
           <div className="col-span-12 lg:col-span-8 space-y-6">
-            {/* Top stats */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-lg shadow flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-500">All Bookings</div>
-                  <div className="text-2xl font-semibold text-blue-600">5</div>
-                </div>
-                <div className="w-16 h-10 bg-gray-50 rounded flex items-end">
-                  <div className="w-2 h-6 bg-blue-300 rounded ml-1" />
-                  <div className="w-2 h-8 bg-blue-400 rounded ml-1" />
-                  <div className="w-2 h-4 bg-blue-200 rounded ml-1" />
-                </div>
-              </div>
 
-              <div className="bg-white p-4 rounded-lg shadow flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-500">Completed</div>
-                  <div className="text-2xl font-semibold text-purple-600">
-                    2
-                  </div>
-                </div>
-                <div className="w-16 h-10 bg-gray-50 rounded flex items-end">
-                  <div className="w-2 h-3 bg-purple-200 rounded ml-1" />
-                  <div className="w-2 h-7 bg-purple-300 rounded ml-1" />
-                  <div className="w-2 h-5 bg-purple-100 rounded ml-1" />
-                </div>
-              </div>
-
-              <div className="bg-white p-4 rounded-lg shadow flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-500">Cancelled</div>
-                  <div className="text-2xl font-semibold text-orange-600">
-                    5
-                  </div>
-                </div>
-                <div className="w-16 h-10 bg-gray-50 rounded flex items-end">
-                  <div className="w-2 h-4 bg-orange-200 rounded ml-1" />
-                  <div className="w-2 h-5 bg-orange-300 rounded ml-1" />
-                  <div className="w-2 h-6 bg-orange-400 rounded ml-1" />
-                </div>
-              </div>
-            </div>
 
             {/* Main panel: appointments list */}
-            <div className="bg-white rounded-lg shadow p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-medium">Appointments</h3>
-                <div className="text-sm text-gray-500">All Time (5)</div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 border rounded">
-                  <div>
-                    <div className="text-sm font-medium">29 Sep</div>
-                    <div className="text-sm text-gray-600">
-                      Plumbing — 11:00-13:00
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-sm text-gray-500">$50</div>
-                    <span className="px-3 py-1 rounded-full text-xs bg-red-100 text-red-700">
-                      Cancelled
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 border rounded">
-                  <div>
-                    <div className="text-sm font-medium">15 Oct</div>
-                    <div className="text-sm text-gray-600">
-                      Carpentry — 13:45-15:30
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-sm text-gray-500">$345</div>
-                    <span className="px-3 py-1 rounded-full text-xs bg-blue-50 text-blue-700">
-                      Booked
-                    </span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 border rounded">
-                  <div>
-                    <div className="text-sm font-medium">11 Nov</div>
-                    <div className="text-sm text-gray-600">
-                      Painting — 09:00-12:30
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="text-sm text-gray-500">$130</div>
-                    <span className="px-3 py-1 rounded-full text-xs bg-green-50 text-green-700">
-                      Done
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <UserVehicleList />
           </div>
         </div>
       </div>
