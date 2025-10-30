@@ -1,7 +1,10 @@
 import { useDebounce } from "@/hooks/useDebounce";
 import useFetchList from "@/hooks/useFetchList";
 import useQuery from "@/hooks/useQuery";
-import { getAllPublicStationList } from "@/services/stationService";
+import {
+  getAllNearestStationList,
+  getAllPublicStationList,
+} from "@/services/stationService";
 import { QueryParams, Station } from "@/types";
 import { isStationOpen } from "@/utils/format";
 import {
@@ -14,7 +17,7 @@ import {
   Search,
   X,
 } from "lucide-react";
-import React, { memo, useMemo, useState } from "react";
+import React, { memo, useEffect, useMemo, useState } from "react";
 import BookingModal from "./BookingModal";
 
 interface AsideStationProps {
@@ -40,23 +43,26 @@ function AsideStation({
 
   // query
   const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
-    page: 1,
-    limit: 100,
-    search: "",
-    order: "asc",
+    // page: 1,
+    // limit: 100,
+    // search: "",
+    // order: "asc",
+    lat: 0,
+    lng: 0,
+    limit: 10,
   });
 
   const debouncedSearch = useDebounce(query.search, 1500);
   const debouncedQuery = useMemo(
     () => ({ ...query, search: debouncedSearch }),
-    [debouncedSearch]
+    [debouncedSearch, query.lat, query.lng]
   );
 
   // fetch all station
   const { data: stationList = [], loading } = useFetchList<
     Station[],
     QueryParams
-  >(getAllPublicStationList, debouncedQuery);
+  >(getAllNearestStationList, debouncedQuery);
 
   const handleSearch = (data: string) => {
     updateQuery({ search: data });
@@ -123,13 +129,27 @@ function AsideStation({
     }
   };
 
+  // get location de query station nearest
+  useEffect(() => {
+    const fetchLocation = async () => {
+      try {
+        const { lat, lng } = await getCurrentPosition();
+        updateQuery({ lat, lng });
+      } catch (error) {
+        console.log("get location error:", error);
+      }
+    };
+
+    fetchLocation();
+  }, []);
+
   return (
     <>
       <div className="w-full max-h-[calc(70vh-64px)] lg:max-h-none lg:w-[30%] bg-white shadow-lg overflow-hidden flex flex-col">
         {/*search */}
         <div className="p-6 py-4 border-b border-gray-200">
           <h1 className="text-xl font-bold text-gray-900 mb-4">
-            Tìm trạm đổi pin
+            Tìm trạm đổi pin gần bạn
           </h1>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -200,7 +220,7 @@ function AsideStation({
                             : "Đóng cửa"}
                         </span>
                       </span>
-                      <span
+                      {/* <span
                         className={`inline-flex items-center space-x-1 text-xs font-medium ${
                           Number(station?.slotAvailable) > 0
                             ? "text-orange-700 bg-orange-50"
@@ -213,7 +233,7 @@ function AsideStation({
                             ? `${station?.slotAvailable} Pin`
                             : "Hết pin"}
                         </span>
-                      </span>
+                      </span> */}
                     </div>
                     {/*Name */}
                     <h3
@@ -223,6 +243,9 @@ function AsideStation({
                     >
                       {station?.name}
                     </h3>
+                    <p className="text-xs text-gray-500">
+                      Chi tiết để xem loại pin có sẵn
+                    </p>
                   </div>
                 </div>
 

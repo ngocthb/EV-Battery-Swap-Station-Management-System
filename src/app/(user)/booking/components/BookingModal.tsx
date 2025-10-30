@@ -1,15 +1,15 @@
 import useFetchList from "@/hooks/useFetchList";
 import { getUserVehicleAPI } from "@/services/userVehicleService";
-import { Vehicle } from "@/types";
+import { BatteryType, Cabinet, Vehicle } from "@/types";
 import React, { useEffect, useState } from "react";
 import BookingMapModal from "./BookingMapModal";
 import mapboxgl from "mapbox-gl";
-import {
-  mockGeocodeAddress,
-  reverseGeocode,
-} from "@/utils/geocoding";
+import { mockGeocodeAddress, reverseGeocode } from "@/utils/geocoding";
 import { createBookingAPI } from "@/services/bookingService";
 import { toast } from "react-toastify";
+import { getCabinetsByStationId } from "@/services/cabinetService";
+import { getBatteryTypeById } from "@/services/batteryTypeService";
+import { AxiosError } from "axios";
 
 interface BookingDetail {
   batteryId: number;
@@ -40,9 +40,82 @@ const BookingModal: React.FC<BookingModalProps> = ({
 }) => {
   const [userAddress, setUserAddress] = useState<string>("");
   const [loadingAddress, setLoadingAddress] = useState(false);
+  const [userVehicleBattery, setUserVehicleBattery] =
+    useState<BatteryType | null>(null);
+  const [bookingMessage, setBookingMessage] = useState<string>("");
 
   const { data: vehicleList = [], refresh } =
     useFetchList<Vehicle[]>(getUserVehicleAPI);
+
+  const [cabinInStationList, setCabinInStationList] = useState<
+    Cabinet[] | null
+  >(null);
+
+  // 1. get cabin theo stationId từ booking data
+  const handleGetCabinByStation = async () => {
+    try {
+      const res = await getCabinetsByStationId(bookingData?.stationId);
+
+      // 1.2 thêm type pin vô cabin để so sánh và show để bt cabin theo loại nào
+      const cabinWithBattery = await Promise.all(
+        res?.data?.map(async (cabin: Cabinet) => {
+          if (!cabin.batteryTypeId) return cabin;
+          try {
+            const batteryRes = await getBatteryTypeById(cabin.batteryTypeId);
+            return {
+              ...cabin,
+              batteryInfo: batteryRes.data,
+            };
+          } catch {
+            return cabin;
+          }
+        })
+      );
+      console.log("cabinWithBattery res modal", cabinWithBattery);
+
+      setCabinInStationList(cabinWithBattery);
+    } catch (error) {
+      console.log("get cabin by station err", error);
+    }
+  };
+
+  useEffect(() => {
+    handleGetCabinByStation();
+  }, [bookingData]);
+  // end 1. get cabin theo stationId từ booking data
+
+  // 2. khi user click chọn xe goi thg này lấy pin từ xe để so sánh vs trạm coi pin còn ko
+  const handleGetBatteryByUserVehicle = async () => {
+    try {
+      const res = await getBatteryTypeById(
+        bookingData?.bookingDetails[0]?.batteryId
+      );
+
+      console.log("get battery detail by user vehicle res", res.data);
+      setUserVehicleBattery(res.data);
+
+      const userBatteryId = bookingData?.bookingDetails?.[0]?.batteryId;
+
+      const hasMatchingCabinet = cabinInStationList?.some(
+        (cabinet) => cabinet.batteryTypeId === userBatteryId
+      );
+      if (hasMatchingCabinet) {
+        setBookingMessage("Hãy nhanh chóng đặt pin nhé!");
+      } else {
+        setBookingMessage("Trạm KHÔNG có loại pin phù hợp để đổi.");
+      }
+    } catch (error) {
+      console.log("get battery detail by user vehicle err", error);
+    }
+  };
+
+  useEffect(() => {
+    if (bookingData?.userVehicleId == 0) {
+      return;
+    }
+    handleGetBatteryByUserVehicle();
+  }, [bookingData]);
+  // end 2. khi user click chọn xe goi thg này lấy pin để so sánh vs trạm
 
   // phuc vu address
   useEffect(() => {
@@ -112,10 +185,9 @@ const BookingModal: React.FC<BookingModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("bookingData", bookingData);
     try {
-      console.log("booking data", bookingData);
       const res = await createBookingAPI(bookingData);
-      console.log("booking res", res);
       toast.success(res?.message || "Đặt lịch thành công");
       setBookingData({
         userVehicleId: 0,
@@ -126,7 +198,9 @@ const BookingModal: React.FC<BookingModalProps> = ({
       });
       setOpenBookingModal(false);
     } catch (error) {
-      console.log("create booking err", error);
+      const err = error as AxiosError<any>;
+      console.log("create booking err", err);
+      toast.warn(err.response?.data?.message || "Không thể chọn");
     }
   };
 
@@ -147,6 +221,63 @@ const BookingModal: React.FC<BookingModalProps> = ({
 
         <div className="flex flex-row gap-4">
           <form className="space-y-5">
+            {/*Pin in station info */}
+            <div className="bg-gray-100 p-2 rounded-lg">
+              <h3 className="font-semibold border-b border-gray-200 pb-2">
+                Thông tin pin tại trạm
+              </h3>
+
+              <div className="max-h-[120px] overflow-y-auto scrollbar-custom">
+                {/*show cabin và pin */}
+                {cabinInStationList?.map((cabin, index) => {
+                  return (
+                    <div
+                      key={cabin.id}
+                      className={`py-2 flex items-center justify-between border-b border-gray-200`}
+                    >
+                      <div className="space-y-2 w-full">
+                        <p className="font-medium text-sm">
+                          {cabin.name} - Pin {cabin?.batteryInfo?.name}
+                        </p>
+
+                        {cabin?.availablePins && (
+                          <div className="flex flex-row justify-between items-center w-full">
+                            {/* info*/}
+                            <div className="flex gap-3">
+                              <div className="bg-green-500 w-7 h-7 rounded-full flex items-center justify-center pb-1">
+                                <p className="text-white font-semibold">
+                                  {cabin?.availablePins}
+                                </p>
+                              </div>
+                              <p className="font-semibold text-green-500">
+                                Có thể đổi
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        {cabin?.chargingPins !== 0 && (
+                          <div className="flex flex-row justify-between items-center w-full">
+                            {/* info*/}
+                            <div className="flex gap-3">
+                              <div className="bg-yellow-500 w-7 h-7 rounded-full flex items-center justify-center pb-1">
+                                <p className="text-white font-semibold">
+                                  {cabin?.chargingPins}
+                                </p>
+                              </div>
+                              <p className="font-semibold text-yellow-500">
+                                Đang sạc
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             {/* Địa chỉ hiện tại */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -217,7 +348,10 @@ const BookingModal: React.FC<BookingModalProps> = ({
             {/* Phương tiện */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Phương tiện của bạn
+                <span>Phương tiện của bạn - </span>
+                {userVehicleBattery && (
+                  <span>Pin của bạn: {userVehicleBattery?.name}</span>
+                )}
               </label>
               <select
                 name="userVehicleId"
@@ -233,6 +367,21 @@ const BookingModal: React.FC<BookingModalProps> = ({
                 ))}
               </select>
             </div>
+
+            {bookingMessage && (
+              <div
+                className={`
+                    mt-3 px-4 py-2 rounded-lg text-sm font-medium border
+                    ${
+                      bookingMessage.includes("Hãy")
+                        ? "bg-green-100 border-green-500 text-green-700"
+                        : "bg-yellow-100 border-yellow-500 text-yellow-700"
+                    }
+                  `}
+              >
+                {bookingMessage}
+              </div>
+            )}
 
             {/* Nút hành động */}
             <div className="flex justify-end gap-3 pt-2">

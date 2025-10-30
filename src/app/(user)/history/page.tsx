@@ -7,9 +7,12 @@ import { getUserBookingListAPI } from "@/services/bookingService";
 import { CalendarDays, CreditCard } from "lucide-react";
 import { useState } from "react";
 import BookingHistory from "./component/BookingHistory";
+import { formatDateHCM } from "@/utils/format";
 
 const ProfilePage: React.FC = () => {
   const { user, refreshProfile } = useAuth();
+
+  console.log("user ", user);
 
   const [activeTab, setActiveTab] = useState<"payment" | "booking">("booking");
 
@@ -36,9 +39,31 @@ const ProfilePage: React.FC = () => {
                 </h3>
                 <p className="text-sm text-gray-500">{user?.email}</p>
 
-                <div className="mt-4 bg-blue-50 text-blue-700 px-4 py-2 rounded-lg text-sm font-medium">
-                  {/* Thẻ thành viên: {user?.membershipLevel || "Standard"} */}
-                  Thẻ thành viên: {"Standard"}
+                <div className="w-[300px] mt-4 rounded-xl p-4 text-white bg-gradient-to-r from-blue-500 to-indigo-500 shadow-md">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-lg font-semibold">
+                      {user?.memberships?.[0]?.membership?.name ??
+                        "Chưa có thẻ"}
+                    </h3>
+                    <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                      {user?.memberships?.[0]?.remainingSwaps ?? 0} lần còn lại
+                    </span>
+                  </div>
+
+                  <p className="text-sm">
+                    {user?.memberships?.[0]?.membership?.description ?? ""}
+                  </p>
+
+                  <div className="mt-4 border-t border-white/30 pt-3 text-sm">
+                    <p className="flex justify-between">
+                      <span>Ngày hết hạn:</span>
+                      <span className="font-medium">
+                        {formatDateHCM(
+                          String(user?.memberships?.[0]?.expiredDate)
+                        ) ?? ""}
+                      </span>
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -75,8 +100,6 @@ const ProfilePage: React.FC = () => {
 
           {/* RIGHT CONTENT */}
           <div className="col-span-12 lg:col-span-8 space-y-6">
-
-
             {activeTab === "booking" && <BookingHistory />}
 
             {activeTab === "payment" && (

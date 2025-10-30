@@ -5,13 +5,16 @@ import { useRouter } from "next/navigation";
 import { Building, ArrowLeft, Plus, MapPin } from "lucide-react";
 import { toast } from "react-toastify";
 import {
-  createBatteryTypeAPI,
   getAllBatteryTypeListAPI,
 } from "@/services/batteryTypeService";
-import { useBatteryAdmin } from "@/app/admin/batteries/context/BatteryAdminContext";
 import useFetchList from "@/hooks/useFetchList";
 import { BatteryType } from "@/types";
 import { createVehicleTypeAPI } from "@/services/vehicleService";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  fetchBatteryTypeDetail,
+  setBatteryTypeId,
+} from "@/store/slices/adminDetailStateSlice";
 
 interface FormErrors {
   batteryTypeId?: number;
@@ -20,7 +23,7 @@ interface FormErrors {
 }
 
 const CreateForm = () => {
-  const { setBatteryTypeId } = useBatteryAdmin();
+  const dispatch = useAppDispatch();
 
   const router = useRouter();
   const [form, setForm] = useState({
@@ -176,7 +179,9 @@ const CreateForm = () => {
               value={Number(form.batteryTypeId || 0)}
               onChange={(e) => {
                 handleChange(e);
-                setBatteryTypeId(Number(e.target.value));
+                const id = Number(e.target.value);
+                dispatch(setBatteryTypeId(id));
+                dispatch(fetchBatteryTypeDetail(id));
               }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >

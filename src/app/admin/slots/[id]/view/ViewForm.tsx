@@ -64,7 +64,7 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
         <div className="px-6 py-4 border-b border-gray-200 bg-white">
           <div className="flex items-center space-x-3">
             <button
-              onClick={() => router.push("/admin/cabins")}
+              onClick={() => router.push("/admin/slots")}
               className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -81,7 +81,7 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
         </div>
 
         {/* Cabinet Details */}
-        <div className="flex-1 overflow-auto p-6 scrollbar-custom">
+        <div className="flex-1 overflow-auto p-6">
           {/* Basic Information */}
           <div className=" rounded-lg p-4">
             <div className="space-y-4">

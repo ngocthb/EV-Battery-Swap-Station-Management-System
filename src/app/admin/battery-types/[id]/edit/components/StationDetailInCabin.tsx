@@ -1,9 +1,12 @@
 import React from "react";
 import { Battery, Building, MapPin } from "lucide-react";
-import { useCabinAdmin } from "@/app/admin/cabins/context/CabinAdminContext";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 
 function StationDetailInCabin() {
-  const { station } = useCabinAdmin();
+  const station = useSelector(
+    (state: RootState) => state.adminDetailState.station.data
+  );
 
   return (
     <div className="w-1/2 bg-white flex flex-col">

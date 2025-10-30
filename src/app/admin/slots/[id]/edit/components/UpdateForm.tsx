@@ -14,89 +14,144 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import useFetchList from "@/hooks/useFetchList";
-import { BatteryType, Station } from "@/types";
-import { getCabinetsById, updateCabinetAPI } from "@/services/cabinetService";
-import { getAllBatteryTypeListAPI } from "@/services/batteryTypeService";
+import { Battery, BatteryType, Cabinet, Station } from "@/types";
+import {
+  getAllCabinetListAPI,
+  getCabinetByIdAPI,
+  getCabinetsById,
+  updateCabinetAPI,
+} from "@/services/cabinetService";
+// import { useCabinAdmin } from "../../../context/CabinAdminContext";
+import {
+  getAllBatteryTypeListAPI,
+  getBatteryTypeById,
+} from "@/services/batteryTypeService";
+import {
+  getAllBatteryByTypeAPI,
+  getAllBatteryListAPI,
+} from "@/services/batteryService";
+import { getSlotByIdAPI, updateSlotAPI } from "@/services/slotService";
 import { useAppDispatch } from "@/store/hooks";
 import {
-  fetchStationDetail,
-  setStationId,
+  fetchBatteryDetail,
+  fetchCabinDetail,
+  setBatteryId,
+  setCabinId,
 } from "@/store/slices/adminDetailStateSlice";
 
 interface FormErrors {
   name?: string;
-  stationId?: string;
-  batteryTypeId?: string;
-  slotCount?: string;
+  cabinetId?: string;
+  batteryId?: string;
+  status?: string;
 }
-
 interface UpdateFormProps {
-  cabinId: number;
+  slotId: number;
 }
 
-const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
+const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
   const dispatch = useAppDispatch();
+
   const router = useRouter();
   const [form, setForm] = useState({
     name: "",
-    stationId: 0,
-    batteryTypeId: 0,
-    slotCount: 0,
+    cabinetId: 0,
+    batteryId: 0,
+    status: "",
   });
+
+  console.log("form", form);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [batteryTypeDetail, setBatteryTypeDetail] =
+    useState<BatteryType | null>(null);
+  const [batteryList, setBatteryList] = useState<Battery[] | null>(null);
+  const [batteryOfSlot, setBatteryOfSlot] = useState<Battery | null>(null);
 
-  const { data: stationList = [] } = useFetchList<Station[]>(getAllStationList);
-  const { data: batteryTypeList = [] } = useFetchList<BatteryType[]>(
-    getAllBatteryTypeListAPI
-  );
+  const { data: cabinList = [] } =
+    useFetchList<Cabinet[]>(getAllCabinetListAPI);
 
-  const fetchCabinById = async () => {
+  // 1. vô lấy slot detail liền
+  const fetchSlotById = async () => {
     setLoading(true);
     try {
-      const res = await getCabinetsById(cabinId);
-      console.log("res cabin id", res.data);
+      const res = await getSlotByIdAPI(slotId);
+      console.log("slot detail", res.data);
       setForm({
         name: res.data?.name,
-        stationId: res.data?.stationId,
-        batteryTypeId: res.data?.batteryTypeId,
-        slotCount: res.data?.slots.length,
+        cabinetId: res.data?.cabinetId,
+        batteryId: res.data?.batteryId,
+        status: res.data?.status,
       });
-      const id = res.data?.stationId;
-      dispatch(setStationId(id));
-      dispatch(fetchStationDetail(id));
+      setBatteryOfSlot(res.data.battery);
+
+      const batteryId = res.data?.batteryId;
+      dispatch(setBatteryId(batteryId));
+      dispatch(fetchBatteryDetail(batteryId));
     } catch (error: unknown) {
       console.error("loi fetch cabin detail:", error);
     } finally {
       setLoading(false);
     }
   };
-
   useEffect(() => {
-    fetchCabinById();
-  }, [cabinId, router]);
+    fetchSlotById();
+  }, [slotId, router]);
+  // end 1 fetch slot
+
+  // 2. get cabin detail khi có form.cabinId để lấy đc battery type và lấy battery list theo type
+  const handleGetCabinDetail = async () => {
+    try {
+      // 2.1
+      const res = await getCabinetByIdAPI(form.cabinetId);
+
+      // 2.2
+      const batteryType = await getBatteryTypeById(res.data.batteryTypeId);
+      setBatteryTypeDetail(batteryType.data);
+
+      // 2.3
+      const batteryListRes = await getAllBatteryByTypeAPI(
+        res.data.batteryTypeId,
+        { page: 0, limit: 0, search: "" }
+      );
+      // 2.4 filter 1 lần nữa
+      const newBatteryList = batteryListRes.data.filter(
+        (item: Battery) =>
+          item.slotId == 0 ||
+          (item.slotId == null && item.userVehicleId == null)
+      );
+      // 2.5 thêm battery của slot vô battery list
+      if (
+        batteryOfSlot &&
+        !newBatteryList.some((b: Battery) => b.id === batteryOfSlot.id)
+      ) {
+        newBatteryList.unshift(batteryOfSlot);
+      }
+
+      setBatteryList(newBatteryList);
+    } catch (error) {
+      console.log("get cabin detail err", error);
+    }
+  };
+  useEffect(() => {
+    if (form.cabinetId === 0) return;
+    handleGetCabinDetail();
+  }, [form]);
+  // end get cabin detail
 
   const validateForm = () => {
     const newErrors: FormErrors = {};
 
     if (!form.name.trim()) {
-      newErrors.name = "Tên tủ sạc không được để trống";
+      newErrors.name = "Tên ô sạc không được để trống";
     } else if (form.name.trim().length < 2) {
-      newErrors.name = "Tên tủ sạc phải có ít nhất 2 ký tự";
+      newErrors.name = "Tên ô sạc phải có ít nhất 2 ký tự";
     }
 
-    if (!form.stationId || form.stationId <= 0) {
-      newErrors.stationId = "Vui lòng chọn trạm";
-    }
-
-    if (!form.batteryTypeId || form.batteryTypeId <= 0) {
-      newErrors.batteryTypeId = "Vui lòng chọn pin";
-    }
-
-    if (!form.slotCount || Number(form.slotCount) <= 0) {
-      newErrors.slotCount = "Số slot phải lớn hơn 0";
+    if (!form.cabinetId || form.cabinetId <= 0) {
+      newErrors.cabinetId = "Vui lòng chọn tủ";
     }
 
     setErrors(newErrors);
@@ -112,10 +167,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
     setForm((prev) => ({
       ...prev,
       [name]:
-        type === "number" ||
-        name === "stationId" ||
-        name === "slotCount" ||
-        name === "batteryTypeId"
+        type === "number" || name === "cabinetId" || name === "batteryId"
           ? Number(value)
           : value,
     }));
@@ -136,8 +188,8 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
 
     setLoading(true);
     try {
-      console.log("update cabin form", form);
-      const response = await updateCabinetAPI(cabinId, form);
+      console.log("update slot form", form);
+      const response = await updateSlotAPI(slotId, form);
 
       if (response.success) {
         toast.success(response.message);
@@ -146,7 +198,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
       }
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : "Cập nhật tủ thất bại";
+        err instanceof Error ? err.message : "Cập nhật ô thất bại";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -158,7 +210,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
       <div className="w-1/2 bg-white border-r border-gray-200 flex items-center justify-center">
         <div className="text-center">
           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
-          <p className="text-gray-600">Đang tải thông tin tủ...</p>
+          <p className="text-gray-600">Đang tải thông tin ô...</p>
         </div>
       </div>
     );
@@ -170,17 +222,17 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
       <div className="px-6 py-4 border-b border-gray-200 bg-white">
         <div className="flex items-center space-x-3">
           <button
-            onClick={() => router.push("/admin/cabins")}
+            onClick={() => router.push("/admin/slots")}
             className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5 text-gray-600" />
           </button>
           <div>
             <h1 className="text-xl font-semibold text-gray-900">
-              Cập nhật tủ sạc
+              Cập nhật ô sạc
             </h1>
             <p className="text-sm text-gray-600">
-              Cập nhật thông tin tủ sạc trong hệ thống
+              Cập nhật thông tin ô sạc trong hệ thống
             </p>
           </div>
         </div>
@@ -189,17 +241,47 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
       {/* Form */}
       <form className="flex-1 overflow-auto p-6">
         <div className="space-y-6">
-          {/* Cabin Name */}
+          {/*cabinet */}
+          <div>
+            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+              <MapPin className="w-4 h-4" />
+              <span>Tủ pin /</span>
+              {batteryTypeDetail && (
+                <span>
+                  Loại pin: {batteryTypeDetail?.id} - {batteryTypeDetail?.name}
+                </span>
+              )}
+            </label>
+            <select
+              name="cabinetId"
+              value={Number(form.cabinetId || 0)}
+              onChange={(e) => {
+                handleChange(e);
+                const id = Number(e.target.value);
+                dispatch(setCabinId(id));
+                dispatch(fetchCabinDetail(id));
+              }}
+              className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
+            >
+              <option value={0}>Chọn tủ</option>
+              {cabinList.map((cabin) => (
+                <option key={cabin.id} value={cabin.id}>
+                  {cabin.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {/* Name */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <Building className="w-4 h-4" />
-              <span>Tên tủ sạc</span>
+              <span>Tên ô sạc</span>
             </label>
             <input
               name="name"
               value={form.name}
               onChange={handleChange}
-              placeholder="VD: Tủ 3"
+              placeholder="VD: Ô 123"
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
                 errors.name ? "border-red-300 bg-red-50" : "border-gray-300"
               }`}
@@ -213,71 +295,55 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4" />
-              <span>Loại pin</span>
+              <span>Pin</span>
             </label>
             <select
-              name="batteryTypeId"
-              value={Number(form.batteryTypeId || 0)}
+              name="batteryId"
+              value={Number(form.batteryId || 0)}
               onChange={(e) => {
                 handleChange(e);
+                const id = Number(e.target.value);
+                dispatch(setBatteryId(id));
+                dispatch(fetchBatteryDetail(id));
               }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >
-              <option value={0}>Chọn theo loại pin</option>
-              {batteryTypeList.map((battery) => (
+              {/* {batteryOfSlot ? (
+                <option value={form.batteryId}>
+                  {batteryOfSlot.model} - Loại pin{" "}
+                  {batteryOfSlot?.batteryTypeId}
+                </option>
+              ) : (
+                <option value={0}>Chọn pin</option>
+              )} */}
+              {batteryList?.map((battery) => (
                 <option key={battery.id} value={battery.id}>
-                  {battery.name}
+                  {battery.model} - {battery?.batteryType?.name}
                 </option>
               ))}
             </select>
           </div>
 
-          {/* Slot count */}
-          <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <span>Số ô pin</span>
-            </label>
-            <input
-              name="slotCount"
-              type="number"
-              min={1}
-              max={12}
-              value={form.slotCount}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.slotCount
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-300"
-              }`}
-            />
-            {errors.slotCount && (
-              <p className="mt-1 text-sm text-red-600">{errors.slotCount}</p>
-            )}
-          </div>
-
-          {/*Station */}
+          {/*status */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4" />
-              <span>Trạm</span>
+              <span>Trạng thái</span>
             </label>
             <select
-              name="stationId"
-              value={Number(form.stationId || 0)}
+              name="status"
+              value={form.status || ""}
               onChange={(e) => {
                 handleChange(e);
-                const id = Number(e.target.value);
-                dispatch(setStationId(id));
-                dispatch(fetchStationDetail(id));
               }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >
-              <option value={0}>Tìm theo tên trạm</option>
-              {stationList.map((station) => (
-                <option key={station.id} value={station.id}>
-                  {station.name}
-                </option>
-              ))}
+              <option value="AVAILABLE">Hoạt động</option>
+              <option value="MAINTENANCE">Bảo trì</option>
+              <option value="CHARGING">Đang sạc</option>
+              <option value="RESERVED">Đã đặt</option>
+              <option value="SWAPPING">Đang đổi</option>
+              <option value="EMPTY">Chưa có pin</option>
             </select>
           </div>
 
@@ -295,7 +361,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
         <div className="flex justify-end space-x-3">
           <button
             type="button"
-            onClick={() => router.push("/admin/cabins")}
+            onClick={() => router.push("/admin/slots")}
             disabled={loading}
             className="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
@@ -316,7 +382,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
             ) : (
               <>
                 <Save className="w-4 h-4" />
-                <span>Cập nhập tủ</span>
+                <span>Cập nhập ô</span>
               </>
             )}
           </button>

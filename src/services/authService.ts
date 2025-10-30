@@ -53,17 +53,19 @@ class AuthService {
 
       const response = await api.get("user/me");
 
-      const backendUser = response.data.data;
-      const user: User = {
-        id: backendUser.id,
-        username: backendUser.username,
-        email: backendUser.email,
-        fullName: backendUser.fullName,
-        avatar: backendUser.avatar,
-        role: backendUser.role,
-      };
+      console.log("get user /me", response.data);
 
-      return user;
+      const backendUser = response.data.data;
+      // const user: User = {
+      //   id: backendUser.id,
+      //   username: backendUser.username,
+      //   email: backendUser.email,
+      //   fullName: backendUser.fullName,
+      //   avatar: backendUser.avatar,
+      //   role: backendUser.role,
+      // };
+
+      return backendUser;
     } catch (error: unknown) {
       this.logout();
       const errorMessage =

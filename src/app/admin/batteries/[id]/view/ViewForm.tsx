@@ -15,6 +15,8 @@ const ViewForm = ({ batteryId }: { batteryId: number }) => {
     setLoading(true);
     try {
       const res = await getBatteryById(batteryId);
+      console.error("loi fetch battery detail: res", res.data);
+
       setBatteryDetail(res.data);
     } catch (error: unknown) {
       console.error("loi fetch battery detail:", error);
@@ -87,7 +89,7 @@ const ViewForm = ({ batteryId }: { batteryId: number }) => {
   }
 
   return (
-    <div className="flex h-full">
+    <div className="flex">
       {/* battery Info - Left Side */}
       <div className="w-1/2 bg-white border-r border-gray-200 flex flex-col">
         {/* Header */}
@@ -125,47 +127,55 @@ const ViewForm = ({ batteryId }: { batteryId: number }) => {
           </div>
           {/* Basic Information */}
           <div className=" rounded-lg p-4">
-            <div className="space-y-4">
-              {/*Tên */}
+            <div className="grid grid-cols-2 gap-6 bg-gray-100 p-4 rounded-lg">
+              {/* Mẫu pin */}
               <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Building className="w-4 h-4 mr-2 text-gray-500" />
-                  Mẫu pin
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
+                <p className="text-sm text-gray-500">Mẫu pin</p>
+                <p className="text-base font-medium text-gray-800">
                   {batteryDetail?.model || "Không có dữ liệu"}
-                </div>
-              </div>
-              {/*dung lượng */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Building className="w-4 h-4 mr-2 text-gray-500" />
-                  Dung lượng pin
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {batteryDetail?.capacity || "Không có dữ liệu"}
-                </div>
-              </div>
-              {/*Vòng đời */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Building className="w-4 h-4 mr-2 text-gray-500" />
-                  Vòng đời pin
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {batteryDetail?.cycleLife || "Không có dữ liệu"}
-                </div>
+                </p>
               </div>
 
-              {/*type */}
+              {/* Dung lượng pin */}
               <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                  Loại pin
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {batteryDetail?.batteryType?.name || "Không có dữ liệu"}
-                </div>
+                <p className="text-sm text-gray-500">Dung lượng pin</p>
+                <p className="text-base font-medium text-gray-800">
+                  {batteryDetail?.currentCapacity || "Không có dữ liệu"}
+                </p>
+              </div>
+
+              {/* Vòng đời pin */}
+              <div>
+                <p className="text-sm text-gray-500">Vòng đời pin</p>
+                <p className="text-base font-medium text-gray-800">
+                  {batteryDetail?.currentCycle || "Không có dữ liệu"}
+                </p>
+              </div>
+
+              {/* Loại pin */}
+              <div>
+                <p className="text-sm text-gray-500">Loại pin</p>
+                <p className="text-base font-medium text-gray-800">
+                  {batteryDetail?.batteryType?.name || "Chưa có"}
+                </p>
+              </div>
+
+              {/* Thuộc xe người dùng */}
+              <div>
+                <p className="text-sm text-gray-500">Thuộc xe người dùng</p>
+                <p className="text-base font-medium text-gray-800">
+                  {batteryDetail?.userVehicleId || "Không có dữ liệu"}
+                </p>
+              </div>
+
+              {/* Thuộc ô / tủ */}
+              <div>
+                <p className="text-sm text-gray-500">Vị trí</p>
+                <p className="text-base font-medium text-gray-800">
+                  {batteryDetail?.slot?.name || "Không có dữ liệu"}{" "}
+                  {batteryDetail?.slot?.cabinetId &&
+                    `- Tủ ${batteryDetail.slot.cabinetId}`}
+                </p>
               </div>
             </div>
           </div>
@@ -198,49 +208,40 @@ const ViewForm = ({ batteryId }: { batteryId: number }) => {
           </div>
           {/* Basic Information */}
           <div className=" rounded-lg p-4">
-            <div className="space-y-4">
-              {/*Tên */}
+            <div className="grid grid-cols-2 gap-6 p-4 rounded-lg bg-gray-100">
+              {/* Tên loại pin */}
               <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Building className="w-4 h-4 mr-2 text-gray-500" />
-                  Tên loại pin
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
+                <p className="text-sm text-gray-500">Tên loại pin</p>
+                <p className="text-base font-medium text-gray-800">
                   {batteryDetail?.batteryType?.name || "Không có dữ liệu"}
-                </div>
+                </p>
               </div>
-              {/*Description */}
+
+              {/* Dung lượng */}
               <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Building className="w-4 h-4 mr-2 text-gray-500" />
-                  Mô tả
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {batteryDetail?.batteryType?.description ||
-                    "Không có dữ liệu"}
-                </div>
-              </div>
-              {/*Dung lượng */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                  Dung lượng
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
+                <p className="text-sm text-gray-500">Dung lượng (KWH)</p>
+                <p className="text-base font-medium text-gray-800">
                   {batteryDetail?.batteryType?.capacityKWh ||
                     "Không có dữ liệu"}
-                </div>
+                </p>
               </div>
-              {/*Price per swap */}
+
+              {/* Giá mỗi lần đổi */}
               <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                  Gía lần đổi
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
+                <p className="text-sm text-gray-500">Giá mỗi lần đổi (VND)</p>
+                <p className="text-base font-medium text-gray-800">
                   {batteryDetail?.batteryType?.pricePerSwap ||
                     "Không có dữ liệu"}
-                </div>
+                </p>
+              </div>
+
+              {/* Mô tả */}
+              <div className="col-span-2">
+                <p className="text-sm text-gray-500">Mô tả</p>
+                <p className="text-base font-medium text-gray-800 whitespace-pre-line">
+                  {batteryDetail?.batteryType?.description ||
+                    "Không có dữ liệu"}
+                </p>
               </div>
             </div>
           </div>

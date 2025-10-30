@@ -6,6 +6,7 @@ import {
 import { getAllVehicleTypeListForUserAPI } from "@/services/vehicleService";
 import { Vehicle, VehicleType } from "@/types";
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "react-toastify";
 
 interface AddVehicleModalProps {
   onClose: () => void;
@@ -45,10 +46,12 @@ function AddVehicleModal({
     try {
       setLoading(true);
       if (showModal === "update" && editData) {
-        await updateUserVehicleAPI(Number(editData?.id), {
+        const updateRes = await updateUserVehicleAPI(Number(editData?.id), {
           name,
           vehicleTypeId,
         });
+        console.log("update vehicle res", updateRes);
+        toast.success(updateRes?.message || "Cập nhật thành công");
       } else {
         await createUserVehicleAPI({ name, vehicleTypeId });
       }

@@ -16,6 +16,10 @@ const CreateForm = () => {
   const [form, setForm] = useState({
     name: "",
     description: "",
+    capacityKWh: 0,
+    cycleLife: 0,
+    chargeRate: 0,
+    pricePerSwap: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -71,7 +75,14 @@ const CreateForm = () => {
       const res = await createBatteryTypeAPI(form);
       if (res.success) {
         toast.success(res.message);
-        setForm({ name: "", description: "" });
+        setForm({
+          name: "",
+          description: "",
+          capacityKWh: 0,
+          cycleLife: 0,
+          chargeRate: 0,
+          pricePerSwap: 0,
+        });
       } else {
         toast.error(res.message);
       }

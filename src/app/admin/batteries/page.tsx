@@ -7,7 +7,11 @@ import Link from "next/link";
 import useQuery from "@/hooks/useQuery";
 import { Battery, QueryParams } from "@/types";
 import { useDebounce } from "@/hooks/useDebounce";
-import { deleteBatteryAPI, getAllBatteryListAPI, restoreBatteryAPI } from "@/services/batteryService";
+import {
+  deleteBatteryAPI,
+  getAllBatteryListAPI,
+  restoreBatteryAPI,
+} from "@/services/batteryService";
 import useFetchList from "@/hooks/useFetchList";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useRouter } from "next/navigation";
@@ -62,7 +66,13 @@ export default function BatteriesPage() {
       case "AVAILABLE":
         return "bg-green-100 text-green-800";
       case "MAINTENANCE":
+        return "bg-red-100 text-red-800";
+      case "CHARGING":
         return "bg-yellow-100 text-yellow-800";
+      case "IN_USE":
+        return "bg-blue-100 text-blue-800";
+      case "RESERVED":
+        return "bg-purple-100 text-purple-800";
       default:
         return "bg-gray-100 text-gray-800";
     }
@@ -78,6 +88,8 @@ export default function BatteriesPage() {
         return "Đang sạc";
       case "IN_USE":
         return "Đang được sử dụng";
+      case "RESERVED":
+        return "Đã được đặt";
       default:
         return "Không xác định";
     }
@@ -220,18 +232,18 @@ export default function BatteriesPage() {
                               {battery?.model}
                             </div>
                             <div className="text-sm text-gray-500">
-                              {battery?.batteryType?.description}
+                              {String(battery?.batteryType)}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-sm text-gray-900 max-w-xs">
-                          {battery?.capacity}
+                          {battery?.currentCapacity}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {battery?.cycleLife}
+                        {battery?.currentCycle}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span

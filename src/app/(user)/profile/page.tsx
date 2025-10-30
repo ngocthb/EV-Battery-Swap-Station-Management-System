@@ -308,8 +308,6 @@ const ProfilePage: React.FC = () => {
 
           {/* Right content */}
           <div className="col-span-12 lg:col-span-8 space-y-6">
-
-
             {/* Main panel: appointments list */}
             <UserVehicleList />
           </div>

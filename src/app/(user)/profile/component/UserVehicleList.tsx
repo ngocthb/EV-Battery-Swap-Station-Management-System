@@ -15,15 +15,7 @@ function UserVehicleList() {
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-      <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-medium">Phương tiện</h3>
-        <button
-          onClick={() => setShowModal("create")}
-          className="text-sm bg-blue-600 text-white hover:bg-blue-800 font-medium p-4 py-2 rounded-lg transition cursor-pointer"
-        >
-          Thêm phương tiện
-        </button>
-      </div>
 
       <div className="space-y-3">
         {vehicleList && vehicleList.length > 0 ? (

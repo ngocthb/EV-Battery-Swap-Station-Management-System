@@ -11,6 +11,12 @@ export const getAllPublicStationList = async <T>(params: T) => {
   return res.data;
 };
 
+export const getAllNearestStationList = async <T>(params: T) => {
+  const res = await api.get("/station/nearest", { params });
+
+  return res.data;
+};
+
 export const createStation = async (data: {
   name: string;
   description: string;

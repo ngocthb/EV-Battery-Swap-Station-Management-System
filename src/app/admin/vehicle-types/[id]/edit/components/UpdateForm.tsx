@@ -21,11 +21,11 @@ import {
   getBatteryTypeById,
   updateBatteryTypeAPI,
 } from "@/services/batteryTypeService";
-import { useBatteryAdmin } from "@/app/admin/batteries/context/BatteryAdminContext";
 import {
   getVehicleTypeById,
   updateVehicleTypeAPI,
 } from "@/services/vehicleService";
+import { useAppDispatch } from "@/store/hooks";
 
 interface FormErrors {
   batteryTypeId?: number;
@@ -38,7 +38,7 @@ interface UpdateFormProps {
 }
 
 const UpdateForm: React.FC<UpdateFormProps> = ({ vehicleTypeId }) => {
-  const { setBatteryTypeId } = useBatteryAdmin();
+  const dispatch = useAppDispatch();
 
   const router = useRouter();
   const [form, setForm] = useState({
@@ -65,6 +65,9 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ vehicleTypeId }) => {
         batteryTypeId: res?.data?.batteryTypeName,
         description: res.data?.description,
       });
+      // const id = Number(e.target.value);
+      // dispatch(setBatteryTypeId(id));
+      // dispatch(fetchBatteryTypeDetail(id));
     } catch (error: unknown) {
       console.error("loi fetch vehicleTypeId detail:", error);
     } finally {

@@ -3,6 +3,7 @@ import useFetchList from "@/hooks/useFetchList";
 import useQuery from "@/hooks/useQuery";
 import { getUserBookingListAPI } from "@/services/bookingService";
 import { QueryParams } from "@/types";
+import { formatDateHCM } from "@/utils/format";
 import {
   Battery,
   Calendar,
@@ -194,14 +195,7 @@ function BookingHistory() {
                     <Calendar className="w-4 h-4 text-gray-500" />
                     Ngày đặt:{" "}
                     <b className="font-medium">
-                      {new Date(b.createdAt).toLocaleString("vi-VN", {
-                        timeZone: "Asia/Ho_Chi_Minh",
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatDateHCM(b.createdAt)}
                     </b>
                   </p>
 
@@ -209,14 +203,7 @@ function BookingHistory() {
                     <Clock className="w-4 h-4 text-gray-500" />
                     Giờ nhận dự kiến:{" "}
                     <b className="font-medium">
-                      {new Date(b.expectedPickupTime).toLocaleString("vi-VN", {
-                        timeZone: "Asia/Ho_Chi_Minh",
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
+                      {formatDateHCM(b.expectedPickupTime)}
                     </b>
                   </p>
 
