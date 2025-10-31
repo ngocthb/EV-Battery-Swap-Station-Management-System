@@ -37,7 +37,6 @@ const RestoreConfirmModal: React.FC<RestoreConfirmModalProps> = ({
   const handleRestoreConfirm = async () => {
     if (!restoreModal.data) return;
 
-    // setRestoreModal((prev) => ({ ...prev, loading: true }));
     dispatch(setRestoreLoading(true));
 
     try {
@@ -111,9 +110,9 @@ const RestoreConfirmModal: React.FC<RestoreConfirmModalProps> = ({
 
               <div>
                 <span className="text-sm font-medium text-gray-700">
-                  Nhiệt độ:
+                  Loại pin
                 </span>
-                <p className="text-gray-900">{cabinet.temperature}</p>
+                <p className="text-gray-900">{cabinet?.batteryTypeId}</p>
               </div>
 
               <div className="flex justify-between items-center">

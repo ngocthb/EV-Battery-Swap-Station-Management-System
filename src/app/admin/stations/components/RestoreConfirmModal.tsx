@@ -3,23 +3,61 @@
 import React from "react";
 import { RotateCcw, X } from "lucide-react";
 import { Station } from "@/types";
+import { useAppDispatch } from "@/store/hooks";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import {
+  closeRestoreModal,
+  setRestoreLoading,
+} from "@/store/slices/adminModalSlice";
+import { toast } from "react-toastify";
+
+interface ApiResponse<T = unknown> {
+  success?: boolean;
+  message?: string;
+  data?: T;
+}
 
 interface RestoreConfirmModalProps {
-  isOpen: boolean;
   station: Station | null;
-  loading: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
+  onConfirmAPI: (id: number) => Promise<ApiResponse>;
+  refreshList: () => void;
 }
 
 const RestoreConfirmModal: React.FC<RestoreConfirmModalProps> = ({
-  isOpen,
   station,
-  loading,
-  onConfirm,
-  onCancel,
+  onConfirmAPI,
+  refreshList,
 }) => {
-  if (!isOpen || !station) return null;
+  const dispatch = useAppDispatch();
+  const { restoreModal } = useSelector((state: RootState) => state.adminModal);
+
+  if (!restoreModal.isOpen || !station) return null;
+
+  const handleRestoreConfirm = async () => {
+    if (!restoreModal.data) return;
+
+    dispatch(setRestoreLoading(true));
+
+    try {
+      const response = await onConfirmAPI((restoreModal.data as Station).id);
+      if (response.success) {
+        toast.success(response.message || "Khôi phục tủ thành công!");
+        refreshList();
+        dispatch(closeRestoreModal());
+      } else {
+        toast.error(response.message || "Khôi phục tủ thất bại!");
+      }
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Có lỗi xảy ra khi khôi phục tủ";
+      toast.error(errorMessage);
+    } finally {
+      dispatch(setRestoreLoading(false));
+    }
+  };
 
   const getStatusText = (status: boolean) => {
     return status ? "Hoạt động" : "Đóng cửa";
@@ -45,8 +83,8 @@ const RestoreConfirmModal: React.FC<RestoreConfirmModalProps> = ({
             </h3>
           </div>
           <button
-            onClick={onCancel}
-            disabled={loading}
+            onClick={() => dispatch(closeRestoreModal())}
+            disabled={restoreModal.loading}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -78,21 +116,21 @@ const RestoreConfirmModal: React.FC<RestoreConfirmModalProps> = ({
               </div>
 
               <div className="flex justify-between items-center">
-                <div>
+                <div className="flex flex-col">
                   <span className="text-sm font-medium text-gray-700">
-                    Số pin:
+                    Thời gian hoạt động
                   </span>
-                  <span className="ml-2 text-gray-900">
-                    {station.batteryCount || 0}
+                  <span className=" text-gray-900">
+                    {station.openTime || 0} - {station.closeTime || 0}
                   </span>
                 </div>
 
-                <div>
+                <div className="flex flex-col">
                   <span className="text-sm font-medium text-gray-700">
                     Trạng thái hiện tại:
                   </span>
                   <span
-                    className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                    className={`mt-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
                       station.status
                     )}`}
                   >
@@ -114,21 +152,23 @@ const RestoreConfirmModal: React.FC<RestoreConfirmModalProps> = ({
         {/* Actions */}
         <div className="flex justify-end space-x-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
           <button
-            onClick={onCancel}
-            disabled={loading}
+            onClick={() => dispatch(closeRestoreModal())}
+            disabled={restoreModal.loading}
             className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             Hủy
           </button>
           <button
-            onClick={onConfirm}
-            disabled={loading}
+            onClick={handleRestoreConfirm}
+            disabled={restoreModal.loading}
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
           >
-            {loading && (
+            {restoreModal.loading && (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             )}
-            <span>{loading ? "Đang khôi phục..." : "Khôi phục trạm"}</span>
+            <span>
+              {restoreModal.loading ? "Đang khôi phục..." : "Khôi phục trạm"}
+            </span>
           </button>
         </div>
       </div>

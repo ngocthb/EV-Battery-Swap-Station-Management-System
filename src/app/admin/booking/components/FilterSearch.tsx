@@ -6,12 +6,8 @@ type FilterBarProps = {
   query: QueryParams;
   loading: boolean;
   resultCount?: number;
-  showStatus?: boolean;
-  showOrder?: boolean;
-  showStation?: boolean;
-  stationList?: Station[];
   onSearch: (val: string) => void;
-  onChangeStatus?: (val: boolean) => void;
+  onChangeStatus?: (val: string) => void;
   onUpdateQuery: (
     newQuery: Partial<
       Record<string, string | number | boolean | null | undefined>
@@ -24,10 +20,6 @@ function FilterSearch({
   query,
   loading,
   resultCount = 0,
-  showStatus = true,
-  showOrder = true,
-  showStation = false,
-  stationList = [],
   onSearch,
   onChangeStatus,
   onUpdateQuery,
@@ -37,9 +29,8 @@ function FilterSearch({
     query.search ||
     query.page !== 1 ||
     query.limit !== 10 ||
-    (showOrder && query.order !== "asc") ||
-    (showStation && query.stationId && query.stationId !== 0) ||
-    (showStatus && query.status !== true);
+    query.status !== "" ||
+    query.order !== "asc";
   return (
     <div className="p-6 border-b border-gray-200">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -49,7 +40,7 @@ function FilterSearch({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Tìm kiếm theo tên tủ..."
+              placeholder="Tìm kiếm theo tên xe..."
               value={query.search}
               onChange={(e) => onSearch(e.target.value)}
               disabled={loading}
@@ -69,12 +60,17 @@ function FilterSearch({
             {/* Status filter */}
             <select
               value={String(query.status)}
-              onChange={(e) => onChangeStatus?.(e.target.value === "true")}
+              onChange={(e) => onChangeStatus?.(e.target.value)}
               disabled={loading}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[120px]"
             >
-              <option value="true">Hoạt động</option>
-              <option value="false">Đóng cửa</option>
+              <option value="">Trạng thái</option>
+              <option value="RESERVED">Đã giữ chỗ</option>
+              <option value="PENDING_PAYMENT">Chờ thanh toán</option>
+              <option value="IN_PROGRESS">Đang thực hiện</option>
+              <option value="COMPLETED">Hoàn thành</option>
+              <option value="CANCELLED">Đã hủy</option>
+              <option value="EXPIRED">Hết hạn</option>
             </select>
             {/* Sort order */}
             <select
@@ -87,22 +83,6 @@ function FilterSearch({
               <option value="DESC">Z → A</option>
             </select>
 
-            {/*Station */}
-            <select
-              value={String(query.stationId || "")}
-              onChange={(e) =>
-                onUpdateQuery({ stationId: Number(e.target.value) })
-              }
-              disabled={loading}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 min-w-[100px]"
-            >
-              <option value="">Tìm theo tên trạm</option>
-              {stationList.map((station) => (
-                <option key={station.id} value={station.id}>
-                  {station.name}
-                </option>
-              ))}
-            </select>
             {/* Items per page */}
             <select
               value={String(query.limit)}

@@ -6,7 +6,7 @@ export const getUserVehicleAPI = async () => {
 };
 
 export const createUserVehicleAPI = async <T>(data: T) => {
-  const res = await api.post("/user-vehicle", data);
+  const res = await api.post("/user-vehicle/staff", data);
   return res.data;
 };
 

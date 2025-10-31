@@ -1,8 +1,8 @@
 "use client";
+import { StaffLayout } from "@/layout/StaffLayout";
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AdminLayout } from "@/layout/AdminLayout";
 import { MapPin, Edit, Battery, Eye } from "lucide-react";
 import useQuery from "@/hooks/useQuery";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -11,14 +11,16 @@ import { Cabinet, QueryParams, Slot, Station } from "@/types";
 import { getStationById } from "@/services/stationService";
 
 import { getAllSlotListAPI } from "@/services/slotService";
-import FilterSearch from "./components/FilterSearch";
 import { getAllCabinetListAPI } from "@/services/cabinetService";
-import StatsList from "./components/StatsList";
+import FilterSearch from "./component/FilterSearch";
 import { getSlotStatusText } from "@/utils/formateStatus";
+import StatsList from "./component/StatsList";
+import SlotDetailModal from "./component/SlotDetailModal";
 
-export default function SlotPage() {
-  const router = useRouter();
+function SlotAndBattery() {
   const [station, setStation] = useState<Station | null>(null);
+
+  const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
 
   const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
     page: 1,
@@ -80,9 +82,8 @@ export default function SlotPage() {
   const handleChangStatus = (data: string) => {
     updateQuery({ status: data });
   };
-
   return (
-    <AdminLayout>
+    <StaffLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -199,7 +200,7 @@ export default function SlotPage() {
                           }
                         `}
                     >
-                      {getSlotStatusText(slot.status)}
+                      {getSlotStatusText(slot?.status)}
                     </span>
                   </div>
 
@@ -211,20 +212,11 @@ export default function SlotPage() {
     group-hover:opacity-100 group-hover:translate-y-0"
                   >
                     <span
-                      onClick={() => router.push(`/admin/slots/${slot.id}`)}
+                      onClick={() => {
+                        setSelectedSlotId(slot.id);
+                      }}
                     >
                       <Eye size={20} color="blue" className="cursor-pointer" />
-                    </span>
-                    <span
-                      onClick={() =>
-                        router.push(`/admin/slots/${slot.id}/edit`)
-                      }
-                    >
-                      <Edit
-                        size={20}
-                        color="green"
-                        className="cursor-pointer"
-                      />
                     </span>
                   </div>
                 </div>
@@ -233,6 +225,15 @@ export default function SlotPage() {
           </div>
         </div>
       </div>
-    </AdminLayout>
+
+      {selectedSlotId && (
+        <SlotDetailModal
+          slotId={selectedSlotId}
+          onClose={() => setSelectedSlotId(null)}
+        />
+      )}
+    </StaffLayout>
   );
 }
+
+export default SlotAndBattery;

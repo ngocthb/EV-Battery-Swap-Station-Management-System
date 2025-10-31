@@ -2,11 +2,17 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building, ArrowLeft, Plus, MapPin } from "lucide-react";
-import { toast } from "react-toastify";
 import {
-  getAllBatteryTypeListAPI,
-} from "@/services/batteryTypeService";
+  Building,
+  ArrowLeft,
+  Plus,
+  MapPin,
+  Bike,
+  FileText,
+  Battery,
+} from "lucide-react";
+import { toast } from "react-toastify";
+import { getAllBatteryTypeListAPI } from "@/services/batteryTypeService";
 import useFetchList from "@/hooks/useFetchList";
 import { BatteryType } from "@/types";
 import { createVehicleTypeAPI } from "@/services/vehicleService";
@@ -129,7 +135,7 @@ const CreateForm = () => {
           {/* phương tiện Name */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Building className="w-4 h-4" />
+              <Bike className="w-4 h-4" />
               <span>Tên loại phương tiện</span>
             </label>
             <input
@@ -149,7 +155,7 @@ const CreateForm = () => {
           {/* phương tiện description */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Building className="w-4 h-4" />
+              <FileText className="w-4 h-4" />
               <span>Mô tả loại phương tiện</span>
             </label>
             <input
@@ -171,7 +177,7 @@ const CreateForm = () => {
           {/*battery type */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <MapPin className="w-4 h-4" />
+              <Battery className="w-4 h-4" />
               <span>Loại pin</span>
             </label>
             <select

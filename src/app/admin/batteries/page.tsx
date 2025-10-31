@@ -2,10 +2,19 @@
 
 import React, { useMemo } from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
-import { Edit, MapPin, Plus, RotateCcw, Search, Trash2, X } from "lucide-react";
+import {
+  Battery,
+  Edit,
+  MapPin,
+  Plus,
+  RotateCcw,
+  Search,
+  Trash2,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import useQuery from "@/hooks/useQuery";
-import { Battery, QueryParams } from "@/types";
+import type { Battery as IBattery, QueryParams } from "@/types";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
   deleteBatteryAPI,
@@ -21,6 +30,15 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { RootState } from "@/store";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
 import RestoreConfirmModal from "./components/RestoreConfirmModal";
+import {
+  getBatteryStatusBackground,
+  getBatteryStatusText,
+} from "@/utils/formateStatus";
+import StatsList from "./components/StatsList";
+import {
+  openDeleteModal,
+  openRestoreModal,
+} from "@/store/slices/adminModalSlice";
 
 export default function BatteriesPage() {
   const router = useRouter();
@@ -48,7 +66,7 @@ export default function BatteriesPage() {
     data: batteryList = [],
     loading,
     refresh,
-  } = useFetchList<Battery[], QueryParams>(
+  } = useFetchList<IBattery[], QueryParams>(
     getAllBatteryListAPI,
     debouncedQuery
   );
@@ -61,39 +79,6 @@ export default function BatteriesPage() {
     updateQuery({ status: data });
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "AVAILABLE":
-        return "bg-green-100 text-green-800";
-      case "MAINTENANCE":
-        return "bg-red-100 text-red-800";
-      case "CHARGING":
-        return "bg-yellow-100 text-yellow-800";
-      case "IN_USE":
-        return "bg-blue-100 text-blue-800";
-      case "RESERVED":
-        return "bg-purple-100 text-purple-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "AVAILABLE":
-        return "Hoạt động";
-      case "MAINTENANCE":
-        return "Bảo trì";
-      case "CHARGING":
-        return "Đang sạc";
-      case "IN_USE":
-        return "Đang được sử dụng";
-      case "RESERVED":
-        return "Đã được đặt";
-      default:
-        return "Không xác định";
-    }
-  };
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -115,49 +100,7 @@ export default function BatteriesPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <MapPin className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Tổng trạm</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {batteryList?.length}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <MapPin className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Hoạt động</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {batteryList?.filter((s) => s.status === "AVAILABLE").length}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <MapPin className="w-6 h-6 text-red-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Bảo trì</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {batteryList.filter((s) => s.status === "MAINTENANCE").length}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        <StatsList batteryList={batteryList} />
 
         {/*Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
@@ -218,14 +161,15 @@ export default function BatteriesPage() {
                     <tr key={battery.id} className="hover:bg-gray-50">
                       {/*Modal & type */}
                       <td
-                        className="px-6 py-4 whitespace-nowrap"
+                        className="px-6 py-4 whitespace-nowrap cursor-pointer"
+                        title="Xem chi tiết"
                         onClick={() =>
                           router.push(`/admin/batteries/${battery.id}`)
                         }
                       >
                         <div className="flex items-center">
                           <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <MapPin className="w-5 h-5 text-blue-600" />
+                            <Battery className="w-5 h-5 text-blue-600" />
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
@@ -247,11 +191,11 @@ export default function BatteriesPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getBatteryStatusBackground(
                             battery?.status
                           )}`}
                         >
-                          {getStatusText(battery?.status)}
+                          {getBatteryStatusText(battery?.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -266,9 +210,11 @@ export default function BatteriesPage() {
                           >
                             <Edit className="w-4 h-4" />
                           </button>
-                          {battery?.status === "MAINTENANCE" ? (
+                          {/* {battery?.status === "MAINTENANCE" ? (
                             <button
-                              // onClick={() => handleRestoreClick(battery)}
+                              onClick={() =>
+                                dispatch(openRestoreModal(battery))
+                              }
                               className="text-green-600 hover:text-green-900 p-1 disabled:opacity-50"
                               disabled={loading}
                               title="Khôi phục pin"
@@ -277,14 +223,14 @@ export default function BatteriesPage() {
                             </button>
                           ) : (
                             <button
-                              // onClick={() => handleDeleteClick(battery)}
+                              onClick={() => dispatch(openDeleteModal(battery))}
                               className="text-red-600 hover:text-red-900 p-1 disabled:opacity-50"
                               disabled={loading}
                               title="Xóa pin"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
-                          )}
+                          )} */}
                         </div>
                       </td>
                     </tr>
@@ -305,14 +251,14 @@ export default function BatteriesPage() {
 
       {/* Delete Confirmation Modal */}
       <DeleteConfirmModal
-        battery={deleteModal.data as Battery | null}
+        battery={deleteModal.data as IBattery | null}
         onConfirmAPI={deleteBatteryAPI}
         refreshList={refresh}
       />
 
       {/* Restore Confirmation Modal */}
       <RestoreConfirmModal
-        battery={restoreModal.data as Battery | null}
+        battery={restoreModal.data as IBattery | null}
         onConfirmAPI={restoreBatteryAPI}
         refreshList={refresh}
       />

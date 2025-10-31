@@ -1,5 +1,5 @@
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { QueryParams, Station } from "@/types";
+import { Cabinet, QueryParams, Station } from "@/types";
 import { Search, X } from "lucide-react";
 
 type FilterBarProps = {
@@ -8,10 +8,10 @@ type FilterBarProps = {
   resultCount?: number;
   showStatus?: boolean;
   showOrder?: boolean;
-  showStation?: boolean;
-  stationList?: Station[];
+  showCabin?: boolean;
+  cabinList?: Cabinet[];
   onSearch: (val: string) => void;
-  onChangeStatus?: (val: boolean) => void;
+  onChangeStatus?: (val: string) => void;
   onUpdateQuery: (
     newQuery: Partial<
       Record<string, string | number | boolean | null | undefined>
@@ -26,8 +26,8 @@ function FilterSearch({
   resultCount = 0,
   showStatus = true,
   showOrder = true,
-  showStation = false,
-  stationList = [],
+  showCabin = false,
+  cabinList = [],
   onSearch,
   onChangeStatus,
   onUpdateQuery,
@@ -35,11 +35,12 @@ function FilterSearch({
 }: FilterBarProps) {
   const isFiltered =
     query.search ||
-    query.page !== 1 ||
-    query.limit !== 10 ||
+    // query.page !== 1 ||
+    // query.limit !== 10 ||
     (showOrder && query.order !== "asc") ||
-    (showStation && query.stationId && query.stationId !== 0) ||
+    (showCabin && query.cabinetId && query.cabinetId !== 0) ||
     (showStatus && query.status !== true);
+
   return (
     <div className="p-6 border-b border-gray-200">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -49,7 +50,7 @@ function FilterSearch({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Tìm kiếm theo tên tủ..."
+              placeholder="Tìm kiếm theo tên ô..."
               value={query.search}
               onChange={(e) => onSearch(e.target.value)}
               disabled={loading}
@@ -69,12 +70,16 @@ function FilterSearch({
             {/* Status filter */}
             <select
               value={String(query.status)}
-              onChange={(e) => onChangeStatus?.(e.target.value === "true")}
+              onChange={(e) => onChangeStatus?.(e.target.value)}
               disabled={loading}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[120px]"
             >
-              <option value="true">Hoạt động</option>
-              <option value="false">Đóng cửa</option>
+              <option value="AVAILABLE">Hoạt động</option>
+              <option value="CHARGING">Đang sạc</option>
+              <option value="RESERVED">Đã đặt</option>
+              <option value="SWAPPING">Đang đổi</option>
+              <option value="EMPTY">Chưa có pin</option>
+              <option value="MAINTENANCE">Bảo trì</option>
             </select>
             {/* Sort order */}
             <select
@@ -87,35 +92,21 @@ function FilterSearch({
               <option value="DESC">Z → A</option>
             </select>
 
-            {/*Station */}
+            {/*cabin */}
             <select
-              value={String(query.stationId || "")}
+              value={String(query.cabinetId || "")}
               onChange={(e) =>
-                onUpdateQuery({ stationId: Number(e.target.value) })
+                onUpdateQuery({ cabinetId: Number(e.target.value) })
               }
               disabled={loading}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 min-w-[100px]"
             >
-              <option value="">Tìm theo tên trạm</option>
-              {stationList.map((station) => (
-                <option key={station.id} value={station.id}>
-                  {station.name}
+              <option value="">Tìm theo tủ</option>
+              {cabinList.map((cabin) => (
+                <option key={cabin.id} value={cabin.id}>
+                  {cabin.name} - Pin loại {cabin.batteryTypeId}
                 </option>
               ))}
-            </select>
-            {/* Items per page */}
-            <select
-              value={String(query.limit)}
-              onChange={(e) =>
-                onUpdateQuery({ limit: Number(e.target.value), page: 1 })
-              }
-              disabled={loading}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[100px]"
-            >
-              <option value={5}>5/trang</option>
-              <option value={10}>10/trang</option>
-              <option value={20}>20/trang</option>
-              <option value={50}>50/trang</option>
             </select>
           </div>
         </div>
@@ -128,7 +119,7 @@ function FilterSearch({
                 <span>Đang tải...</span>
               </span>
             ) : (
-              `Tìm thấy ${resultCount} trạm`
+              `Tìm thấy ${resultCount} ô`
             )}
           </p>
           {isFiltered && !loading && (

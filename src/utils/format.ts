@@ -11,8 +11,8 @@ export const isStationOpen = (openTime?: string, closeTime?: string) => {
 
 export const formatDateHCM = (dateStr: string) => {
   const date = new Date(dateStr);
-  date.setHours(date.getHours() + 7);
   return date.toLocaleString("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
     day: "2-digit",
     month: "2-digit",
     year: "numeric",

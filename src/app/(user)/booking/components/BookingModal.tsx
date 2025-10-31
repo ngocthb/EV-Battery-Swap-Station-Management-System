@@ -10,6 +10,7 @@ import { toast } from "react-toastify";
 import { getCabinetsByStationId } from "@/services/cabinetService";
 import { getBatteryTypeById } from "@/services/batteryTypeService";
 import { AxiosError } from "axios";
+import { useRouter } from "next/navigation";
 
 interface BookingDetail {
   batteryId: number;
@@ -38,6 +39,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
   bookingData,
   setBookingData,
 }) => {
+  const router = useRouter();
   const [userAddress, setUserAddress] = useState<string>("");
   const [loadingAddress, setLoadingAddress] = useState(false);
   const [userVehicleBattery, setUserVehicleBattery] =
@@ -197,6 +199,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
         bookingDetails: [{ batteryId: 0 }],
       });
       setOpenBookingModal(false);
+      router.push("/history");
     } catch (error) {
       const err = error as AxiosError<any>;
       console.log("create booking err", err);

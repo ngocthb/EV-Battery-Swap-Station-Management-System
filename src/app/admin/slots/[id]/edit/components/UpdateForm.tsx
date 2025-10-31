@@ -189,7 +189,8 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
     setLoading(true);
     try {
       console.log("update slot form", form);
-      const response = await updateSlotAPI(slotId, form);
+      const { cabinetId, ...newUpdateForm } = form;
+      const response = await updateSlotAPI(slotId, newUpdateForm);
 
       if (response.success) {
         toast.success(response.message);
@@ -239,7 +240,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
       </div>
 
       {/* Form */}
-      <form className="flex-1 overflow-auto p-6">
+      <form className="flex-1 overflow-auto p-6 scrollbar-custom">
         <div className="space-y-6">
           {/*cabinet */}
           <div>
@@ -261,6 +262,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
                 dispatch(setCabinId(id));
                 dispatch(fetchCabinDetail(id));
               }}
+              disabled
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >
               <option value={0}>Chọn tủ</option>
@@ -343,7 +345,9 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
               <option value="CHARGING">Đang sạc</option>
               <option value="RESERVED">Đã đặt</option>
               <option value="SWAPPING">Đang đổi</option>
-              <option value="EMPTY">Chưa có pin</option>
+              {form.batteryId == 0 && (
+                <option value="EMPTY">Chưa có pin</option>
+              )}
             </select>
           </div>
 

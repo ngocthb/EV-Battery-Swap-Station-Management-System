@@ -29,6 +29,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   onConfirmAPI,
   refreshList,
 }) => {
+  console.log("cabin", cabin);
   const dispatch = useAppDispatch();
   const { deleteModal } = useSelector((state: RootState) => state.adminModal);
 
@@ -108,9 +109,9 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
 
               <div>
                 <span className="text-sm font-medium text-gray-700">
-                  Nhiệt độ:
+                  Loại pin
                 </span>
-                <p className="text-gray-900">{cabin?.temperature}</p>
+                <p className="text-gray-900">{cabin?.batteryTypeId}</p>
               </div>
 
               <div className="flex justify-between items-center">

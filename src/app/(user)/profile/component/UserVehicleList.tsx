@@ -3,8 +3,8 @@ import { getUserVehicleAPI } from "@/services/userVehicleService";
 import type { Vehicle } from "@/types";
 import { Battery, Bike, Car, Edit, Trash2 } from "lucide-react";
 import { useState } from "react";
-import AddVehicleModal from "./AddVehicleModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
+import EditVehicleModal from "./EditVehicleModal";
 
 function UserVehicleList() {
   const { data: vehicleList = [], refresh } =
@@ -15,7 +15,7 @@ function UserVehicleList() {
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium">Phương tiện</h3>
+      <h3 className="text-lg font-medium">Phương tiện</h3>
 
       <div className="space-y-3">
         {vehicleList && vehicleList.length > 0 ? (
@@ -95,21 +95,21 @@ function UserVehicleList() {
         )}
       </div>
 
-      {showModal && showModal !== "delete" && (
-        <AddVehicleModal
+      {showModal && showModal == "delete" && (
+        <DeleteConfirmModal
+          vehicle={editData}
           onClose={() => setShowModal(null)}
           onSuccess={() => {
             setShowModal(null);
             refresh();
           }}
-          showModal={showModal}
-          editData={editData}
         />
       )}
 
-      {showModal && showModal == "delete" && (
-        <DeleteConfirmModal
-          vehicle={editData}
+      {showModal && showModal === "update" && (
+        <EditVehicleModal
+          showModal={showModal}
+          editData={editData}
           onClose={() => setShowModal(null)}
           onSuccess={() => {
             setShowModal(null);

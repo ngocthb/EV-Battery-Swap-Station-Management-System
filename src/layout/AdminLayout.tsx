@@ -15,6 +15,7 @@ import {
   BatteryPlus,
   Bike,
   Box,
+  Calendar,
 } from "lucide-react";
 import { RolePermission } from "@/hooks/rolePermission";
 import Image from "next/image";
@@ -68,6 +69,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       label: "Quản lý Loại phương tiện",
       href: "/admin/vehicle-types",
       icon: Bike,
+    },
+    {
+      id: "booking",
+      label: "Quản lý Đặt lịch",
+      href: "/admin/booking",
+      icon: Calendar,
     },
     {
       id: "memberships",

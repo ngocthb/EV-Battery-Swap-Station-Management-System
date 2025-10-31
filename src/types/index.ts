@@ -34,6 +34,7 @@ export interface User {
   avatar: string;
   role: string;
   memberships?: UserMemberShip[];
+  status: string;
 }
 
 export interface AuthState {
@@ -154,6 +155,8 @@ export interface Battery {
   slot?: Slot;
   batteryTypeId?: number;
   lastChargeTime?: string;
+  healthScore?: number;
+  estimatedFullChargeTime?: string;
 }
 
 export interface BatteryType {
@@ -240,6 +243,29 @@ export interface Cabinet {
   batteryInfo: BatteryType;
 }
 
+export interface UserVehicle {
+  id: number;
+  name: string;
+  batteries?: Battery[];
+}
+
+export interface BookingDetail {
+  id: number;
+  batteryId: number;
+  price?: number | string | null;
+  status: string;
+}
+
+export interface Booking {
+  id: number;
+  status?: string;
+  expectedPickupTime?: string;
+  createdAt?: string;
+  user?: User;
+  userVehicle?: UserVehicle;
+  bookingDetails: BookingDetail[];
+}
+
 export interface QueryParams {
   page?: number;
   limit?: number;
@@ -252,4 +278,5 @@ export interface QueryParams {
   cabinetId?: number;
   lat?: number;
   lng?: number;
+  role?: string;
 }

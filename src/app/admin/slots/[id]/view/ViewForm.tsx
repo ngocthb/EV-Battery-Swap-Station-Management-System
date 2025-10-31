@@ -2,38 +2,39 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getCabinetsById } from "@/services/cabinetService";
-import {
-  getCabinetByIdAPI,
-  getCabinetsByStationId,
-} from "@/services/cabinetService";
-import { Cabinet, Slot, Station } from "@/types";
-import { MapPin, Building, ArrowLeft, Loader2, Battery } from "lucide-react";
-import { getStationById } from "@/services/stationService";
-import { getBatteryTypeById } from "@/services/batteryTypeService";
 
-const ViewForm = ({ cabinId }: { cabinId: number }) => {
+import { Slot } from "@/types";
+import {
+  ArrowLeft,
+  Loader2,
+  Battery,
+  Clock,
+  Activity,
+  Zap,
+  Info,
+  Plug,
+} from "lucide-react";
+import { getSlotByIdAPI } from "@/services/slotService";
+import { formatDateHCM } from "@/utils/format";
+import {
+  getBatteryStatusStyle,
+  getBatteryStatusText,
+  getSlotStatusStyle,
+  getSlotStatusText,
+} from "@/utils/formateStatus";
+
+const ViewForm = ({ slotId }: { slotId: number }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [cabinDetail, setCabinDetail] = useState<Cabinet | null>(null);
-  const [stationDetail, setStationDetail] = useState<Station | null>(null);
-  const [batteryTypeDetail, setBatteryTypeDetail] = useState<Station | null>(
-    null
-  );
+  const [slotDetail, setSlotDetail] = useState<Slot | null>(null);
 
-  const fetchCabinById = async () => {
+  const fetchSlotById = async () => {
     setLoading(true);
     try {
-      const res = await getCabinetsById(cabinId);
-      console.log("cabin view", res.data);
+      const res = await getSlotByIdAPI(slotId);
+      console.log("slot view", res.data);
 
-      setCabinDetail(res.data);
-
-      const stationDetailRes = await getStationById(res.data.stationId);
-      setStationDetail(stationDetailRes.data);
-
-      const batteryTypeRes = await getBatteryTypeById(res.data.batteryTypeId);
-      setBatteryTypeDetail(batteryTypeRes.data);
+      setSlotDetail(res.data);
     } catch (error: unknown) {
       console.error("loi fetch cabin detail:", error);
     } finally {
@@ -42,8 +43,9 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
   };
 
   useEffect(() => {
-    fetchCabinById();
-  }, [cabinId, router]);
+    fetchSlotById();
+  }, [slotId, router]);
+
 
   if (loading) {
     return (
@@ -56,190 +58,141 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
     );
   }
 
+  const battery = slotDetail?.battery;
+
   return (
-    <div className="flex h-full">
-      {/* Station Info - Left Side */}
+    <div className="flex h-full bg-gray-50">
+      {/* LEFT: Slot Info */}
       <div className="w-1/2 bg-white border-r border-gray-200 flex flex-col">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 bg-white">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => router.push("/admin/slots")}
-              className="p-2 hover:bg-gray-200 rounded-lg transition-colors"
-            >
-              <ArrowLeft className="w-5 h-5 text-gray-600" />
-            </button>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
-                Thông tin tủ sạc
-              </h1>
-              <p className="text-sm text-gray-600">
-                Chi tiết về tủ sạc trong trạm
-              </p>
-            </div>
+        <div className="px-6 py-4 border-b border-gray-200 flex items-center gap-3">
+          <button
+            onClick={() => router.push("/admin/slots")}
+            className="p-2 hover:bg-gray-100 rounded-lg transition"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-600" />
+          </button>
+          <div>
+            <h1 className="text-lg font-semibold text-gray-900">
+              Thông tin ô sạc
+            </h1>
+            <p className="text-sm text-gray-500">Chi tiết về ô sạc</p>
           </div>
         </div>
 
-        {/* Cabinet Details */}
-        <div className="flex-1 overflow-auto p-6">
-          {/* Basic Information */}
-          <div className=" rounded-lg p-4">
-            <div className="space-y-4">
-              {/*Tên */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <Building className="w-4 h-4 mr-2 text-gray-500" />
-                  Tên tủ sạc
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {cabinDetail?.name || "Không có dữ liệu"}
-                </div>
-              </div>
-              {/*slot*/}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                  Số ô pin
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {cabinDetail?.slots?.length || "Không có dữ liệu"}
-                </div>
-              </div>
-              {/*Station */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                  Trạm
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {stationDetail?.name || "Không có dữ liệu"}
-                </div>
-              </div>
+        {/* Content */}
+        <div className="p-6 space-y-6">
+          {/* Slot name */}
+          <div className="flex items-center gap-2">
+            <Plug className="w-5 h-5 text-blue-600" />
+            <span className="text-lg font-semibold text-gray-800">
+              {slotDetail?.name}
+            </span>
+          </div>
 
-              {/*battery */}
-              <div>
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                  Loại pin
-                </label>
-                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {batteryTypeDetail?.name || "Không có dữ liệu"}
-                </div>
-              </div>
+          {/* Status */}
+          <div className="bg-gray-50 rounded-xl p-4 flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-500 mb-1">Trạng thái</p>
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${getSlotStatusStyle(
+                  slotDetail?.status
+                )}`}
+              >
+                {getSlotStatusText(slotDetail?.status)}
+              </span>
+            </div>
+            <div className="text-xs text-gray-400 italic">
+              Cập nhật: {new Date().toLocaleDateString()}
+            </div>
+          </div>
+
+          {/* Info box */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <p className="text-gray-500 text-xs">Mã tủ</p>
+              <p className="font-medium text-gray-800">
+                {slotDetail?.cabinetId}
+              </p>
+            </div>
+            <div className="bg-gray-50 p-3 rounded-lg">
+              <p className="text-gray-500 text-xs">Pin ID</p>
+              <p className="font-medium text-gray-800">
+                {slotDetail?.batteryId || "Chưa có pin"}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Battery Slots */}
+      {/* RIGHT: Battery Info */}
       <div className="w-1/2 bg-white flex flex-col">
-        {/* Header */}
-        <div className="px-6 py-3 mt-1 border-b border-gray-200 bg-white">
+        <div className="px-6 py-4 border-b border-gray-200 bg-white">
           <h2 className="text-xl font-semibold text-gray-900 flex items-center">
-            <Battery className="w-5 h-5 mr-2" />
-            Các slot pin
+            <Battery className="w-5 h-5 mr-2 text-blue-600" />
+            Thông tin pin
           </h2>
           <p className="text-sm text-gray-600 mt-1">
-            Tổng: {cabinDetail?.slots?.length || 0} slot
+            {battery ? "Chi tiết về pin đang lắp" : "Ô này hiện chưa có pin."}
           </p>
         </div>
 
-        {/* Battery Slots Grid */}
-        <div className="flex-1 overflow-auto p-6">
-          {cabinDetail?.slots && cabinDetail.slots.length > 0 ? (
-            <div className="grid grid-cols-4 gap-4">
-              {cabinDetail.slots.map((slot) => (
-                <div
-                  key={slot.id}
-                  className={`
-                    relative rounded-lg border-2 p-4 transition-all hover:shadow-md
-                    ${
-                      slot.status === "CHARGING"
-                        ? "border-green-500 bg-green-50"
-                        : slot.status === "RESERVED"
-                        ? "border-yellow-500 bg-yellow-50"
-                        : slot.status === "SWAPPING"
-                        ? "border-blue-500 bg-blue-50"
-                        : slot.status === "MAINTENANCE"
-                        ? "border-red-500 bg-red-50"
-                        : "border-gray-300 bg-gray-50"
-                    }
-                  `}
+        {battery ? (
+          <div className="p-6 grid grid-cols-2 gap-4 text-sm">
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-gray-500 text-xs">Model</p>
+              <p className="font-medium text-gray-800">{battery.model}</p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-gray-500 text-xs">Chu kỳ sạc</p>
+              <p className="font-medium text-gray-800">
+                {battery.currentCycle} lần
+              </p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-gray-500 text-xs">Dung lượng hiện tại</p>
+              <p className="font-medium text-gray-800">
+                {battery.currentCapacity}%
+              </p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3">
+              <p className="text-gray-500 text-xs">Độ khỏe pin</p>
+              <p className="font-medium text-gray-800">
+                {battery?.healthScore}%
+              </p>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-3 col-span-2 flex items-center justify-between">
+              <div>
+                <p className="text-gray-500 text-xs">Trạng thái pin</p>
+                <p
+                  className={`font-medium ${getBatteryStatusStyle(
+                    battery.status
+                  )}`}
                 >
-                  {/* Slot Number */}
-                  <div className="text-center mb-2">
-                    <div className="text-xs font-medium text-gray-500 mb-1">
-                      Slot
-                    </div>
-                    <div className="text-lg font-bold text-gray-900">
-                      #{slot.id}
-                    </div>
-                  </div>
-
-                  {/* Battery Icon */}
-                  <div className="flex justify-center mb-2">
-                    <Battery
-                      className={`w-8 h-8 ${
-                        slot.status === "CHARGING"
-                          ? "text-green-600"
-                          : slot.status === "RESERVED"
-                          ? "text-yellow-600"
-                          : slot.status === "SWAPPING"
-                          ? "text-blue-600"
-                          : slot.status === "MAINTENANCE"
-                          ? "text-red-600"
-                          : "text-gray-400"
-                      }`}
-                    />
-                  </div>
-
-                  {/* Battery ID */}
-                  <div className="text-center mb-2">
-                    <div className="text-xs text-gray-600">
-                      {slot.batteryId ? `Pin #${slot.batteryId}` : "Trống"}
-                    </div>
-                  </div>
-
-                  {/* Status Badge */}
-                  <div className="flex justify-center">
-                    <span
-                      className={`
-                        inline-block px-2 py-1 text-xs font-semibold rounded
-                        ${
-                          slot.status === "CHARGING"
-                            ? "bg-green-600 text-white"
-                            : slot.status === "RESERVED"
-                            ? "bg-yellow-600 text-white"
-                            : slot.status === "SWAPPING"
-                            ? "bg-blue-600 text-white"
-                            : slot.status === "MAINTENANCE"
-                            ? "bg-red-600 text-white"
-                            : "bg-gray-400 text-white"
-                        }
-                      `}
-                    >
-                      {slot.status === "CHARGING"
-                        ? "Đang sạc"
-                        : slot.status === "RESERVED"
-                        ? "Đã đặt"
-                        : slot.status === "SWAPPING"
-                        ? "Đang thay"
-                        : slot.status === "MAINTENANCE"
-                        ? "Bảo trì"
-                        : "Trống"}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                  {getBatteryStatusText(battery?.status)}
+                </p>
+              </div>
+              <Zap className="w-5 h-5 text-yellow-500" />
             </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-gray-500">
-              <Battery className="w-16 h-16 mb-4 text-gray-300" />
-              <p className="text-lg font-medium">Không có slot pin</p>
-              <p className="text-sm">Tủ này chưa có slot pin nào</p>
+
+            <div className="col-span-2 border-t pt-3 text-xs text-gray-500 space-y-1">
+              <p>
+                <Clock className="inline w-4 h-4 mr-1 text-gray-400" />
+                <span>Lần sạc gần nhất: </span>
+                {formatDateHCM(String(battery?.lastChargeTime))}
+              </p>
+              <p>
+                <Activity className="inline w-4 h-4 mr-1 text-gray-400" />
+                <span>Dự kiến đầy pin: </span>
+                {formatDateHCM(String(battery?.estimatedFullChargeTime))}
+              </p>
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="flex-1 flex items-center justify-center text-gray-500 text-sm">
+            Không có pin nào trong ô sạc này.
+          </div>
+        )}
       </div>
     </div>
   );

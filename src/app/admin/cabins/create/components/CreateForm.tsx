@@ -32,7 +32,7 @@ const CreateForm = () => {
     name: "",
     stationId: 0,
     batteryTypeId: 0,
-    slotCount: 0,
+    slotCount: 12,
   });
 
   const [loading, setLoading] = useState(false);
@@ -207,6 +207,7 @@ const CreateForm = () => {
                   ? "border-red-300 bg-red-50"
                   : "border-gray-300"
               }`}
+              readOnly
             />
             {errors.slotCount && (
               <p className="mt-1 text-sm text-red-600">{errors.slotCount}</p>

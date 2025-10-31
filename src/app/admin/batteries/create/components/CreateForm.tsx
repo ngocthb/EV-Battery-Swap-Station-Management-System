@@ -71,7 +71,6 @@ const CreateForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("form", form);
     setError(null);
 
     if (!validateForm()) {
@@ -80,10 +79,26 @@ const CreateForm = () => {
 
     setLoading(true);
     try {
+      // thêm tiền tố theo loại pin
+      const voltageMap: Record<number, string> = {
+        1: "48V",
+        2: "60V",
+      };
+      const voltage = voltageMap[form.batteryTypeId] || "";
+
+      let finalModel = form.model.trim();
+
+      if (voltage && !finalModel.startsWith(`BAT${voltage}`)) {
+        finalModel = `BAT${voltage}${finalModel}`;
+      }
+
       const submitData = {
         ...form,
+        model: finalModel,
       };
+
       console.log("create battery form", submitData);
+
       const res = await createBatteryAPI(submitData);
       if (res.success) {
         toast.success(res.message);
@@ -127,9 +142,14 @@ const CreateForm = () => {
         <div className="space-y-6">
           {/* Pin model */}
           <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Building className="w-4 h-4" />
-              <span>Mẫu pin sạc</span>
+            <label className="flex flex-col text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center space-x-2">
+                <Building className="w-4 h-4" />
+                <span>Mẫu pin sạc</span>
+              </div>
+              <span className="text-gray-500 text-xs font-normal mt-1">
+                (BAT48Vxxx — chỉ cần nhập phần <strong>xxx</strong>)
+              </span>
             </label>
             <input
               name="model"

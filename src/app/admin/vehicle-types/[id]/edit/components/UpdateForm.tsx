@@ -26,6 +26,10 @@ import {
   updateVehicleTypeAPI,
 } from "@/services/vehicleService";
 import { useAppDispatch } from "@/store/hooks";
+import {
+  fetchBatteryTypeDetail,
+  setBatteryTypeId,
+} from "@/store/slices/adminDetailStateSlice";
 
 interface FormErrors {
   batteryTypeId?: number;
@@ -45,6 +49,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ vehicleTypeId }) => {
     batteryTypeId: 0,
     model: "",
     description: "",
+    status: true,
   });
 
   const [loading, setLoading] = useState(false);
@@ -59,15 +64,15 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ vehicleTypeId }) => {
     setLoading(true);
     try {
       const res = await getVehicleTypeById(vehicleTypeId);
-      console.log("res vehicleTypeId id", res.data);
       setForm({
         model: res.data?.model,
-        batteryTypeId: res?.data?.batteryTypeName,
+        batteryTypeId: res?.data?.batteryType.id,
         description: res.data?.description,
+        status: res?.data?.status,
       });
-      // const id = Number(e.target.value);
-      // dispatch(setBatteryTypeId(id));
-      // dispatch(fetchBatteryTypeDetail(id));
+      const id = Number(res?.data?.batteryType.id);
+      dispatch(setBatteryTypeId(id));
+      dispatch(fetchBatteryTypeDetail(id));
     } catch (error: unknown) {
       console.error("loi fetch vehicleTypeId detail:", error);
     } finally {
@@ -224,7 +229,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ vehicleTypeId }) => {
           </div>
 
           {/*battery type */}
-          {/* <div>
+          <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4" />
               <span>Loại pin</span>
@@ -234,7 +239,9 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ vehicleTypeId }) => {
               value={Number(form.batteryTypeId || 0)}
               onChange={(e) => {
                 handleChange(e);
-                setBatteryTypeId(Number(e.target.value));
+                const id = Number(e.target.value);
+                dispatch(setBatteryTypeId(id));
+                dispatch(fetchBatteryTypeDetail(id));
               }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >
@@ -245,7 +252,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ vehicleTypeId }) => {
                 </option>
               ))}
             </select>
-          </div> */}
+          </div>
 
           {/* Error Message */}
           {error && (

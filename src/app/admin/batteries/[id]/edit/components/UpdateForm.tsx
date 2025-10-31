@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import useFetchList from "@/hooks/useFetchList";
-import { BatteryType } from "@/types";
+import { Battery, BatteryType, Cabinet } from "@/types";
 import { getAllBatteryTypeListAPI } from "@/services/batteryTypeService";
 import { getBatteryById, updateBatteryAPI } from "@/services/batteryService";
 import { useAppDispatch } from "@/store/hooks";
@@ -21,6 +21,8 @@ import {
   fetchBatteryTypeDetail,
   setBatteryTypeId,
 } from "@/store/slices/adminDetailStateSlice";
+import { getCabinetByIdAPI } from "@/services/cabinetService";
+import { getSlotStatusText } from "@/utils/formateStatus";
 
 interface FormErrors {
   batteryTypeId?: number;
@@ -45,6 +47,8 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ batteryId }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [batteryDetail, setBatteryDetail] = useState<Battery | null>(null);
+  const [cabinDetail, setCabinDetail] = useState<Cabinet | null>(null);
 
   const { data: batteryTypeList = [] } = useFetchList<BatteryType[]>(
     getAllBatteryTypeListAPI
@@ -54,12 +58,19 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ batteryId }) => {
     setLoading(true);
     try {
       const res = await getBatteryById(batteryId);
-      console.log("res battery id", res.data);
+      setBatteryDetail(res.data);
       setForm({
         batteryTypeId: res?.data?.batteryType?.id,
         model: res?.data?.model,
         status: res?.data?.status,
       });
+
+      if (res?.data?.slot) {
+        const cabinRes = await getCabinetByIdAPI(res?.data?.slot?.cabinetId);
+        setCabinDetail(cabinRes?.data);
+      }
+
+      // redux lay battery type show ben right side
       const id = res.data?.batteryType?.id;
       dispatch(setBatteryTypeId(id));
       dispatch(fetchBatteryTypeDetail(id));
@@ -164,8 +175,65 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ batteryId }) => {
         </div>
       </div>
 
+      {/*thông tin ô sạc chứa pin */}
+      {batteryDetail?.slot ? (
+        <div className="p-6 py-4">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Thông tin ô sạc chứa pin
+          </h2>
+
+          <div className="grid grid-cols-2 gap-4 bg-gray-100 p-4 rounded-lg">
+            <div>
+              <p className="text-sm text-gray-500">Tên ô sạc</p>
+              <p className="text-base font-medium text-gray-800">
+                {batteryDetail?.slot?.name || "Không có dữ liệu"}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Tủ sạc</p>
+              <p className="text-base font-medium text-gray-800">
+                {cabinDetail?.name ||
+                  `Cabinet #${batteryDetail?.slot?.cabinetId}`}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Loại pin phù hợp</p>
+              <p className="text-base font-medium text-gray-800">
+                {cabinDetail?.batteryTypeId
+                  ? `Loại pin ${cabinDetail?.batteryTypeId}`
+                  : "Không có dữ liệu"}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Trạng thái ô sạc</p>
+              <p className="text-base font-medium text-gray-800">
+                {getSlotStatusText(batteryDetail?.slot?.status) ||
+                  "Không có dữ liệu"}
+              </p>
+            </div>
+          </div>
+
+          {/* Cảnh báo nếu chọn sai loại pin */}
+          {form.batteryTypeId !== 0 &&
+            cabinDetail?.batteryTypeId &&
+            Number(form.batteryTypeId) !== cabinDetail?.batteryTypeId && (
+              <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg">
+                ⚠️ Bạn phải chọn loại pin theo ô sạc (Loại pin{" "}
+                {cabinDetail.batteryTypeId})
+              </div>
+            )}
+        </div>
+      ) : (
+        <div className="p-6 py-4">
+          <p>Chưa có ô sạc</p>
+        </div>
+      )}
+
       {/* Form */}
-      <form className="flex-1 overflow-auto p-6">
+      <form className="flex-1 overflow-auto p-6 pt-2 scrollbar-custom">
         <div className="space-y-6">
           {/* Pin model */}
           <div>
@@ -207,7 +275,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ batteryId }) => {
               <option value={0}>Tìm theo loại pin</option>
               {batteryTypeList.map((type) => (
                 <option key={type.id} value={type.id}>
-                  {type.name}
+                  {type.name} - Loại pin {type.id}
                 </option>
               ))}
             </select>
@@ -258,7 +326,11 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ batteryId }) => {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={
+              loading ||
+              (cabinDetail?.batteryTypeId !== undefined &&
+                Number(form.batteryTypeId) !== cabinDetail.batteryTypeId)
+            }
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
           >
             {loading ? (

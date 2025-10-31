@@ -1,26 +1,25 @@
-import { Battery, Box, Pin } from "lucide-react";
-import { Battery as IBattery, Cabinet } from "@/types";
+import { Box } from "lucide-react";
+import { BatteryType, Booking } from "@/types";
 
-function StatsList({ batteryList }: { batteryList: IBattery[] }) {
+function StatsList({ bookingList }: { bookingList: Booking[] }) {
   const stats = [
     {
-      label: "Tổng pin",
-      icon: <Battery className="w-6 h-6 text-blue-600" />,
+      label: "Tổng loại pin",
+      icon: <Box className="w-6 h-6 text-blue-600" />,
       bgColor: "bg-blue-100",
-      value: batteryList?.length || 0,
+      value: bookingList?.length || 0,
     },
     {
       label: "Hoạt động",
-      icon: <Battery className="w-6 h-6 text-green-600" />,
+      icon: <Box className="w-6 h-6 text-green-600" />,
       bgColor: "bg-green-100",
-      value: batteryList?.filter((c) => c?.status === "AVAILABLE").length || 0,
+      value: bookingList?.filter((c) => c?.status === "COMPLETED").length || 0,
     },
     {
-      label: "Bảo trì",
-      icon: <Battery className="w-6 h-6 text-red-600" />,
+      label: "Ngưng hoạt động",
+      icon: <Box className="w-6 h-6 text-red-600" />,
       bgColor: "bg-red-100",
-      value:
-        batteryList?.filter((c) => c?.status === "MAINTENANCE").length || 0,
+      value: bookingList?.filter((c) => c?.status === "CANCELED").length || 0,
     },
   ];
 

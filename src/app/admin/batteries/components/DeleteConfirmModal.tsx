@@ -11,6 +11,10 @@ import {
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
 import { toast } from "react-toastify";
+import {
+  getBatteryStatusBackground,
+  getBatteryStatusText,
+} from "@/utils/formateStatus";
 
 interface ApiResponse<T = unknown> {
   success?: boolean;
@@ -32,6 +36,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   const dispatch = useAppDispatch();
   const { deleteModal } = useSelector((state: RootState) => state.adminModal);
 
+  console.log("battery", battery);
   if (!deleteModal.isOpen || !battery) return null;
 
   const handleDeleteConfirm = async () => {
@@ -56,32 +61,6 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
       toast.error(errorMessage);
     } finally {
       dispatch(setDeleteLoading(false));
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "AVAILABLE":
-        return "bg-green-100 text-green-800";
-      case "MAINTENANCE":
-        return "bg-yellow-100 text-yellow-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case "AVAILABLE":
-        return "Hoạt động";
-      case "MAINTENANCE":
-        return "Bảo trì";
-      case "CHARGING":
-        return "Đang sạc";
-      case "IN_USE":
-        return "Đang được sử dụng";
-      default:
-        return "Không xác định";
     }
   };
 
@@ -128,19 +107,19 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
                 <span className="text-sm font-medium text-gray-700">
                   Dung tích pin:
                 </span>
-                <p className="text-gray-900">{battery?.capacity}</p>
+                <p className="text-gray-900">{battery?.currentCapacity}</p>
               </div>
               <div>
                 <span className="text-sm font-medium text-gray-700">
                   Vòng đời pin:
                 </span>
-                <p className="text-gray-900">{battery?.capacity}</p>
+                <p className="text-gray-900">{battery?.currentCycle}</p>
               </div>
               <div>
                 <span className="text-sm font-medium text-gray-700">
                   Loại pin:
                 </span>
-                <p className="text-gray-900">{battery?.batteryType?.name}</p>
+                <p className="text-gray-900">{String(battery?.batteryType)}</p>
               </div>
 
               <div className="flex justify-between items-center">
@@ -149,11 +128,11 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
                     Trạng thái hiện tại:
                   </span>
                   <span
-                    className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                    className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getBatteryStatusBackground(
                       battery.status
                     )}`}
                   >
-                    {getStatusText(battery.status)}
+                    {getBatteryStatusText(battery.status)}
                   </span>
                 </div>
               </div>

@@ -4,26 +4,29 @@ import {
   updateUserVehicleAPI,
 } from "@/services/userVehicleService";
 import { getAllVehicleTypeListForUserAPI } from "@/services/vehicleService";
+import { RootState } from "@/store";
 import { Vehicle, VehicleType } from "@/types";
 import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
-interface AddVehicleModalProps {
+interface EditVehicleModalProps {
   onClose: () => void;
   onSuccess: () => void;
   showModal: string | null;
   editData?: Vehicle | null;
 }
 
-function AddVehicleModal({
+function EditVehicleModal({
   onClose,
   onSuccess,
   showModal,
   editData,
-}: AddVehicleModalProps) {
+}: EditVehicleModalProps) {
   const [name, setName] = useState("");
   const [vehicleTypeId, setVehicleTypeId] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const { data: vehicleTypeList = [] } = useFetchList<VehicleType[]>(
     getAllVehicleTypeListForUserAPI
@@ -47,6 +50,7 @@ function AddVehicleModal({
       setLoading(true);
       if (showModal === "update" && editData) {
         const updateRes = await updateUserVehicleAPI(Number(editData?.id), {
+          userNameOrEmail: user?.email,
           name,
           vehicleTypeId,
         });
@@ -57,8 +61,7 @@ function AddVehicleModal({
       }
       onSuccess();
     } catch (err) {
-      console.error(err);
-      alert("Thêm phương tiện thất bại!");
+      console.error("edit vehicle err", err);
     } finally {
       setLoading(false);
     }
@@ -73,7 +76,7 @@ function AddVehicleModal({
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-fadeIn">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">
-          Thêm phương tiện mới
+          Chỉnh sửa phương tiện
         </h3>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -146,4 +149,4 @@ function AddVehicleModal({
   );
 }
 
-export default AddVehicleModal;
+export default EditVehicleModal;

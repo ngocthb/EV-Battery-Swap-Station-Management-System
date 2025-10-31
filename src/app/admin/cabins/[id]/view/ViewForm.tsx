@@ -11,6 +11,7 @@ import { Cabinet, Slot, Station } from "@/types";
 import { MapPin, Building, ArrowLeft, Loader2, Battery } from "lucide-react";
 import { getStationById } from "@/services/stationService";
 import { getBatteryTypeById } from "@/services/batteryTypeService";
+import { getSlotStatusText } from "@/utils/formateStatus";
 
 const ViewForm = ({ cabinId }: { cabinId: number }) => {
   const router = useRouter();
@@ -218,15 +219,7 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
                         }
                       `}
                     >
-                      {slot.status === "CHARGING"
-                        ? "Đang sạc"
-                        : slot.status === "RESERVED"
-                        ? "Đã đặt"
-                        : slot.status === "SWAPPING"
-                        ? "Đang thay"
-                        : slot.status === "MAINTENANCE"
-                        ? "Bảo trì"
-                        : "Trống"}
+                      {getSlotStatusText(slot.status)}
                     </span>
                   </div>
                 </div>

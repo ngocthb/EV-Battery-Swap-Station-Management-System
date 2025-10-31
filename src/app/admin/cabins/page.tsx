@@ -244,7 +244,6 @@ export default function CabinsPage() {
                           </button>
                           {cabinet?.status === false ? (
                             <button
-                              // onClick={() => handleRestoreClick(cabinet)}
                               onClick={() =>
                                 dispatch(openRestoreModal(cabinet))
                               }
