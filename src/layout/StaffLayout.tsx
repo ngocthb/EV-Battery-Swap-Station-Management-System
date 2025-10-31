@@ -12,6 +12,7 @@ import {
   Search,
   Battery,
   MessageCircleMore,
+  BarChart2,
 } from "lucide-react";
 import { RolePermission } from "@/hooks/rolePermission";
 import Image from "next/image";
@@ -45,6 +46,13 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
       label: "Ô sạc và pin",
       href: "/staff/slot-battery",
       icon: Battery,
+    },
+
+    {
+      id: "transaction",
+      label: "Giao dịch của trạm",
+      href: "/staff/transaction",
+      icon: BarChart2,
     },
     {
       id: "chat",

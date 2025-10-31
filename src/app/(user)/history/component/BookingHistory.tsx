@@ -4,6 +4,7 @@ import useQuery from "@/hooks/useQuery";
 import { getUserBookingListAPI } from "@/services/bookingService";
 import { QueryParams } from "@/types";
 import { formatDateHCM } from "@/utils/format";
+import { getBookingStatusLabel } from "@/utils/formateStatus";
 import {
   Battery,
   Calendar,
@@ -187,16 +188,14 @@ function BookingHistory() {
                   <p className="font-semibold text-gray-800">
                     {b.userVehicle?.name || "Không rõ phương tiện"}
                   </p>
-                  {renderStatus(b.status)}
+                  {getBookingStatusLabel(b.status)}
                 </div>
 
                 <div className="text-sm text-gray-600 space-y-2">
                   <p className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-gray-500" />
                     Ngày đặt:{" "}
-                    <b className="font-medium">
-                      {formatDateHCM(b.createdAt)}
-                    </b>
+                    <b className="font-medium">{formatDateHCM(b.createdAt)}</b>
                   </p>
 
                   <p className="flex items-center gap-2">

@@ -6,19 +6,16 @@ import { useDebounce } from "@/hooks/useDebounce";
 import useFetchList from "@/hooks/useFetchList";
 import useQuery from "@/hooks/useQuery";
 import { AdminLayout } from "@/layout/AdminLayout";
-import { getAllBookingListAPI } from "@/services/bookingService";
-import { Booking, QueryParams } from "@/types";
+import { Booking, QueryParams, Transaction } from "@/types";
 import { useMemo } from "react";
 import FilterSearch from "./components/FilterSearch";
 import StatsList from "./components/StatsList";
 import { useRouter } from "next/navigation";
 import { formatDateHCM } from "@/utils/format";
-import {
-  getBookingStatusLabel,
-  getBookingStatusStyle,
-} from "@/utils/formateStatus";
+import { getAllTransactionAPI } from "@/services/transactionService";
+import { getTransactionStatusLabel } from "@/utils/formateStatus";
 
-function AdminBookingPage() {
+function AdminTransactionPage() {
   const router = useRouter();
   const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
     page: 1,
@@ -35,11 +32,11 @@ function AdminBookingPage() {
 
   // fetch all booking
   const {
-    data: bookingList = [],
+    data: transactionList = [],
     loading,
     refresh,
-  } = useFetchList<Booking[], QueryParams>(
-    getAllBookingListAPI,
+  } = useFetchList<Transaction[], QueryParams>(
+    getAllTransactionAPI,
     debouncedQuery
   );
 
@@ -58,15 +55,15 @@ function AdminBookingPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Quản lý Đặt lịch
+              Quản lý giao dịch
             </h1>
             <p className="text-gray-600 mt-1">
-              Quản lý các đơn đặt lịch trong hệ thống
+              Quản lý các giao dịch trong hệ thống
             </p>
           </div>
         </div>
 
-        <StatsList bookingList={bookingList} />
+        <StatsList transactionList={transactionList} />
 
         {/*Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
@@ -74,7 +71,7 @@ function AdminBookingPage() {
           <FilterSearch
             query={query}
             loading={loading}
-            resultCount={bookingList.length}
+            resultCount={transactionList.length}
             onSearch={handleSearch}
             onChangeStatus={handleChangeStatus}
             onUpdateQuery={updateQuery}
@@ -95,25 +92,16 @@ function AdminBookingPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tên người đặt
+                    Phương thức thanh toán
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Xe người đặt
+                    Tổng tiền(VND)
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pin ID
+                    Thời gian
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tổng tiền (VND)
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trạng thái đơn
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thời gian đặt lịch
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thời gian đến lấy
+                    Trạng thái
                   </th>
                 </tr>
               </thead>
@@ -127,7 +115,7 @@ function AdminBookingPage() {
                       </div>
                     </td>
                   </tr>
-                ) : bookingList.length === 0 ? (
+                ) : transactionList.length === 0 ? (
                   <tr>
                     <td
                       colSpan={5}
@@ -137,57 +125,21 @@ function AdminBookingPage() {
                     </td>
                   </tr>
                 ) : (
-                  bookingList.map((booking) => (
-                    <tr key={booking.id} className="hover:bg-gray-50">
-                      {/*user name */}
-                      <td
-                        className="px-6 py-4 whitespace-nowrap cursor-pointer"
-                      >
-                        <div className="flex flex-col">
-                          <p className="text-sm font-medium text-gray-900">
-                            {booking?.user?.email}
-                          </p>
-                          <p className="text-sm text-gray-500">
-                            {booking?.user?.username}
-                          </p>
-                        </div>
-                      </td>
-                      {/*user vehicle */}
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs">
-                          {booking?.userVehicle?.name}
-                        </div>
-                      </td>
-                      {/*Pin id */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {booking?.bookingDetails[0]?.batteryId}
+                  transactionList.map((transaction) => (
+                    <tr key={transaction.id} className="hover:bg-gray-50">
+                      {/*phương thức thanh toán */}
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        {transaction?.payment?.name}
                       </td>
                       {/*price */}
+                      <td className="px-6 py-4">{transaction?.totalPrice}</td>
+                      {/*date time*/}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {booking?.bookingDetails[0]?.price ||
-                          "Không có dữ liệu"}
+                        {transaction?.dateTime}
                       </td>
-                      {/*Status */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-3 py-1 text-sm font-medium rounded-full ${getBookingStatusStyle(
-                            String(booking?.status)
-                          )}`}
-                        >
-                          {getBookingStatusLabel(String(booking?.status))}
-                        </span>
-                      </td>
-
-                      {/*created at */}
+                      {/*status */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDateHCM(String(booking?.createdAt)) ||
-                          "Không có dữ liệu"}
-                      </td>
-
-                      {/*PICK UP at */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatDateHCM(String(booking?.expectedPickupTime)) ||
-                          "Không có dữ liệu"}
+                        {getTransactionStatusLabel(transaction?.status)}
                       </td>
                     </tr>
                   ))
@@ -198,7 +150,7 @@ function AdminBookingPage() {
 
           {/* Pagination footer */}
           <PaginationTable
-            data={bookingList}
+            data={transactionList}
             query={query}
             onUpdateQuery={updateQuery}
             loading={loading}
@@ -209,4 +161,4 @@ function AdminBookingPage() {
   );
 }
 
-export default AdminBookingPage;
+export default AdminTransactionPage;

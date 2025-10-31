@@ -35,6 +35,7 @@ export interface User {
   role: string;
   memberships?: UserMemberShip[];
   status: string;
+  stationId: number;
 }
 
 export interface AuthState {
@@ -186,15 +187,21 @@ export interface Vehicle {
   batteries?: Battery[];
 }
 
+export interface Payment {
+  id: number;
+  name: string;
+}
+
 export interface Transaction {
   id: string;
-  userId: string;
-  stationId: string;
-  batteryId: string;
-  type: "swap" | "return";
-  timestamp: string;
-  cost: number;
-  status: "completed" | "pending" | "failed";
+  booking: Booking;
+  orderCode?: number | null;
+  payment?: Payment;
+  status: "SUCCESS" | "PENDING" | "FAILED" | "CANCELLED";
+  dateTime?: string;
+  totalPrice?: string;
+  userMembership?: string | null;
+  paymentUrl?: string | null;
 }
 
 export interface Membership {
@@ -222,6 +229,14 @@ export interface Slot {
   cabinetId?: string;
   cabinet: Cabinet;
   battery?: Battery;
+}
+
+export interface StationStaff {
+  id: number;
+  isHead: boolean;
+  station: Station;
+  status: boolean;
+  user: User;
 }
 
 export interface Cabinet {
@@ -279,4 +294,5 @@ export interface QueryParams {
   lat?: number;
   lng?: number;
   role?: string;
+  isHead?: boolean | null;
 }

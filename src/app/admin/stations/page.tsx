@@ -27,6 +27,7 @@ import {
   openRestoreModal,
 } from "@/store/slices/adminModalSlice";
 import FilterSearch from "./components/FilterSearch";
+import Image from "next/image";
 
 export default function StationsPage() {
   const router = useRouter();
@@ -186,7 +187,7 @@ export default function StationsPage() {
                     Địa chỉ
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nhiệt độ
+                    Hình ảnh
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Trạng thái
@@ -245,7 +246,7 @@ export default function StationsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {station?.temperature} °C
+                        <img src={station?.image} className="w-10 h-10" />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span

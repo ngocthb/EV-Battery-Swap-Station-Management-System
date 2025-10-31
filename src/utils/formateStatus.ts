@@ -110,3 +110,73 @@ export const getSlotStatusStyle = (status?: string) => {
       return "bg-gray-50 text-gray-500";
   }
 };
+
+// booking
+export const getBookingStatusStyle = (status: string) => {
+  switch (status) {
+    case "RESERVED":
+      return "bg-blue-100 text-blue-800";
+    case "PENDING_PAYMENT":
+      return "bg-yellow-100 text-yellow-800";
+    case "IN_PROGRESS":
+      return "bg-purple-100 text-purple-800";
+    case "COMPLETED":
+      return "bg-green-100 text-green-800";
+    case "CANCELLED":
+      return "bg-red-100 text-red-800";
+    case "EXPIRED":
+      return "bg-gray-200 text-gray-800";
+    default:
+      return "bg-gray-100 text-gray-500";
+  }
+};
+
+export const getBookingStatusLabel = (status: string) => {
+  switch (status) {
+    case "RESERVED":
+      return "Đã giữ chỗ";
+    case "PENDING_PAYMENT":
+      return "Chờ thanh toán";
+    case "IN_PROGRESS":
+      return "Đang thực hiện";
+    case "COMPLETED":
+      return "Hoàn thành";
+    case "CANCELLED":
+      return "Đã hủy";
+    case "EXPIRED":
+      return "Hết hạn";
+    default:
+      return "Không xác định";
+  }
+};
+
+// Transaction
+export const getTransactionStatusStyle = (status: string) => {
+  switch (status) {
+    case "PENDING":
+      return "bg-yellow-100 text-yellow-800"; // Đang xử lý
+    case "SUCCESS":
+      return "bg-green-100 text-green-800"; // Thành công
+    case "FAILED":
+      return "bg-red-100 text-red-800"; // Thất bại
+    case "CANCELLED":
+      return "bg-gray-200 text-gray-800"; // Đã hủy
+    default:
+      return "bg-gray-100 text-gray-500"; // Không xác định
+  }
+};
+
+export const getTransactionStatusLabel = (status: string) => {
+  switch (status) {
+    case "PENDING":
+      return "Đang xử lý";
+    case "SUCCESS":
+      return "Thành công";
+    case "FAILED":
+      return "Thất bại";
+    case "CANCELLED":
+      return "Đã hủy";
+    default:
+      return "Không xác định";
+  }
+};

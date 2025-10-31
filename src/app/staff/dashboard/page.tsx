@@ -4,8 +4,12 @@ import RevenueChart from "@/components/Charts/BarChart";
 import UserGrowthChart from "@/components/Charts/LineChart";
 import UserDistributionChart from "@/components/Charts/PieChart";
 import { StaffLayout } from "@/layout/StaffLayout";
+import { RootState } from "@/store";
+import { useSelector } from "react-redux";
 
 export default function StaffDashboard() {
+  const { user } = useSelector((state: RootState) => state.auth);
+
   return (
     <StaffLayout>
       <div className="min-h-screen space-y-4">
