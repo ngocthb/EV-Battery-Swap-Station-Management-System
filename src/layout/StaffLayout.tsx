@@ -5,13 +5,19 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { Users, BarChart3, Bell, Search, Battery } from "lucide-react";
+import {
+  Users,
+  BarChart3,
+  Bell,
+  Search,
+  Battery,
+  MessageCircleMore,
+} from "lucide-react";
 import { RolePermission } from "@/hooks/rolePermission";
 import Image from "next/image";
 interface StaffLayoutProps {
   children: React.ReactNode;
 }
-
 export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
   const { user, logout, isLoading } = useAuth();
   const pathname = usePathname();
@@ -30,9 +36,21 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
     },
     {
       id: "users",
-      label: "Quản lý Người dùng",
+      label: "Người dùng",
       href: "/staff/users",
       icon: Users,
+    },
+    {
+      id: "slotAndBattery",
+      label: "Ô sạc và pin",
+      href: "/staff/slot-battery",
+      icon: Battery,
+    },
+    {
+      id: "chat",
+      label: "Tin nhắn người dùng",
+      href: "/staff/chat",
+      icon: MessageCircleMore,
     },
   ];
 

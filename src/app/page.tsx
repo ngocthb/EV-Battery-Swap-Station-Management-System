@@ -1,12 +1,9 @@
 "use client";
 
 import Link from "next/link";
-
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { useRouter } from "next/navigation";
-
 import { logout } from "@/store/slices/authSlice";
-
 import {
   Battery,
   Zap,
@@ -21,9 +18,16 @@ import {
   Shield,
   LogIn,
   UserPlus,
+  ArrowRight,
+  CheckCircle,
+  Clock,
+  Users,
 } from "lucide-react";
 import Image from "next/image";
-
+import ChatWidget from "@/components/ChatWidget";
+import { Header } from "@/components/Header";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 import { profile } from "console";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useRef } from "react";
@@ -31,15 +35,63 @@ import { useClickOutside } from "@/hooks/useClickOutside";
 import { User, KeyRound, LogOut } from "lucide-react";
 import ClientOnly from "@/components/clients/ClientOnly";
 import { ProxiedImage } from "@/components/proxiedImage/ProxiedImage";
+import FeedbackPage from "./(user)/feedbacks/page";
+
+// Partner logos data
+const partnerLogos = [
+  {
+    src: "https://images.seeklogo.com/logo-png/42/1/vinfast-logo-png_seeklogo-425050.png",
+    alt: "VinFast",
+    width: 150,
+    height: 60,
+  },
+  {
+    src: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Tesla_Motors.svg/320px-Tesla_Motors.svg.png",
+    alt: "Tesla",
+    width: 150,
+    height: 60,
+  },
+  {
+    src: "https://upload.wikimedia.org/wikipedia/commons/c/ca/NIO_logo.svg",
+    alt: "NIO",
+    width: 150,
+    height: 60,
+  },
+  {
+    src: "https://images.seeklogo.com/logo-png/54/1/byd-logo-png_seeklogo-546145.png",
+    alt: "BYD",
+    width: 150,
+    height: 60,
+  },
+  {
+    src: "https://upload.wikimedia.org/wikipedia/commons/4/45/Gogoro.svg",
+    alt: "Gogoro",
+    width: 150,
+    height: 60,
+  },
+  {
+    src: "https://www.logo.wine/a/logo/Contemporary_Amperex_Technology/Contemporary_Amperex_Technology-Logo.wine.svg",
+    alt: "CATL",
+    width: 150,
+    height: 60,
+  },
+  {
+    src: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Jaecoo_wordmark.svg/1200px-Jaecoo_wordmark.svg.png?20240106153034",
+    alt: "Jaecoo",
+    width: 150,
+    height: 60,
+  },
+];
 
 export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("home");
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const dispatch = useAppDispatch();
   const router = useRouter();
 
@@ -48,7 +100,6 @@ export default function HomePage() {
   };
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useClickOutside(dropdownRef, () => {
@@ -58,261 +109,113 @@ export default function HomePage() {
   });
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Header */}
-      <header className="bg-white shadow-sm relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <Link href="/" className="flex items-center mr-8">
-              <div className="w-10 h-10 relative">
-                <Image
-                  src="/logo.png"
-                  alt="Logo"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900">amply</h1>
-            </Link>
+      <Header />
 
-            <nav className="hidden lg:flex space-x-8">
-              <Link
-                href="#home"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Trang chủ
-              </Link>
-              <Link
-                href="#features"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Tính năng
-              </Link>
-              <Link
-                href="#dashboard"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Bảng điều khiển
-              </Link>
-              <Link
-                href="#about"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Giới thiệu
-              </Link>
-              <Link
-                href="/booking"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Đặt lịch
-              </Link>
-              <Link
-                href="#contact"
-                className="text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Liên hệ
-              </Link>
-            </nav>
-            <div className="hidden lg:flex items-center gap-4">
-              <ClientOnly>
-                {user ? (
-                  <div ref={dropdownRef} className="relative">
-                    <button
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="flex items-center gap-3 focus:outline-none"
-                    >
-                      <ProxiedImage
-                        src={user?.avatar}
-                        alt={user?.fullName ?? "User avatar"}
-                        className="w-8 h-8 rounded-full object-cover"
-                        width={32}
-                        height={32}
-                      />
-                      <span className="font-medium text-gray-900 hidden md:block">
-                        {user.fullName ?? user.username}
-                      </span>
-                    </button>
-
-                    {/* 3. Menu dropdown */}
-                    {isDropdownOpen && (
-                      <div
-                        className="absolute right-0 mt-2 w-56 origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 
-             transition ease-out duration-100 "
-                        style={{
-                          transform: isDropdownOpen
-                            ? "opacity(1) scale(1)"
-                            : "opacity(0) scale(0.95)",
-                          visibility: isDropdownOpen ? "visible" : "hidden",
-                        }}
-                      >
-                        <div className="py-1">
-                          <div className="px-4 py-2   border-b border-gray-100">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              Email: {user.email}
-                            </p>
-                          </div>
-                          <Link
-                            href="/profile"
-                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            <User className="w-4 h-4 text-gray-500" />
-                            Thông tin cá nhân
-                          </Link>
-                          <Link
-                            href="/change-password"
-                            className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                          >
-                            <KeyRound className="w-4 h-4 text-gray-500" />
-                            <span>Đổi mật khẩu</span>
-                          </Link>
-
-                          <div className="border-t border-gray-100 my-1"></div>
-                          <button
-                            onClick={handleLogout}
-                            className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
-                          >
-                            <LogOut className="w-4 h-4" />
-                            <span>Đăng xuất</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <>
-                    <Link
-                      href={"/login"}
-                      className="flex items-center gap-2 text-gray-600 hover:text-blue-600"
-                    >
-                      {/* <LogIn className="w-4 h-4" /> */}
-                      <span>Đăng nhập</span>
-                    </Link>
-                    <Link
-                      href="/register"
-                      className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                    >
-                      {/* <UserPlus className="w-4 h-4" /> */}
-                      <span>Đăng ký</span>
-                    </Link>
-                  </>
-                )}
-              </ClientOnly>
-            </div>
-
-            <button
-              onClick={toggleMenu}
-              className="lg:hidden p-2 rounded-md text-gray-600 hover:text-blue-600 hover:bg-gray-100"
-            >
-              {isMenuOpen ? (
-                <X className="w-6 h-6" />
-              ) : (
-                <Menu className="w-6 h-6" />
-              )}
-            </button>
-          </div>
-
-          {/* Mobile Menu */}
-          {isMenuOpen && (
-            <div className="lg:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-200 py-4 px-4 space-y-4 z-50">
-              <a
-                href="#home"
-                className="block text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Trang chủ
-              </a>
-              <a
-                href="#features"
-                className="block text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Tính năng
-              </a>
-              <a
-                href="#dashboard"
-                className="block text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Bảng điều khiển
-              </a>
-              <a
-                href="#about"
-                className="block text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Giới thiệu
-              </a>
-              <a
-                href="#contact"
-                className="block text-gray-600 hover:text-blue-600 transition-colors"
-              >
-                Liên hệ
-              </a>
-              <div className="border-t border-gray-200 pt-4 space-y-2">
-                <Link
-                  href={"/login"}
-                  className="flex items-center space-x-2 text-gray-600 hover:text-blue-600 transition-colors w-full"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>Đăng nhập</span>
-                </Link>
-                <Link
-                  href={"/register"}
-                  className="flex items-center space-x-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors w-full justify-center"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  <span>Đăng ký</span>
-                </Link>
-              </div>
-            </div>
-          )}
+      {/* Hero Section - Redesigned */}
+      <section id="home" className="relative pt-32 pb-24 overflow-hidden">
+        {/* Background decorative elements */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-100 rounded-full opacity-20 blur-3xl"></div>
+          <div className="absolute top-1/2 -left-24 w-96 h-96 bg-purple-100 rounded-full opacity-20 blur-3xl"></div>
         </div>
-      </header>
 
-      {/* Hero Section */}
-      <section id="home" className="bg-gray-50 py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
+              {/* Badge */}
+              <div className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-100 rounded-full">
+                <span className="w-2 h-2 bg-blue-600 rounded-full mr-2 animate-pulse"></span>
+                <span className="text-sm font-medium text-blue-600">
+                  Giải pháp hàng đầu Việt Nam
+                </span>
+              </div>
+
               <h1 className="text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                HỆ THỐNG
+                Quản lý trạm
                 <br />
-                <span className="text-blue-600">QUẢN LÝ TRẠM</span>
+                <span className="bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                  đổi pin xe điện
+                </span>
                 <br />
-                ĐỔI PIN XE ĐIỆN
+                thông minh
               </h1>
-              <p className="text-xl text-gray-600 leading-relaxed">
-                Nền tảng cách mạng để quản lý các trạm đổi pin xe điện với giám
-                sát thời gian thực, phân tích dữ liệu và vận hành tự động.
+
+              <p className="text-xl text-gray-600 leading-relaxed max-w-xl">
+                Nền tảng toàn diện với giám sát thời gian thực, phân tích dữ
+                liệu AI và vận hành tự động hóa hoàn toàn.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <button className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
-                  Bắt đầu ngay
+
+              {/* Key features */}
+              <div className="flex flex-col sm:flex-row gap-6 text-sm">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-gray-600">Giám sát 24/7</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-gray-600">Phân tích AI</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-500" />
+                  <span className="text-gray-600">Tự động hóa</span>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                <button className="group bg-blue-600 text-white px-8 py-4 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 hover:-translate-y-0.5">
+                  <span className="flex items-center justify-center gap-2">
+                    Bắt đầu ngay
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </span>
                 </button>
-                <button className="border-2 border-blue-600 text-blue-600 px-8 py-4 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
+                <button className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-xl font-semibold hover:border-blue-600 hover:text-blue-600 transition-all duration-300 hover:-translate-y-0.5">
                   Xem demo
                 </button>
               </div>
             </div>
 
+            {/* Hero Image - Redesigned */}
             <div className="relative">
-              <div className="bg-blue-600 rounded-3xl transform rotate-3 h-96 relative overflow-hidden">
-                <ProxiedImage
-                  src="https://images.pexels.com/photos/313782/pexels-photo-313782.jpeg?auto=compress&cs=tinysrgb&w=800"
-                  alt="Cơ sở hạ tầng thành phố thông minh"
-                  fill
-                  className="object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600/30 to-purple-600/30"></div>
-              </div>
-              <div className="absolute -bottom-4 -left-4 bg-white p-6 rounded-xl shadow-lg">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                    <Zap className="w-6 h-6 text-green-600" />
+              <div className="relative">
+                {/* Main image card */}
+                <div className="relative bg-gradient-to-br from-blue-600 to-blue-700 rounded-3xl overflow-hidden shadow-2xl transform hover:scale-[1.02] transition-transform duration-500">
+                  <div className="aspect-[4/3] relative">
+                    <ProxiedImage
+                      src="https://tramsacdien24h.com/wp-content/uploads/2024/12/tram-sac-vinfast-1-768x515.webp"
+                      alt="Cơ sở hạ tầng thành phố thông minh"
+                      fill
+                      className="object-cover opacity-90"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-blue-600/40 to-purple-600/40"></div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-gray-900">
-                      99.8%
+                </div>
+
+                {/* Floating stats card */}
+                <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-xl border border-gray-100 hover:shadow-2xl transition-shadow duration-300">
+                  <div className="flex items-center gap-4">
+                    <div className="w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-600/30">
+                      <Zap className="w-7 h-7 text-white" />
                     </div>
-                    <div className="text-sm text-gray-600">
-                      Thời gian hoạt động
+                    <div>
+                      <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-green-500 bg-clip-text text-transparent">
+                        99.8%
+                      </div>
+                      <div className="text-sm text-gray-600 font-medium">
+                        Thời gian hoạt động
+                      </div>
                     </div>
+                  </div>
+                </div>
+
+                {/* Floating badge */}
+                <div className="absolute -top-4 -right-4 bg-white px-6 py-3 rounded-xl shadow-lg border border-gray-100">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-blue-600" />
+                    <span className="text-sm font-semibold text-gray-900">
+                      2,500+ Trạm
+                    </span>
                   </div>
                 </div>
               </div>
@@ -321,132 +224,214 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-20">
+      {/* Features Section - Redesigned */}
+      <section id="features" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center mb-20">
+          {/* Section Header */}
+          <div className="text-center mb-20">
+            <div className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-100 rounded-full mb-6">
+              <span className="text-sm font-medium text-blue-600">
+                Tính năng nổi bật
+              </span>
+            </div>
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+              Giải pháp toàn diện cho
+              <br />
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                hạ tầng xe điện
+              </span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Nền tảng tiên tiến giúp bạn quản lý, giám sát và tối ưu hóa toàn
+              bộ hệ thống trạm đổi pin một cách hiệu quả nhất
+            </p>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-3 gap-8 mb-20">
+            {/* Feature 1 */}
+            <div className="group relative bg-gradient-to-br from-blue-600 to-blue-700 p-8 rounded-2xl text-white overflow-hidden hover:shadow-2xl transition-all duration-300 hover:-translate-y-2">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+              <div className="relative">
+                <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Battery className="w-7 h-7" />
+                </div>
+                <h3 className="text-2xl font-bold mb-4">Quản lý Pin</h3>
+                <p className="text-blue-100 leading-relaxed">
+                  Giám sát tình trạng, chu kỳ sạc và hiệu suất pin thời gian
+                  thực với công nghệ IoT tiên tiến.
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="group relative bg-white border-2 border-gray-200 p-8 rounded-2xl hover:border-blue-600 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors duration-300">
+                <BarChart3 className="w-7 h-7 text-blue-600 group-hover:text-white transition-colors duration-300" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                Phân tích AI
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                Công cụ phân tích thông minh dự đoán nhu cầu và tối ưu hóa hiệu
+                quả vận hành.
+              </p>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="group relative bg-white border-2 border-gray-200 p-8 rounded-2xl hover:border-blue-600 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+              <div className="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors duration-300">
+                <MapPin className="w-7 h-7 text-blue-600 group-hover:text-white transition-colors duration-300" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                Mạng lưới thông minh
+              </h3>
+              <p className="text-gray-600 leading-relaxed">
+                Quản lý tập trung nhiều trạm với điều phối tự động và lập lịch
+                thông minh.
+              </p>
+            </div>
+          </div>
+
+          {/* Additional Info Section */}
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="grid grid-cols-2 gap-4">
-              <img
-                src="https://images.pexels.com/photos/164634/pexels-photo-164634.jpeg?auto=compress&cs=tinysrgb&w=400"
-                alt="Xe điện"
-                className="w-full h-48 object-cover rounded-lg"
-              />
-              <img
-                src="https://images.pexels.com/photos/2449452/pexels-photo-2449452.jpeg?auto=compress&cs=tinysrgb&w=400"
-                alt="Thành phố về đêm"
-                className="w-full h-48 object-cover rounded-lg"
-              />
+              <div className="relative h-64 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300">
+                <img
+                  src="https://images.pexels.com/photos/164634/pexels-photo-164634.jpeg?auto=compress&cs=tinysrgb&w=400"
+                  alt="Xe điện"
+                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                />
+              </div>
+              <div className="relative h-64 rounded-2xl overflow-hidden shadow-lg hover:shadow-xl transition-shadow duration-300 mt-8">
+                <img
+                  src="https://images.pexels.com/photos/2449452/pexels-photo-2449452.jpeg?auto=compress&cs=tinysrgb&w=400"
+                  alt="Thành phố về đêm"
+                  className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
+                />
+              </div>
             </div>
 
             <div className="space-y-6">
-              <h2 className="text-4xl font-bold text-gray-900">
-                Giải pháp giám sát tiên tiến cho hạ tầng xe điện của bạn
+              <h2 className="text-4xl font-bold text-gray-900 leading-tight">
+                Giải pháp giám sát
+                <br />
+                <span className="text-blue-600">tiên tiến & toàn diện</span>
               </h2>
               <p className="text-lg text-gray-600 leading-relaxed">
-                Nền tảng toàn diện của chúng tôi cung cấp thông tin chi tiết
-                thời gian thực về tình trạng pin, hiệu suất trạm và hiệu quả vận
-                hành để tối đa hóa đầu tư hạ tầng xe điện của bạn.
+                Tối ưu hóa hiệu suất vận hành với công nghệ AI và IoT tiên tiến,
+                mang lại trải nghiệm tốt nhất cho người dùng.
               </p>
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <Monitor className="w-4 h-4 text-white" />
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                    <Monitor className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">
+                      Giám sát thời gian thực
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      Theo dõi mọi hoạt động 24/7 với dashboard trực quan
+                    </p>
+                  </div>
                 </div>
-                <span className="text-gray-700">Giám sát thời gian thực</span>
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircle className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-900 mb-1">
+                      Độ tin cậy cao
+                    </h4>
+                    <p className="text-gray-600 text-sm">
+                      Hệ thống ổn định với uptime 99.8%
+                    </p>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-blue-600 text-white p-8 rounded-xl">
-              <Battery className="w-12 h-12 mb-4" />
-              <h3 className="text-xl font-bold mb-3">Quản lý Pin</h3>
-              <p className="text-blue-100 leading-relaxed">
-                Giám sát tình trạng pin, chu kỳ sạc và các chỉ số hiệu suất thời
-                gian thực trên tất cả các trạm.
-              </p>
-            </div>
-
-            <div className="bg-white border border-gray-200 p-8 rounded-xl">
-              <BarChart3 className="w-12 h-12 text-blue-600 mb-4" />
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Phân tích dữ liệu
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Công cụ phân tích và báo cáo tiên tiến để tối ưu hóa hoạt động
-                và dự đoán nhu cầu bảo trì.
-              </p>
-            </div>
-
-            <div className="bg-white border border-gray-200 p-8 rounded-xl">
-              <MapPin className="w-12 h-12 text-blue-600 mb-4" />
-              <h3 className="text-xl font-bold text-gray-900 mb-3">
-                Mạng lưới trạm
-              </h3>
-              <p className="text-gray-600 leading-relaxed">
-                Quản lý tập trung nhiều trạm đổi pin với điều phối và lập lịch
-                tự động.
-              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="bg-gray-50 py-20">
+      {/* Stats Section - Redesigned */}
+      <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
             <div className="space-y-8">
-              <h2 className="text-4xl font-bold text-gray-900">
-                Thúc đẩy tương lai của giao thông điện
+              <div className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-100 rounded-full">
+                <span className="text-sm font-medium text-blue-600">
+                  Thành tựu của chúng tôi
+                </span>
+              </div>
+
+              <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 leading-tight">
+                Dẫn đầu tương lai
+                <br />
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  giao thông xanh
+                </span>
               </h2>
-              <p className="text-lg text-gray-600 leading-relaxed">
-                Tham gia cùng hàng nghìn trạm trên toàn thế giới sử dụng nền
-                tảng của chúng tôi để mang lại trải nghiệm đổi pin liền mạch.
+
+              <p className="text-xl text-gray-600 leading-relaxed">
+                Hàng nghìn trạm trên toàn quốc tin tưởng sử dụng nền tảng của
+                chúng tôi, cùng nhau xây dựng tương lai bền vững.
               </p>
 
-              <div className="grid grid-cols-2 gap-8">
-                <div>
-                  <div className="text-3xl font-bold text-blue-600 mb-2">
+              <div className="grid grid-cols-2 gap-6 pt-4">
+                <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-600 hover:shadow-lg transition-all duration-300">
+                  <div className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent mb-2">
                     2,500+
                   </div>
-                  <div className="text-gray-600">Trạm hoạt động</div>
+                  <div className="text-gray-600 font-medium">
+                    Trạm hoạt động
+                  </div>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold text-blue-600 mb-2">
+                <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-600 hover:shadow-lg transition-all duration-300">
+                  <div className="text-4xl font-bold bg-gradient-to-r from-green-600 to-green-400 bg-clip-text text-transparent mb-2">
                     50M+
                   </div>
-                  <div className="text-gray-600">Lượt đổi pin</div>
+                  <div className="text-gray-600 font-medium">Lượt đổi pin</div>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold text-blue-600 mb-2">
+                <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-600 hover:shadow-lg transition-all duration-300">
+                  <div className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-purple-400 bg-clip-text text-transparent mb-2">
                     99.8%
                   </div>
-                  <div className="text-gray-600">Thời gian hoạt động</div>
+                  <div className="text-gray-600 font-medium">
+                    Uptime hệ thống
+                  </div>
                 </div>
-                <div>
-                  <div className="text-3xl font-bold text-blue-600 mb-2">
+                <div className="bg-white p-6 rounded-xl border border-gray-200 hover:border-blue-600 hover:shadow-lg transition-all duration-300">
+                  <div className="text-4xl font-bold bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent mb-2">
                     45s
                   </div>
-                  <div className="text-gray-600">Thời gian đổi pin TB</div>
+                  <div className="text-gray-600 font-medium">Thời gian TB</div>
                 </div>
               </div>
             </div>
 
             <div className="relative">
-              <div className="bg-blue-600 p-8 rounded-xl">
-                <img
-                  src="https://images.pexels.com/photos/15031003/pexels-photo-15031003.jpeg?auto=compress&cs=tinysrgb&w=600"
-                  alt="Hạ tầng xe điện"
-                  className="w-full h-64 object-cover rounded-lg mb-6"
-                />
+              <div className="relative bg-gradient-to-br from-blue-600 to-purple-600 p-8 rounded-3xl shadow-2xl hover:shadow-3xl transition-shadow duration-300">
+                <div className="relative rounded-2xl overflow-hidden mb-6 shadow-xl">
+                  <img
+                    src="https://vinfastquangninh.com.vn/wp-content/uploads/2021/03/tram-sac-dien-VinFast2.jpg"
+                    alt="Hạ tầng xe điện"
+                    className="w-full h-72 object-cover"
+                  />
+                </div>
                 <div className="space-y-4">
-                  <h3 className="text-xl font-bold text-white">
+                  <h3 className="text-2xl font-bold text-white">
                     Mạng lưới toàn cầu
                   </h3>
-                  <p className="text-blue-100">
-                    Các trạm kết nối trên 50+ quốc gia cung cấp dịch vụ đáng tin
-                    cậy 24/7.
+                  <p className="text-blue-100 leading-relaxed">
+                    Các trạm kết nối trên 50+ quốc gia, cung cấp dịch vụ đáng
+                    tin cậy 24/7 với công nghệ hiện đại nhất.
                   </p>
+                  <div className="flex items-center gap-2 text-white">
+                    <Clock className="w-5 h-5" />
+                    <span className="font-medium">Hoạt động 24/7</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -454,83 +439,106 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Dashboard Preview Section */}
-      <section id="dashboard" className="py-20">
+      {/* Dashboard Preview Section - Redesigned */}
+      <section id="dashboard" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Bảng điều khiển thông minh
+            <div className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-100 rounded-full mb-6">
+              <span className="text-sm font-medium text-blue-600">
+                Dashboard thông minh
+              </span>
+            </div>
+            <h2 className="text-4xl lg:text-5xl font-bold text-gray-900 mb-6">
+              Kiểm soát mọi thứ
+              <br />
+              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                từ một trung tâm
+              </span>
             </h2>
-            <p className="text-xl text-gray-600">
-              Trung tâm điều khiển toàn diện cho tất cả hoạt động đổi pin của
-              bạn
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              Dashboard trực quan giúp bạn theo dõi và quản lý toàn bộ hệ thống
+              một cách dễ dàng
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8 mb-12">
-            <div className="bg-white border border-gray-200 p-6 rounded-xl">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
+          <div className="grid md:grid-cols-3 gap-6 mb-12">
+            {/* Dashboard Card 1 */}
+            <div className="group bg-white border-2 border-gray-200 p-6 rounded-2xl hover:border-blue-600 hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold text-gray-900">
                   Trạng thái trạm
                 </h3>
-                <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
               </div>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Trạm hoạt động</span>
-                  <span className="font-semibold">248/250</span>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl group-hover:bg-blue-50 transition-colors">
+                  <span className="text-gray-600 font-medium">
+                    Trạm hoạt động
+                  </span>
+                  <span className="font-bold text-gray-900">248/250</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Pin có sẵn</span>
-                  <span className="font-semibold">1,847</span>
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl group-hover:bg-blue-50 transition-colors">
+                  <span className="text-gray-600 font-medium">Pin có sẵn</span>
+                  <span className="font-bold text-green-600">1,847</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Đang bảo trì</span>
-                  <span className="font-semibold text-orange-600">12</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white border border-gray-200 p-6 rounded-xl">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Hiệu suất
-                </h3>
-                <TrendingUp className="w-5 h-5 text-green-600" />
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tỷ lệ hiệu quả</span>
-                  <span className="font-semibold text-green-600">98.5%</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Thời gian đổi pin TB</span>
-                  <span className="font-semibold">45s</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Hài lòng khách hàng</span>
-                  <span className="font-semibold text-green-600">4.9/5</span>
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl group-hover:bg-blue-50 transition-colors">
+                  <span className="text-gray-600 font-medium">
+                    Đang bảo trì
+                  </span>
+                  <span className="font-bold text-orange-600">12</span>
                 </div>
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 p-6 rounded-xl">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">Bảo mật</h3>
-                <Shield className="w-5 h-5 text-blue-600" />
+            {/* Dashboard Card 2 */}
+            <div className="group bg-gradient-to-br from-blue-600 to-blue-700 text-white p-6 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold">Hiệu suất</h3>
+                <div className="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
               </div>
-              <div className="space-y-3">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Trạng thái bảo mật</span>
-                  <span className="font-semibold text-green-600">An toàn</span>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
+                  <span className="font-medium">Tỷ lệ hiệu quả</span>
+                  <span className="font-bold">98.5%</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Kiểm tra cuối</span>
-                  <span className="font-semibold">2 ngày trước</span>
+                <div className="flex justify-between items-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
+                  <span className="font-medium">Thời gian TB</span>
+                  <span className="font-bold">45s</span>
                 </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Tuân thủ</span>
-                  <span className="font-semibold text-green-600">100%</span>
+                <div className="flex justify-between items-center p-3 bg-white/10 backdrop-blur-sm rounded-xl">
+                  <span className="font-medium">Đánh giá</span>
+                  <span className="font-bold">4.9/5 ⭐</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Dashboard Card 3 */}
+            <div className="group bg-white border-2 border-gray-200 p-6 rounded-2xl hover:border-blue-600 hover:shadow-xl transition-all duration-300">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-bold text-gray-900">Bảo mật</h3>
+                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center group-hover:bg-blue-600 transition-colors">
+                  <Shield className="w-5 h-5 text-blue-600 group-hover:text-white transition-colors" />
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl group-hover:bg-blue-50 transition-colors">
+                  <span className="text-gray-600 font-medium">Trạng thái</span>
+                  <span className="font-bold text-green-600 flex items-center gap-1">
+                    <CheckCircle className="w-4 h-4" />
+                    Bảo mật
+                  </span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl group-hover:bg-blue-50 transition-colors">
+                  <span className="text-gray-600 font-medium">
+                    Kiểm tra cuối
+                  </span>
+                  <span className="font-bold text-gray-900">2 ngày</span>
+                </div>
+                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-xl group-hover:bg-blue-50 transition-colors">
+                  <span className="text-gray-600 font-medium">Tuân thủ</span>
+                  <span className="font-bold text-green-600">100%</span>
                 </div>
               </div>
             </div>
@@ -538,141 +546,214 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Partners Section */}
-      <section className="bg-gray-50 py-16">
+      {/* Partners Section - Logo Marquee */}
+      <section className="py-20 bg-gradient-to-b from-gray-50 to-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Được tin tưởng bởi các nhà lãnh đạo ngành
+            <div className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-100 rounded-full mb-6">
+              <span className="text-sm font-medium text-blue-600">
+                Đối tác của chúng tôi
+              </span>
+            </div>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">
+              Được tin tưởng bởi các thương hiệu hàng đầu
             </h2>
-            <p className="text-gray-600">
-              Các nhà sản xuất và vận hành xe điện hàng đầu tin tưởng nền tảng
-              của chúng tôi
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Các nhà sản xuất và vận hành xe điện lớn nhất thế giới tin dùng
+              giải pháp của chúng tôi
             </p>
           </div>
 
-          <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
-            <div className="bg-white px-6 py-3 rounded-lg font-bold text-gray-700">
-              VinFast
-            </div>
-            <div className="bg-white px-6 py-3 rounded-lg font-bold text-gray-700">
-              Tesla
-            </div>
-            <div className="bg-white px-6 py-3 rounded-lg font-bold text-gray-700">
-              NIO
-            </div>
-            <div className="bg-white px-6 py-3 rounded-lg font-bold text-gray-700">
-              BYD
-            </div>
-            <div className="bg-white px-6 py-3 rounded-lg font-bold text-gray-700">
-              Gogoro
-            </div>
-            <div className="bg-white px-6 py-3 rounded-lg font-bold text-gray-700">
-              CATL
+          {/* Inline Logo Marquee */}
+          <div className="py-10 sm:py-14 mt-8">
+            <div className="max-w-7xl mx-auto px-4">
+              <div className="group relative w-full overflow-hidden bg-white rounded-2xl  h-32 sm:h-36 flex items-center">
+                {/* Gradient fade effects on edges */}
+                <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none"></div>
+                <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none"></div>
+
+                {/* Animated track */}
+                <div
+                  className="flex items-center gap-12 sm:gap-16 w-max will-change-transform group-hover:[animation-play-state:paused]"
+                  style={{
+                    animation: "marquee-left 40s linear infinite",
+                  }}
+                >
+                  {[...partnerLogos, ...partnerLogos].map((logo, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-center px-4 sm:px-6 flex-shrink-0"
+                      style={{ minWidth: "160px" }}
+                    >
+                      <img
+                        src={logo.src}
+                        alt={logo.alt || "Partner Logo"}
+                        width={logo.width || 150}
+                        height={logo.height || 60}
+                        loading="lazy"
+                        decoding="async"
+                        className="max-w-full max-h-16 sm:max-h-20 object-contain opacity-60 hover:opacity-100 transition-opacity duration-300 grayscale hover:grayscale-0"
+                        style={{ color: "transparent" }}
+                        draggable={false}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Inline styles for animations */}
+        <style jsx>{`
+          @keyframes marquee-left {
+            0% {
+              transform: translateX(0);
+            }
+            100% {
+              transform: translateX(-50%);
+            }
+          }
+        `}</style>
       </section>
 
-      {/* Contact Section */}
-      <section id="contact" className="py-20">
+      <FeedbackPage />
+
+      {/* Contact Section - Redesigned */}
+      <section id="contact" className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12">
-            <div className="bg-blue-600 p-12 rounded-2xl text-white">
-              <h2 className="text-3xl font-bold mb-6">Liên hệ với chúng tôi</h2>
-              <p className="text-blue-100 mb-8 text-lg">
-                Sẵn sàng chuyển đổi hoạt động đổi pin xe điện của bạn? Liên hệ
-                với đội ngũ của chúng tôi để được tư vấn và demo cá nhân hóa.
-              </p>
+            {/* Contact Info */}
+            <div className="relative">
+              <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-10 rounded-3xl text-white shadow-2xl overflow-hidden">
+                {/* Decorative elements */}
+                <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
 
-              <div className="space-y-6">
-                <div className="flex items-center space-x-4">
-                  <Phone className="w-6 h-6" />
-                  <span>+84 (028) 123-4567</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <Mail className="w-6 h-6" />
-                  <span>lienhe@evswap.vn</span>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <MapPin className="w-6 h-6" />
-                  <span>Thành phố Hồ Chí Minh, Việt Nam</span>
-                </div>
-              </div>
+                <div className="relative">
+                  <h2 className="text-3xl font-bold mb-4">
+                    Liên hệ với chúng tôi
+                  </h2>
+                  <p className="text-blue-100 mb-8 text-lg leading-relaxed">
+                    Sẵn sàng chuyển đổi hệ thống của bạn? Đội ngũ chuyên gia
+                    luôn sẵn lòng tư vấn và hỗ trợ.
+                  </p>
 
-              <div className="mt-12 pt-8 border-t border-blue-500">
-                <h3 className="text-xl font-semibold mb-4">Hành động nhanh</h3>
-                <div className="flex flex-wrap gap-3">
-                  <button className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition-colors">
-                    Đặt lịch demo
-                  </button>
-                  <button className="border border-blue-400 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-500 transition-colors">
-                    Tải brochure
-                  </button>
+                  <div className="space-y-6 mb-10">
+                    <div className="flex items-center gap-4 p-4 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-colors">
+                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Phone className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-blue-100 mb-1">
+                          Hotline
+                        </div>
+                        <div className="font-semibold">+84 (028) 123-4567</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 p-4 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-colors">
+                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <Mail className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-blue-100 mb-1">Email</div>
+                        <div className="font-semibold">lienhe@evswap.vn</div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 p-4 bg-white/10 backdrop-blur-sm rounded-xl hover:bg-white/20 transition-colors">
+                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-blue-100 mb-1">
+                          Địa chỉ
+                        </div>
+                        <div className="font-semibold">
+                          TP. Hồ Chí Minh, Việt Nam
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-8 border-t border-blue-500/30">
+                    <h3 className="text-xl font-semibold mb-4">
+                      Hành động nhanh
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                      <button className="bg-white text-blue-600 px-6 py-3 rounded-xl font-semibold hover:bg-blue-50 transition-colors shadow-lg hover:shadow-xl">
+                        Đặt lịch demo
+                      </button>
+                      <button className="border-2 border-white/30 text-white px-6 py-3 rounded-xl font-semibold hover:bg-white/10 transition-colors">
+                        Tải brochure
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
+            {/* Contact Form */}
             <div className="space-y-8">
               <div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                  Biểu mẫu liên hệ
+                <h3 className="text-3xl font-bold text-gray-900 mb-4">
+                  Gửi tin nhắn
                 </h3>
-                <p className="text-gray-600">
-                  Gửi tin nhắn cho chúng tôi và chúng tôi sẽ phản hồi trong vòng
-                  24 giờ.
+                <p className="text-gray-600 text-lg">
+                  Để lại thông tin và chúng tôi sẽ phản hồi trong vòng 24 giờ.
                 </p>
               </div>
 
               <form className="space-y-6">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Họ
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      Họ và tên đệm
                     </label>
                     <input
                       type="text"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                      placeholder="Nguyễn"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                      placeholder="Nguyễn Văn"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">
                       Tên
                     </label>
                     <input
                       type="text"
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                      placeholder="Văn A"
+                      className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                      placeholder="An"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Email
                   </label>
                   <input
                     type="email"
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                    placeholder="nguyenvana@example.com"
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                    placeholder="nguyenvanan@example.com"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">
                     Tin nhắn
                   </label>
                   <textarea
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors resize-none"
+                    rows={5}
+                    className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all resize-none"
                     placeholder="Hãy cho chúng tôi biết về dự án của bạn..."
                   ></textarea>
                 </div>
 
                 <button
                   type="submit"
-                  className="w-full bg-blue-600 text-white py-3 px-6 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+                  className="w-full bg-blue-600 text-white py-4 px-6 rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 shadow-lg shadow-blue-600/30 hover:shadow-xl hover:shadow-blue-600/40 hover:-translate-y-0.5"
                 >
                   Gửi tin nhắn
                 </button>
@@ -682,43 +763,57 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12">
+      {/* Footer - Redesigned */}
+      <footer className="bg-gray-900 text-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                  <Battery className="w-5 h-5 text-white" />
+          <div className="grid md:grid-cols-4 gap-12 mb-12">
+            {/* Brand */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Battery className="w-6 h-6 text-white" />
                 </div>
-                <span className="text-xl font-bold">EVSwap</span>
+                <span className="text-2xl font-bold">EVSwap</span>
               </div>
-              <p className="text-gray-400">
-                Dẫn đầu tương lai của hạ tầng xe điện với các giải pháp đổi pin
-                thông minh.
+              <p className="text-gray-400 leading-relaxed">
+                Dẫn đầu tương lai của hạ tầng xe điện với công nghệ đổi pin
+                thông minh và bền vững.
               </p>
             </div>
 
+            {/* Links Columns */}
             <div>
-              <h3 className="text-lg font-semibold mb-4">Nền tảng</h3>
-              <ul className="space-y-2 text-gray-400">
+              <h3 className="text-lg font-bold mb-6">Nền tảng</h3>
+              <ul className="space-y-3 text-gray-400">
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  >
                     Bảng điều khiển
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  >
                     Phân tích
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  >
                     API
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  >
                     Tích hợp
                   </a>
                 </li>
@@ -726,25 +821,37 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-4">Công ty</h3>
-              <ul className="space-y-2 text-gray-400">
+              <h3 className="text-lg font-bold mb-6">Công ty</h3>
+              <ul className="space-y-3 text-gray-400">
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  >
                     Về chúng tôi
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  >
                     Tuyển dụng
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  >
                     Báo chí
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  >
                     Đối tác
                   </a>
                 </li>
@@ -752,25 +859,37 @@ export default function HomePage() {
             </div>
 
             <div>
-              <h3 className="text-lg font-semibold mb-4">Hỗ trợ</h3>
-              <ul className="space-y-2 text-gray-400">
+              <h3 className="text-lg font-bold mb-6">Hỗ trợ</h3>
+              <ul className="space-y-3 text-gray-400">
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  >
                     Trung tâm trợ giúp
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  >
                     Liên hệ
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  >
                     Tài liệu
                   </a>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <a
+                    href="#"
+                    className="hover:text-white transition-colors hover:translate-x-1 inline-block"
+                  >
                     Trạng thái
                   </a>
                 </li>
@@ -778,11 +897,12 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row justify-between items-center">
+          {/* Footer Bottom */}
+          <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
             <p className="text-gray-400 text-sm">
               © 2024 EVSwap. Tất cả quyền được bảo lưu.
             </p>
-            <div className="flex space-x-6 text-sm text-gray-400 mt-4 sm:mt-0">
+            <div className="flex gap-6 text-sm text-gray-400">
               <a href="#" className="hover:text-white transition-colors">
                 Chính sách bảo mật
               </a>
@@ -796,6 +916,9 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* Chat Widget */}
+      {user?.role == "USER" && <ChatWidget />}
     </div>
   );
 }

@@ -11,10 +11,19 @@ export const getAllPublicStationList = async <T>(params: T) => {
   return res.data;
 };
 
+export const getAllNearestStationList = async <T>(params: T) => {
+  const res = await api.get("/station/nearest", { params });
+
+  return res.data;
+};
+
 export const createStation = async (data: {
   name: string;
   description: string;
   address: string;
+  image: string;
+  openTime: string;
+  closeTime: string;
   latitude: number;
   longitude: number;
   temperature: number;
@@ -23,6 +32,7 @@ export const createStation = async (data: {
   message: string;
 }> => {
   const res = await api.post("/station", data);
+  console.log(data);
   const resData = res.data;
   return { success: resData.success, message: resData.message };
 };
@@ -33,6 +43,9 @@ export const updateStation = async (
     name: string;
     description: string;
     address: string;
+    image: string;
+    openTime: string;
+    closeTime: string;
     latitude: number;
     longitude: number;
     temperature: number;
@@ -42,11 +55,12 @@ export const updateStation = async (
   message: string;
 }> => {
   const res = await api.patch(`/station/${id}`, data);
+  console.log(data);
   const resData = res.data;
   return { success: resData.success, message: resData.message };
 };
 
-export const getStationById = async (id: number) => {
+export const getStationById = async (id: number | string | null) => {
   const res = await api.get(`/station/${id}`);
   return res.data;
 };

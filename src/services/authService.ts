@@ -1,18 +1,11 @@
 ﻿import api from "@/lib/axios";
 import { User } from "@/types";
 import { AxiosError } from "axios";
-import { toHttpError } from "./http";
 
 interface LoginFormData {
   email: string;
   password: string;
   rememberMe?: boolean;
-}
-
-interface RegisterFormData {
-  username: string;
-  email: string;
-  password: string;
 }
 
 class AuthService {
@@ -29,12 +22,14 @@ class AuthService {
 
       const token = response.data.data.access_token;
 
+      // Save token to localStorage/sessionStorage
       if (formData.rememberMe) {
         localStorage.setItem("token", token);
       } else {
         sessionStorage.setItem("token", token);
       }
 
+      // Also save to cookie for middleware access
       document.cookie = `token=${token}; path=/; ${
         formData.rememberMe ? "max-age=604800" : "max-age=86400"
       }; SameSite=Strict`;
@@ -49,55 +44,6 @@ class AuthService {
     }
   }
 
-  async register(formData: {
-    username: string;
-    email: string;
-    password: string;
-  }): Promise<{ email: string; message: string }> {
-    try {
-      const payload = {
-        username: formData.username.trim(),
-        email: formData.email.trim().toLowerCase(),
-        password: formData.password,
-      };
-      const res = await api.post("/auth/register", payload);
-      const email = res.data?.data?.email ?? payload.email;
-      localStorage.setItem(
-        "verifyEmail",
-        JSON.stringify({ email, ts: Date.now() })
-      );
-      return {
-        email,
-        message:
-          res.data?.message ||
-          "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.",
-      };
-    } catch (e) {
-      throw toHttpError(e, "Đăng ký thất bại.");
-    }
-  }
-
-  async verifyEmail(token: string): Promise<string> {
-    try {
-      const res = await api.post("/auth/verify-email", { token });
-      return (
-        res.data?.message || "Xác thực email thành công! Bạn có thể đăng nhập."
-      );
-    } catch (e) {
-      throw toHttpError(e, "Xác thực email thất bại.");
-    }
-  }
-
-  async resendVerification(email: string): Promise<string> {
-    const e = (email ?? "").trim().toLowerCase();
-    try {
-      const res = await api.post("/auth/resend-verification", { email: e });
-      return res.data?.message || "Email xác thực đã được gửi lại!";
-    } catch (e) {
-      throw toHttpError(e, "Không thể gửi lại email xác thực.");
-    }
-  }
-
   async fetchProfile(): Promise<User> {
     try {
       const token = this.getToken();
@@ -106,19 +52,20 @@ class AuthService {
       }
 
       const response = await api.get("user/me");
-      console.log("API response:", response.data);
+
+      console.log("get user /me", response.data);
 
       const backendUser = response.data.data;
-      const user: User = {
-        id: backendUser.id,
-        username: backendUser.username,
-        email: backendUser.email,
-        fullName: backendUser.fullName,
-        avatar: backendUser.avatar,
-        role: backendUser.role,
-      };
+      // const user: User = {
+      //   id: backendUser.id,
+      //   username: backendUser.username,
+      //   email: backendUser.email,
+      //   fullName: backendUser.fullName,
+      //   avatar: backendUser.avatar,
+      //   role: backendUser.role,
+      // };
 
-      return user;
+      return backendUser;
     } catch (error: unknown) {
       this.logout();
       const errorMessage =
@@ -140,8 +87,92 @@ class AuthService {
   }
 
   getToken(): string | null {
-    if (typeof window === "undefined") return null;
+    if (typeof window === "undefined") return null; // SSR → trả về null
     return localStorage.getItem("token") || sessionStorage.getItem("token");
+  }
+
+  async updateProfile(data: { fullName?: string; avatar?: string }) {
+    try {
+      const response = await api.patch("user/update-profile", data);
+      return response.data.data;
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Cập nhật thất bại";
+      throw new Error(errorMessage);
+    }
+  }
+
+  async register(payload: {
+    username: string;
+    password: string;
+    email: string;
+  }) {
+    try {
+      const response = await api.post("auth/register", payload);
+      console.log("Register response:", response);
+      return response.data;
+    } catch (error: unknown) {
+      console.log("Register error:", error);
+      // Nếu là lỗi Axios
+      if (error instanceof AxiosError) {
+        const errorMessage =
+          error.response?.data?.message || "Đăng ký thất bại";
+        throw new Error(errorMessage);
+      }
+
+      // Nếu là lỗi khác
+      throw new Error("Đăng ký thất bại");
+    }
+  }
+
+  async changePassword(payload: {
+    currentPassword: string;
+    newPassword: string;
+  }) {
+    try {
+      const response = await api.patch("user/change-password", payload);
+      return response.data;
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Đổi mật khẩu thất bại";
+      throw new Error(errorMessage);
+    }
+  }
+
+  async verifyEmail(token: string) {
+    try {
+      const res = await api.post("auth/verify-email", { token });
+      return res.data;
+    } catch (error) {
+      console.log("Verify email error:", error);
+    }
+  }
+
+  async resendVerification(email: string) {
+    try {
+      const res = await api.post("auth/resend-verification", { email });
+      return res.data;
+    } catch (error) {
+      console.log(" resend Verify email error:", error);
+    }
+  }
+
+  async resetPassword(data: { token: string; newPassword: string }) {
+    try {
+      const res = await api.post("auth/reset-password", data);
+      return res.data;
+    } catch (error) {
+      console.log(" reset password error:", error);
+    }
+  }
+
+  async forgotPassword(email: string) {
+    try {
+      const res = await api.post("auth/forgot-password", { email });
+      return res.data;
+    } catch (error) {
+      console.log(" reset password error:", error);
+    }
   }
 }
 

@@ -4,7 +4,7 @@ import React from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
 import UpdateForm from "./components/UpdateForm";
 import MapPicker from "../../components/MapPicker";
-import { useState, use } from "react";
+import { useState, use, useCallback } from "react";
 
 interface PageProps {
   params: Promise<{
@@ -18,14 +18,19 @@ export default function EditStationPage({ params }: PageProps) {
     lat: number;
     lng: number;
   } | null>(null);
+  const [address, setAddress] = useState<string>("");
 
-  const handleMapSelect = (lat: number, lng: number) => {
+  const handleMapSelect = useCallback((lat: number, lng: number) => {
     setMapCoords({ lat, lng });
-  };
+  }, []);
 
-  const handleAddressGeocode = (lat: number, lng: number) => {
+  const handleAddressGeocode = useCallback((lat: number, lng: number) => {
     setMapCoords({ lat, lng });
-  };
+  }, []);
+
+  const handleAddressChange = useCallback((newAddress: string) => {
+    setAddress(newAddress);
+  }, []);
 
   return (
     <AdminLayout>
@@ -36,8 +41,13 @@ export default function EditStationPage({ params }: PageProps) {
             onMapSelect={handleMapSelect}
             onAddressGeocode={handleAddressGeocode}
             mapCoords={mapCoords}
+            initialAddress={address}
           />
-          <MapPicker coordinates={mapCoords} onSelect={handleMapSelect} />
+          <MapPicker
+            coordinates={mapCoords}
+            onSelect={handleMapSelect}
+            onAddressChange={handleAddressChange}
+          />
         </div>
       </div>
     </AdminLayout>

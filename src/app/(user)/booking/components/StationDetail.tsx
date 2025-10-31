@@ -1,6 +1,11 @@
-import { Station } from "@/types";
-import { Clock, MapPin, Star, X } from "lucide-react";
-import { useState } from "react";
+import { getBatteryById } from "@/services/batteryService";
+import { getBatteryTypeById } from "@/services/batteryTypeService";
+import { getCabinetsByStationId } from "@/services/cabinetService";
+import { getStationById } from "@/services/stationService";
+import { Cabinet, Station } from "@/types";
+import { isStationOpen } from "@/utils/format";
+import { Battery, Clock, MapPin, Star, X } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface BatterySlot {
   id: number;
@@ -10,91 +15,49 @@ interface BatterySlot {
 }
 
 interface StationDetailProps {
-  setOpenStationDetail: React.Dispatch<React.SetStateAction<string | null>>;
+  setOpenStationDetail: React.Dispatch<React.SetStateAction<Station | null>>;
+  openStationDetail: Station;
 }
 
-function StationDetail({ setOpenStationDetail }: StationDetailProps) {
-  const [stations] = useState<Station[]>([
-    {
-      id: "1",
-      name: "Brewery Electric Motorcycle Repair & Co",
-      description: "Electric motorcycle repair and battery swap station",
-      address:
-        "Jl. Mega Kuningan Barat No.3, RW.2, Kuningan, Kuningan Timur, Jakarta Selatan",
-      latitude: 10.7769,
-      longitude: 106.7017,
-      status: true,
-      batteryCount: 8,
-      openTime: "Monday, 10:00 - 21:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 2,
-    },
-    {
-      id: "2",
-      name: "District 3 Station",
-      description: "Central district battery swap station",
-      address: "123 Vo Van Tan, District 3, Ho Chi Minh City",
-      latitude: 10.7834,
-      longitude: 106.6934,
-      status: false,
-      batteryCount: 5,
-      openTime: "Monday, 08:00 - 22:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 1,
-    },
-    {
-      id: "3",
-      name: "Binh Thanh Station",
-      description: "Binh Thanh district battery swap station",
-      address: "456 Xo Viet Nghe Tinh, Binh Thanh, Ho Chi Minh City",
-      latitude: 10.8008,
-      longitude: 106.7122,
-      status: true,
-      batteryCount: 12,
-      openTime: "Monday, 06:00 - 23:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 3,
-    },
-    {
-      id: "4",
-      name: "Tan Binh Station",
-      description: "Tan Binh district battery swap station",
-      address: "789 Cong Hoa, Tan Binh, Ho Chi Minh City",
-      latitude: 10.8142,
-      longitude: 106.6438,
-      status: true,
-      batteryCount: 7,
-      openTime: "Monday, 07:00 - 21:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 2,
-    },
-    {
-      id: "5",
-      name: "Go Vap Station",
-      description: "Go Vap district battery swap station",
-      address: "321 Nguyen Oanh, Go Vap, Ho Chi Minh City",
-      latitude: 10.8376,
-      longitude: 106.6676,
-      status: false,
-      batteryCount: 0,
-      openTime: "Monday, 08:00 - 20:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 0,
-    },
-    {
-      id: "6",
-      name: "Thu Duc Station",
-      description: "Thu Duc district battery swap station",
-      address: "654 Vo Van Ngan, Thu Duc, Ho Chi Minh City",
-      latitude: 10.8525,
-      longitude: 106.7517,
-      status: true,
-      batteryCount: 15,
-      openTime: "Monday, 06:00 - 22:00",
-      image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400",
-      swappableBatteries: 4,
-    },
-  ]);
+function StationDetail({
+  setOpenStationDetail,
+  openStationDetail,
+}: StationDetailProps) {
+  const [cabinInStationList, setCabinInStationList] = useState<
+    Cabinet[] | null
+  >(null);
+
+  const handleGetCabinByStation = async () => {
+    try {
+      const res = await getCabinetsByStationId(openStationDetail.id);
+      console.log("getCabinetsByStationId res", res.data);
+
+      const cabinWithBattery = await Promise.all(
+        res?.data?.map(async (cabin: Cabinet) => {
+          if (!cabin.batteryTypeId) return cabin;
+          try {
+            const batteryRes = await getBatteryTypeById(cabin.batteryTypeId);
+            return {
+              ...cabin,
+              batteryInfo: batteryRes.data,
+            };
+          } catch {
+            return cabin;
+          }
+        })
+      );
+
+      console.log("cabinWithBattery res", cabinWithBattery);
+
+      setCabinInStationList(cabinWithBattery);
+    } catch (error) {
+      console.log("get cabin by station err", error);
+    }
+  };
+
+  useEffect(() => {
+    handleGetCabinByStation();
+  }, [openStationDetail]);
   // station detail fake data
   const reviews = [
     {
@@ -123,23 +86,16 @@ function StationDetail({ setOpenStationDetail }: StationDetailProps) {
     { id: 3, level: 10, label: "Slot 3", swappable: false },
   ];
 
-  const getBatteryColor = (level: number): string => {
-    if (level >= 80) return "#22C55E";
-    if (level >= 30) return "#F59E0B";
-    return "#EF4444";
-  };
-  // end station detail fake data
-
   return (
     <div className="absolute top-0 bottom-0 lg:top-4 lg:bottom-4 lg:left-[30.5%] lg:w-[400px] bg-white shadow-lg z-20 border-l border-gray-200 flex flex-col rounded-xl overflow-hidden">
       {/*Image */}
       <div className="relative h-[200px]">
         <img
           src={
-            stations[0]?.image ||
-            "https://images.pexels.com/photos/1267338/pexels-photo-1267338.jpeg"
+            openStationDetail?.image ||
+            "https://media.istockphoto.com/id/1222357475/vector/image-preview-icon-picture-placeholder-for-website-or-ui-ux-design-vector-illustration.jpg?s=612x612&w=0&k=20&c=KuCo-dRBYV7nz2gbk4J9w1WtTAgpTdznHu55W9FjimE="
           }
-          alt={stations[0]?.name}
+          alt={openStationDetail?.name}
           className="w-full h-full object-cover"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-black/60"></div>
@@ -156,12 +112,48 @@ function StationDetail({ setOpenStationDetail }: StationDetailProps) {
 
         {/* Status */}
         <div className="absolute bottom-6 left-6 flex gap-2">
-          <div className="bg-white px-3 py-1.5 rounded-full flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-green-500"></div>
-            <span className="text-sm font-medium text-gray-900">Open</span>
+          <div
+            className={`${
+              isStationOpen(
+                openStationDetail?.openTime,
+                openStationDetail?.closeTime
+              )
+                ? "text-green-700 bg-green-50"
+                : "text-red-700 bg-red-50"
+            } px-3 py-1.5 rounded-full flex items-center gap-1`}
+          >
+            <div
+              className={`w-2 h-2 rounded-full ${
+                isStationOpen(
+                  openStationDetail?.openTime,
+                  openStationDetail?.closeTime
+                )
+                  ? "bg-green-500"
+                  : "bg-red-500"
+              }`}
+            ></div>
+            <span className="pb-1">
+              {isStationOpen(
+                openStationDetail?.openTime,
+                openStationDetail?.closeTime
+              )
+                ? "Mở cửa"
+                : "Đóng cửa"}
+            </span>
           </div>
-          <div className="bg-orange-500 px-3 py-1.5 rounded-full flex items-center gap-1 text-white">
-            ⚡ {stations[0]?.swappableBatteries || 5} Batteries Swappable
+          <div
+            className={`${
+              Number(openStationDetail?.slotAvailable) > 0
+                ? "text-orange-700 bg-orange-200"
+                : "text-gray-500 bg-gray-100"
+            }  px-3 py-1.5 rounded-full flex items-center gap-2`}
+          >
+            <Battery className="w-4 h-4" />
+            <span className="pb-1">
+              {Number(openStationDetail?.slotAvailable) > 0
+                ? `${openStationDetail?.slotAvailable} Pin`
+                : "Hết pin"}{" "}
+            </span>
           </div>
         </div>
       </div>
@@ -169,78 +161,108 @@ function StationDetail({ setOpenStationDetail }: StationDetailProps) {
       {/* Info Section */}
       <div className="flex-1 overflow-y-auto px-6 py-5 scrollbar-custom">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">
-          {stations[0]?.name || "Battery Station"}
+          {openStationDetail?.name || "Battery Station"}
         </h2>
 
         {/* Address */}
         <div className="flex items-start gap-3 mb-4">
           <MapPin size={18} className="text-gray-700 mt-0.5" />
           <p className="text-gray-600 text-sm leading-5">
-            {stations[0]?.address || "123 Đường ABC, Quận 1, TP. Hồ Chí Minh"}
+            {openStationDetail?.address ||
+              "123 Đường ABC, Quận 1, TP. Hồ Chí Minh"}
           </p>
         </div>
 
         {/* Time */}
         <div className="flex items-center gap-3 mb-6">
           <Clock size={20} className="text-gray-700" />
-          <p className="text-gray-900 text-sm">Monday, 10:00 - 21:00</p>
+          <p className="text-gray-900 text-sm">
+            {openStationDetail?.openTime?.slice(0, -3)} -
+            {openStationDetail?.closeTime?.slice(0, -3)}
+          </p>
         </div>
 
         {/* Battery Slots */}
         <div className="mt-4">
-          <p className="text-xs font-semibold text-gray-500 uppercase mb-3 tracking-wide">
-            Batteries
+          <p className="text-xs font-semibold text-gray-500 uppercase mb-1 tracking-wide">
+            Pin
           </p>
-          {batterySlots.map((slot, index) => (
-            <div
-              key={slot.id}
-              className={`flex items-center justify-between py-4 ${
-                index < batterySlots.length - 1
-                  ? "border-b border-gray-100"
-                  : ""
-              }`}
-            >
-              <div className="flex items-center gap-3 flex-1">
-                <div className="relative w-16 h-8 bg-gray-100 rounded-md overflow-hidden">
-                  <div
-                    style={{
-                      width: `${slot.level}%`,
-                      backgroundColor: getBatteryColor(slot.level),
-                    }}
-                    className="h-full"
-                  />
-                  <span
-                    className={`absolute inset-0 text-center leading-8 text-xs font-bold ${
-                      slot.level < 30 ? "text-white" : "text-black"
-                    }`}
-                  >
-                    {slot.level}%
-                  </span>
-                </div>
-                <span className="text-gray-900 font-medium">{slot.label}</span>
-              </div>
+          {cabinInStationList?.map((cabin, index) => {
+            return (
+              <div
+                key={cabin.id}
+                className={`flex items-center justify-between py-4 border-b border-gray-200`}
+              >
+                <div className="space-y-2 w-full">
+                  <p className="font-medium">
+                    {cabin.name} - Pin {cabin?.batteryInfo?.name}
+                  </p>
 
-              {slot.swappable ? (
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-900 font-medium">Swappable</span>
-                  <div className="w-6 h-6 rounded-full bg-orange-500 flex items-center justify-center text-white text-xs font-bold">
-                    ⚡
-                  </div>
+                  {cabin?.availablePins && (
+                    <div className="flex flex-row justify-between items-center w-full">
+                      {/*Pin */}
+                      <div className="relative bg-gray-100 w-16 h-8 rounded-xl overflow-hidden">
+                        <div
+                          className={`absolute w-full h-full ${
+                            (cabin?.availablePins ?? 0) > 0
+                              ? "bg-green-500"
+                              : ""
+                          }`}
+                        >
+                          <p className="absolute w-full h-full text-center top-[2px]">
+                            100%
+                          </p>
+                        </div>
+                      </div>
+                      {/* info*/}
+                      <div className="flex gap-3">
+                        <p className="font-semibold">Có thể đổi</p>
+                        <div className="bg-green-500 w-7 h-7 rounded-full flex items-center justify-center pb-1">
+                          <p className="text-white font-semibold">
+                            {cabin?.availablePins}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {cabin?.chargingPins && (
+                    <div className="flex flex-row justify-between items-center w-full">
+                      {/*pin */}
+                      <div className="relative bg-gray-100 w-16 h-8 rounded-xl overflow-hidden">
+                        <div
+                          className={`absolute w-[70%] h-full ${
+                            (cabin?.chargingPins ?? 0) > 0
+                              ? "bg-yellow-500"
+                              : ""
+                          }`}
+                        >
+                          <p className="absolute w-16 h-full text-center top-[2px]">
+                            70%
+                          </p>
+                        </div>
+                      </div>
+                      {/* info*/}
+                      <div className="flex gap-3">
+                        <p className="font-semibold">Đang sạc</p>
+                        <div className="bg-yellow-500 w-7 h-7 rounded-full flex items-center justify-center pb-1">
+                          <p className="text-white font-semibold">
+                            {cabin?.chargingPins}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div className="flex items-center gap-2 text-gray-400">
-                  <span>Not Swappable</span>
-                  <div className="w-6 h-6 rounded-full bg-gray-200" />
-                </div>
-              )}
-            </div>
-          ))}
+              </div>
+            );
+          })}
         </div>
 
         {/* Reviews */}
         <div className="mt-6">
           <p className="text-xs font-semibold text-gray-500 uppercase mb-3 tracking-wide">
-            Station Reviews
+            Đánh giá trạm
           </p>
           {reviews.map((review) => (
             <div
@@ -281,7 +303,7 @@ function StationDetail({ setOpenStationDetail }: StationDetailProps) {
           ))}
 
           <button className="text-blue-500 font-medium text-center w-full mt-2">
-            View all reviews
+            Xem thêm
           </button>
         </div>
       </div>
