@@ -3,7 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { getStationById } from "@/services/stationService";
 import { useRouter } from "next/navigation";
-import { getCabinetsById } from "@/services/cabinetService";
+import {
+  getCabinetsById,
+  getCabinetsByStationId,
+} from "@/services/cabinetService";
 import { Station, Cabinet } from "@/types";
 import {
   MapPin,
@@ -15,6 +18,8 @@ import {
   Thermometer,
   Image as ImageIcon,
   Clock,
+  Zap,
+  BatteryWarning,
 } from "lucide-react";
 
 interface ViewFormProps {
@@ -31,7 +36,8 @@ const ViewForm: React.FC<ViewFormProps> = ({ stationId }) => {
     const fetchStationData = async () => {
       try {
         const stationResponse = await getStationById(stationId);
-        const cabinetResponse = await getCabinetsById(stationId);
+        const cabinetResponse = await getCabinetsByStationId(stationId);
+        console.log("cabinetResponse", cabinetResponse);
 
         if (stationResponse.success) {
           setStation(stationResponse.data);
@@ -86,7 +92,7 @@ const ViewForm: React.FC<ViewFormProps> = ({ stationId }) => {
         </div>
 
         {/* Station Details */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-6 scrollbar-custom">
           <div className="rounded-lg">
             {/* Image */}
             <div className="mb-6">
@@ -219,37 +225,35 @@ const ViewForm: React.FC<ViewFormProps> = ({ stationId }) => {
                       <Battery className="w-4 h-4 mr-2 text-blue-600" />
                       {cabinet.name || `Tủ pin #${index + 1}`}
                     </h4>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        cabinet.status
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {cabinet.status ? "Hoạt động" : "Tạm dừng"}
-                    </span>
                   </div>
 
-                  <div className="flex items-center text-sm text-gray-600">
-                    <Thermometer className="w-4 h-4 mr-1" />
-                    <span>Nhiệt độ: {cabinet.temperature}°C</span>
-                  </div>
                   <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-gray-500">Khả dụng</span>
-                      <span className="px-2 py-1 bg-green-50 text-green-800 rounded-full text-xs font-medium">
+                    <div className="flex flex-col items-center justify-center bg-green-50 rounded-xl py-2 shadow-sm border border-green-100">
+                      <div className="flex items-center space-x-1 text-green-700 font-medium">
+                        <Battery className="w-4 h-4" />
+                        <span>Khả dụng</span>
+                      </div>
+                      <span className="text-lg font-semibold text-green-800">
                         {cabinet.availablePins ?? 0}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-gray-500">Đang sạc</span>
-                      <span className="px-2 py-1 bg-yellow-50 text-yellow-800 rounded-full text-xs font-medium">
+
+                    <div className="flex flex-col items-center justify-center bg-yellow-50 rounded-xl py-2 shadow-sm border border-yellow-100">
+                      <div className="flex items-center space-x-1 text-yellow-700 font-medium">
+                        <Zap className="w-4 h-4" />
+                        <span>Đang sạc</span>
+                      </div>
+                      <span className="text-lg font-semibold text-yellow-800">
                         {cabinet.chargingPins ?? 0}
                       </span>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-xs text-gray-500">Trống</span>
-                      <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs font-medium">
+
+                    <div className="flex flex-col items-center justify-center bg-gray-50 rounded-xl py-2 shadow-sm border border-gray-200">
+                      <div className="flex items-center space-x-1 text-gray-700 font-medium">
+                        <BatteryWarning className="w-4 h-4" />
+                        <span>Trống</span>
+                      </div>
+                      <span className="text-lg font-semibold text-gray-800">
                         {cabinet.emptySlots ?? 0}
                       </span>
                     </div>

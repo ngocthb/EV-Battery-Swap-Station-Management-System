@@ -19,6 +19,13 @@ export interface Role {
   users?: User[];
 }
 
+export interface UserMemberShip {
+  id: number;
+  expiredDate?: string;
+  remainingSwaps?: number;
+  membership?: Membership;
+}
+
 export interface User {
   id: number;
   username: string;
@@ -26,6 +33,8 @@ export interface User {
   fullName: string;
   avatar: string;
   role: string;
+  memberships?: UserMemberShip[];
+  status: string;
 }
 
 export interface AuthState {
@@ -112,7 +121,7 @@ export interface NavigationItem {
 
 // Station Management Types (for EV system)
 export interface Station {
-  id: string;
+  id: number;
   name: string;
   address: string;
   description: string;
@@ -125,20 +134,29 @@ export interface Station {
   closeTime?: string;
   image?: string;
   swappableBatteries: number;
+  slotAvailable?: number;
 }
 
 export interface Battery {
   id: string;
   model: string;
   capacity: number;
-  cycleLife: number;
+  currentCapacity?: number;
+  currentCycle: number;
   price: string;
   stationId?: string;
   batteryType?: BatteryType;
   batteryLevel?: number;
-  status: "AVAILABLE" | "CHARGING" | "IN_USE" | "MAINTENANCE";
+  status: "AVAILABLE" | "CHARGING" | "IN_USE" | "MAINTENANCE" | "RESERVED";
   health?: number;
   lastUsed?: string;
+  slotId?: number;
+  userVehicleId?: number;
+  slot?: Slot;
+  batteryTypeId?: number;
+  lastChargeTime?: string;
+  healthScore?: number;
+  estimatedFullChargeTime?: string;
 }
 
 export interface BatteryType {
@@ -148,6 +166,8 @@ export interface BatteryType {
   capacityKWh?: number;
   pricePerSwap?: string;
   status?: boolean;
+  cycleLife?: number;
+  chargeRate?: number;
 }
 
 export interface VehicleType {
@@ -156,6 +176,14 @@ export interface VehicleType {
   description?: string;
   batteryTypeName?: string;
   status?: boolean;
+  batteryTypeId?: number;
+}
+
+export interface Vehicle {
+  id?: number;
+  name?: string;
+  vehicleType?: VehicleType;
+  batteries?: Battery[];
 }
 
 export interface Transaction {
@@ -173,9 +201,9 @@ export interface Membership {
   id: number;
   name: string;
   description: string;
-  duration: number;
-  status: boolean;
-  price: number;
+  duration?: number;
+  status?: boolean;
+  price?: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -183,7 +211,17 @@ export interface Membership {
 export interface Slot {
   id: number;
   batteryId: number | null;
-  status: string; // "AVAILABLE" | "RESERVED" | "CHARGING" | "SWAPPING" | "MAINTENANCE"
+  status:
+    | "AVAILABLE"
+    | "RESERVED"
+    | "CHARGING"
+    | "SWAPPING"
+    | "MAINTENANCE"
+    | "EMPTY";
+  name?: string;
+  cabinetId?: string;
+  cabinet: Cabinet;
+  battery?: Battery;
 }
 
 export interface Cabinet {
@@ -200,6 +238,32 @@ export interface Cabinet {
   emptySlots?: number;
   createdAt?: string;
   updatedAt?: string;
+  slotCount?: number;
+  batteryTypeId?: number;
+  batteryInfo: BatteryType;
+}
+
+export interface UserVehicle {
+  id: number;
+  name: string;
+  batteries?: Battery[];
+}
+
+export interface BookingDetail {
+  id: number;
+  batteryId: number;
+  price?: number | string | null;
+  status: string;
+}
+
+export interface Booking {
+  id: number;
+  status?: string;
+  expectedPickupTime?: string;
+  createdAt?: string;
+  user?: User;
+  userVehicle?: UserVehicle;
+  bookingDetails: BookingDetail[];
 }
 
 export interface QueryParams {
@@ -209,4 +273,10 @@ export interface QueryParams {
   order?: string;
   status?: boolean | string;
   stationId?: string | number | boolean | null | undefined;
+  month?: number;
+  year?: number;
+  cabinetId?: number;
+  lat?: number;
+  lng?: number;
+  role?: string;
 }

@@ -36,9 +36,15 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
     },
     {
       id: "users",
-      label: "Quản lý Người dùng",
+      label: "Người dùng",
       href: "/staff/users",
       icon: Users,
+    },
+    {
+      id: "slotAndBattery",
+      label: "Ô sạc và pin",
+      href: "/staff/slot-battery",
+      icon: Battery,
     },
     {
       id: "chat",

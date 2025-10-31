@@ -165,12 +165,12 @@ const LoginPage: React.FC = () => {
               </div>
 
               <div className="text-sm">
-                <a
-                  href="#"
+                <Link
+                  href="/forgot-password"
                   className="text-blue-600 hover:text-blue-700 transition-colors"
                 >
                   Quên mật khẩu?
-                </a>
+                </Link>
               </div>
             </div>
 
@@ -196,6 +196,18 @@ const LoginPage: React.FC = () => {
                   className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
                 >
                   Đăng ký ngay
+                </Link>
+              </p>
+            </div>
+
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Chưa xác thực email?{" "}
+                <Link
+                  href={"/resend-verification"}
+                  className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                >
+                  Xác thực ngay
                 </Link>
               </p>
             </div>

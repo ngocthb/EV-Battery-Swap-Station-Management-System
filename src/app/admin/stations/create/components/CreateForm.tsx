@@ -290,6 +290,7 @@ const CreateForm: React.FC<CreateFormProps> = ({
 
     setLoading(true);
 
+    console.log("start create", form);
     try {
       let imageToSend = form.image;
 
@@ -400,7 +401,10 @@ const CreateForm: React.FC<CreateFormProps> = ({
       </div>
 
       {/* Form */}
-      <form onSubmit={handleSubmit} className="flex-1 overflow-auto p-6">
+      <form
+        onSubmit={handleSubmit}
+        className="flex-1 overflow-auto p-6 scrollbar-custom"
+      >
         <div className="space-y-6">
           {/* Station Name */}
           <div>
@@ -672,7 +676,7 @@ const CreateForm: React.FC<CreateFormProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => handleSubmit()}
+            onClick={(e) => handleSubmit(e)}
             disabled={loading || uploading}
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
           >

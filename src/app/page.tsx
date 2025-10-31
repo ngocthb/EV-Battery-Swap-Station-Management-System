@@ -20,10 +20,13 @@ import {
 import Image from "next/image";
 import ChatWidget from "@/components/ChatWidget";
 import { Header } from "@/components/Header";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
 
 export default function HomePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState("home");
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -565,7 +568,7 @@ export default function HomePage() {
       </footer>
 
       {/* Chat Widget */}
-      <ChatWidget />
+      {user?.role == "USER" && <ChatWidget />}
     </div>
   );
 }

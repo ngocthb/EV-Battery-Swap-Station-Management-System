@@ -2,7 +2,7 @@
 
 import { AdminLayout } from "@/layout/AdminLayout";
 import CreateForm from "./components/CreateForm";
-import StationDetailInCabin from "../[id]/edit/components/StationDetailInCabin";
+import StationDetailInCabin from "../components/StationDetailInCabin";
 
 export default function CreateStationPage() {
   return (

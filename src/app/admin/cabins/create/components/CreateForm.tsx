@@ -6,26 +6,33 @@ import { Building, ArrowLeft, Plus, Thermometer, MapPin } from "lucide-react";
 import { toast } from "react-toastify";
 import { createCabinetAPI } from "@/services/cabinetService";
 import useFetchList from "@/hooks/useFetchList";
-import { Station } from "@/types";
+import { BatteryType, Station } from "@/types";
 import { getAllStationList } from "@/services/stationService";
-import { useCabinAdmin } from "../../context/CabinAdminContext";
+import { getAllBatteryTypeListAPI } from "@/services/batteryTypeService";
+import { useAppDispatch } from "@/store/hooks";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import {
+  fetchStationDetail,
+  setStationId,
+} from "@/store/slices/adminDetailStateSlice";
 
 interface FormErrors {
   name?: string;
   stationId?: string;
-  temperature?: string;
+  batteryTypeId?: string;
   slotCount?: string;
 }
 
 const CreateForm = () => {
-  const { setStationId } = useCabinAdmin();
+  const dispatch = useAppDispatch();
 
   const router = useRouter();
   const [form, setForm] = useState({
     name: "",
     stationId: 0,
-    temperature: "",
-    slotCount: 0,
+    batteryTypeId: 0,
+    slotCount: 12,
   });
 
   const [loading, setLoading] = useState(false);
@@ -33,6 +40,9 @@ const CreateForm = () => {
   const [errors, setErrors] = useState<FormErrors>({});
 
   const { data: stationList = [] } = useFetchList<Station[]>(getAllStationList);
+  const { data: batteryTypeList = [] } = useFetchList<BatteryType[]>(
+    getAllBatteryTypeListAPI
+  );
 
   const validateForm = () => {
     const newErrors: FormErrors = {};
@@ -47,15 +57,8 @@ const CreateForm = () => {
       newErrors.stationId = "Vui lòng chọn trạm";
     }
 
-    if (form.temperature.trim() === "") {
-      newErrors.temperature = "Vui lòng nhập nhiệt độ";
-    } else {
-      const temp = Number(form.temperature);
-      if (isNaN(temp)) {
-        newErrors.temperature = "Nhiệt độ phải là số";
-      } else if (temp < 0 || temp > 80) {
-        newErrors.temperature = "Nhiệt độ phải từ 0 đến 80 độ";
-      }
+    if (!form.batteryTypeId || form.batteryTypeId <= 0) {
+      newErrors.batteryTypeId = "Vui lòng chọn pin";
     }
 
     if (!form.slotCount || Number(form.slotCount) <= 0) {
@@ -75,7 +78,7 @@ const CreateForm = () => {
     setForm((prev) => ({
       ...prev,
       [name]:
-        name === "stationId" || name === "slotCount"
+        name === "stationId" || name === "slotCount" || name === "batteryTypeId"
           ? Number(value)
           : type === "number"
           ? Number(value)
@@ -102,19 +105,19 @@ const CreateForm = () => {
       const submitData = {
         name: form.name,
         stationId: Number(form.stationId),
-        temperature: Number(form.temperature),
+        batteryTypeId: Number(form.batteryTypeId),
         slotCount: Number(form.slotCount),
       };
       const res = await createCabinetAPI(submitData);
       if (res.success) {
         toast.success(res.message);
-        setForm({ name: "", stationId: 0, temperature: "", slotCount: 0 });
+        setForm({ name: "", stationId: 0, batteryTypeId: 0, slotCount: 0 });
       } else {
         toast.error(res.message);
       }
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : "Tạo trạm thất bại";
+        err instanceof Error ? err.message : "Tạo tủ thất bại";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -164,28 +167,27 @@ const CreateForm = () => {
             )}
           </div>
 
-          {/* Temperature */}
+          {/*battery */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Thermometer className="w-4 h-4" />
-              <span>Nhiệt độ hoạt động (°C)</span>
+              <MapPin className="w-4 h-4" />
+              <span>Loại pin</span>
             </label>
-            <input
-              name="temperature"
-              type="text"
-              min="0"
-              max="80"
-              value={form.temperature}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.temperature
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-300"
-              }`}
-            />
-            {errors.temperature && (
-              <p className="mt-1 text-sm text-red-600">{errors.temperature}</p>
-            )}
+            <select
+              name="batteryTypeId"
+              value={Number(form.batteryTypeId || 0)}
+              onChange={(e) => {
+                handleChange(e);
+              }}
+              className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
+            >
+              <option value={0}>Chọn theo loại pin</option>
+              {batteryTypeList.map((battery) => (
+                <option key={battery.id} value={battery.id}>
+                  {battery.name}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Slot count */}
@@ -197,6 +199,7 @@ const CreateForm = () => {
               name="slotCount"
               type="number"
               min={1}
+              max={12}
               value={form.slotCount}
               onChange={handleChange}
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
@@ -204,6 +207,7 @@ const CreateForm = () => {
                   ? "border-red-300 bg-red-50"
                   : "border-gray-300"
               }`}
+              readOnly
             />
             {errors.slotCount && (
               <p className="mt-1 text-sm text-red-600">{errors.slotCount}</p>
@@ -221,7 +225,9 @@ const CreateForm = () => {
               value={Number(form.stationId || 0)}
               onChange={(e) => {
                 handleChange(e);
-                setStationId(Number(e.target.value));
+                const id = Number(e.target.value);
+                dispatch(setStationId(id));
+                dispatch(fetchStationDetail(id));
               }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >

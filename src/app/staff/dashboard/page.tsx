@@ -1,12 +1,16 @@
 "use client";
 
+import RevenueChart from "@/components/Charts/BarChart";
+import UserGrowthChart from "@/components/Charts/LineChart";
+import UserDistributionChart from "@/components/Charts/PieChart";
 import { StaffLayout } from "@/layout/StaffLayout";
 
 export default function StaffDashboard() {
   return (
     <StaffLayout>
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center">
-        <div className="w-full max-w-5xl bg-white/90 dark:bg-gray-900/90 rounded-3xl shadow-2xl p-10 flex flex-col gap-8">
+      <div className="min-h-screen space-y-4">
+        {/*Overall */}
+        <div className="w-full bg-white/90 rounded-3xl p-10 flex flex-col gap-8">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-extrabold text-blue-700 mb-2">
@@ -41,7 +45,7 @@ export default function StaffDashboard() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-gray-900 rounded-xl p-6 shadow mt-4">
+          <div className="bg-white rounded-xl p-6 shadow mt-4">
             <h2 className="text-xl font-bold text-blue-700 mb-4">
               Quick Actions
             </h2>
@@ -61,7 +65,23 @@ export default function StaffDashboard() {
             </div>
           </div>
         </div>
-      </main>
+
+        {/*Chart */}
+        <div>
+          <UserGrowthChart
+            heading={"Biểu đồ tăng trưởng người dùng"}
+            subHeading={"Hàng tháng"}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-5">
+          <RevenueChart heading={"Doanh thu"} subHeading={"Hàng ngày"} />
+          <UserDistributionChart
+            heading={"Phân bố người dùng"}
+            subHeading={"Hàng tháng"}
+          />
+        </div>
+      </div>
     </StaffLayout>
   );
 }

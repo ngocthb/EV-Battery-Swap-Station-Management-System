@@ -1,25 +1,26 @@
-import { Box } from "lucide-react";
-import { Cabinet } from "@/types";
+import { Battery, Box, Pin } from "lucide-react";
+import { Battery as IBattery, Cabinet } from "@/types";
 
-function StatsList({ cabinList }: { cabinList: Cabinet[] }) {
+function StatsList({ batteryList }: { batteryList: IBattery[] }) {
   const stats = [
     {
-      label: "Tổng tủ",
-      icon: <Box className="w-6 h-6 text-blue-600" />,
+      label: "Tổng pin",
+      icon: <Battery className="w-6 h-6 text-blue-600" />,
       bgColor: "bg-blue-100",
-      value: cabinList?.length || 0,
+      value: batteryList?.length || 0,
     },
     {
       label: "Hoạt động",
-      icon: <Box className="w-6 h-6 text-green-600" />,
+      icon: <Battery className="w-6 h-6 text-green-600" />,
       bgColor: "bg-green-100",
-      value: cabinList?.filter((c) => c?.status === true).length || 0,
+      value: batteryList?.filter((c) => c?.status === "AVAILABLE").length || 0,
     },
     {
-      label: "Ngưng hoạt động",
-      icon: <Box className="w-6 h-6 text-red-600" />,
+      label: "Bảo trì",
+      icon: <Battery className="w-6 h-6 text-red-600" />,
       bgColor: "bg-red-100",
-      value: cabinList?.filter((c) => c?.status === false).length || 0,
+      value:
+        batteryList?.filter((c) => c?.status === "MAINTENANCE").length || 0,
     },
   ];
 

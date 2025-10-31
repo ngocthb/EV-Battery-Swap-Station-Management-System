@@ -3,7 +3,7 @@
 import React, { use } from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
 import UpdateForm from "./components/UpdateForm";
-import StationDetailInCabin from "./components/StationDetailInCabin";
+import StationDetailInCabin from "../../components/StationDetailInCabin";
 
 interface PageProps {
   params: Promise<{ id: string }>;

@@ -10,6 +10,10 @@ export const getAllBatteryListAPI = async <T>(params: T) => {
   return res.data;
 };
 
+export const getAllBatteryByTypeAPI = async <T>(id: number, params: T) => {
+  const res = await api.get(`/battery/type/${id}`, { params });
+  return res.data;
+};
 export const createBatteryAPI = async <T>(data: T) => {
   const res = await api.post("/battery", data);
   return res.data;

@@ -12,8 +12,6 @@ export const getPublicBatteryTypeListAPI = async <T>(params: T) => {
 
 export const getAllBatteryTypeListAPI = async <T>(params: T) => {
   const res = await api.get("/battery-type", { params });
-
-  console.log("getAllBatteryTypeListAPI", res.data);
   return res.data.data;
 };
 

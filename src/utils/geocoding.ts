@@ -40,6 +40,28 @@ export const geocodeAddress = async (
   }
 };
 
+export const reverseGeocode = async (
+  lat: number,
+  lng: number
+): Promise<string | null> => {
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
+    );
+
+    if (!response.ok) {
+      throw new Error("Reverse geocoding failed");
+    }
+
+    const data = await response.json();
+
+    return data?.display_name || null;
+  } catch (error) {
+    console.error("Reverse geocoding error:", error);
+    return null;
+  }
+};
+
 // Alternative: Use a mock geocoding for demo purposes
 export const mockGeocodeAddress = async (
   address: string

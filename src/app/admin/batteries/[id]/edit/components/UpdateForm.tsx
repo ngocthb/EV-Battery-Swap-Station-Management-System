@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { getAllStationList, updateStation } from "@/services/stationService";
 import { useRouter } from "next/navigation";
 
 import {
@@ -14,18 +13,21 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import useFetchList from "@/hooks/useFetchList";
-import { BatteryType } from "@/types";
+import { Battery, BatteryType, Cabinet } from "@/types";
 import { getAllBatteryTypeListAPI } from "@/services/batteryTypeService";
 import { getBatteryById, updateBatteryAPI } from "@/services/batteryService";
-import { useBatteryAdmin } from "../../../context/BatteryAdminContext";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  fetchBatteryTypeDetail,
+  setBatteryTypeId,
+} from "@/store/slices/adminDetailStateSlice";
+import { getCabinetByIdAPI } from "@/services/cabinetService";
+import { getSlotStatusText } from "@/utils/formateStatus";
 
 interface FormErrors {
   batteryTypeId?: number;
   model?: string;
-  capacity?: number;
-  cycleLife?: number;
   status?: string;
-  price?: number;
 }
 
 interface UpdateFormProps {
@@ -33,39 +35,45 @@ interface UpdateFormProps {
 }
 
 const UpdateForm: React.FC<UpdateFormProps> = ({ batteryId }) => {
-  const { setBatteryTypeId } = useBatteryAdmin();
+  const dispatch = useAppDispatch();
+
   const router = useRouter();
   const [form, setForm] = useState({
     batteryTypeId: 0,
     model: "",
-    capacity: 0,
-    cycleLife: 0,
-    status: "",
-    price: 0,
+    status: "AVAILABLE",
   });
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<FormErrors>({});
+  const [batteryDetail, setBatteryDetail] = useState<Battery | null>(null);
+  const [cabinDetail, setCabinDetail] = useState<Cabinet | null>(null);
 
   const { data: batteryTypeList = [] } = useFetchList<BatteryType[]>(
     getAllBatteryTypeListAPI
   );
 
-  const fetchBatteryById = async () => {
+  const fetchBatteryDetailById = async () => {
     setLoading(true);
     try {
       const res = await getBatteryById(batteryId);
-      console.log("res battery id", res.data);
+      setBatteryDetail(res.data);
       setForm({
         batteryTypeId: res?.data?.batteryType?.id,
         model: res?.data?.model,
-        capacity: res?.data?.capacity,
-        cycleLife: res?.data?.cycleLife,
         status: res?.data?.status,
-        price: res?.data?.price,
       });
-      setBatteryTypeId(res.data?.batteryType?.id);
+
+      if (res?.data?.slot) {
+        const cabinRes = await getCabinetByIdAPI(res?.data?.slot?.cabinetId);
+        setCabinDetail(cabinRes?.data);
+      }
+
+      // redux lay battery type show ben right side
+      const id = res.data?.batteryType?.id;
+      dispatch(setBatteryTypeId(id));
+      dispatch(fetchBatteryTypeDetail(id));
     } catch (error: unknown) {
       console.error("loi fetch cabin detail:", error);
     } finally {
@@ -74,7 +82,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ batteryId }) => {
   };
 
   useEffect(() => {
-    fetchBatteryById();
+    fetchBatteryDetailById();
   }, [batteryId, router]);
 
   const validateForm = () => {
@@ -167,8 +175,65 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ batteryId }) => {
         </div>
       </div>
 
+      {/*thông tin ô sạc chứa pin */}
+      {batteryDetail?.slot ? (
+        <div className="p-6 py-4">
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">
+            Thông tin ô sạc chứa pin
+          </h2>
+
+          <div className="grid grid-cols-2 gap-4 bg-gray-100 p-4 rounded-lg">
+            <div>
+              <p className="text-sm text-gray-500">Tên ô sạc</p>
+              <p className="text-base font-medium text-gray-800">
+                {batteryDetail?.slot?.name || "Không có dữ liệu"}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Tủ sạc</p>
+              <p className="text-base font-medium text-gray-800">
+                {cabinDetail?.name ||
+                  `Cabinet #${batteryDetail?.slot?.cabinetId}`}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Loại pin phù hợp</p>
+              <p className="text-base font-medium text-gray-800">
+                {cabinDetail?.batteryTypeId
+                  ? `Loại pin ${cabinDetail?.batteryTypeId}`
+                  : "Không có dữ liệu"}
+              </p>
+            </div>
+
+            <div>
+              <p className="text-sm text-gray-500">Trạng thái ô sạc</p>
+              <p className="text-base font-medium text-gray-800">
+                {getSlotStatusText(batteryDetail?.slot?.status) ||
+                  "Không có dữ liệu"}
+              </p>
+            </div>
+          </div>
+
+          {/* Cảnh báo nếu chọn sai loại pin */}
+          {form.batteryTypeId !== 0 &&
+            cabinDetail?.batteryTypeId &&
+            Number(form.batteryTypeId) !== cabinDetail?.batteryTypeId && (
+              <div className="mt-4 p-3 bg-yellow-100 border border-yellow-300 text-yellow-800 rounded-lg">
+                ⚠️ Bạn phải chọn loại pin theo ô sạc (Loại pin{" "}
+                {cabinDetail.batteryTypeId})
+              </div>
+            )}
+        </div>
+      ) : (
+        <div className="p-6 py-4">
+          <p>Chưa có ô sạc</p>
+        </div>
+      )}
+
       {/* Form */}
-      <form className="flex-1 overflow-auto p-6">
+      <form className="flex-1 overflow-auto p-6 pt-2 scrollbar-custom">
         <div className="space-y-6">
           {/* Pin model */}
           <div>
@@ -190,74 +255,6 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ batteryId }) => {
             )}
           </div>
 
-          {/* Capacity */}
-          <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Thermometer className="w-4 h-4" />
-              <span>Dung lượng</span>
-            </label>
-            <input
-              name="capacity"
-              type="text"
-              min="0"
-              max="100"
-              value={form.capacity}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.capacity ? "border-red-300 bg-red-50" : "border-gray-300"
-              }`}
-            />
-            {errors.capacity && (
-              <p className="mt-1 text-sm text-red-600">{errors.capacity}</p>
-            )}
-          </div>
-
-          {/* Cycle life */}
-          <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Thermometer className="w-4 h-4" />
-              <span>Vòng đời</span>
-            </label>
-            <input
-              name="cycleLife"
-              type="text"
-              min="0"
-              max="80"
-              value={form.cycleLife}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.cycleLife
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-300"
-              }`}
-            />
-            {errors.cycleLife && (
-              <p className="mt-1 text-sm text-red-600">{errors.cycleLife}</p>
-            )}
-          </div>
-
-          {/* Gía trị */}
-          <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Thermometer className="w-4 h-4" />
-              <span>Gía trị</span>
-            </label>
-            <input
-              name="price"
-              type="text"
-              min="0"
-              max="80"
-              value={form.price}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.price ? "border-red-300 bg-red-50" : "border-gray-300"
-              }`}
-            />
-            {errors.price && (
-              <p className="mt-1 text-sm text-red-600">{errors.price}</p>
-            )}
-          </div>
-
           {/*battery type */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
@@ -269,16 +266,39 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ batteryId }) => {
               value={Number(form.batteryTypeId || 0)}
               onChange={(e) => {
                 handleChange(e);
-                setBatteryTypeId(Number(e.target.value));
+                const id = Number(e.target.value);
+                dispatch(setBatteryTypeId(id));
+                dispatch(fetchBatteryTypeDetail(id));
               }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >
               <option value={0}>Tìm theo loại pin</option>
               {batteryTypeList.map((type) => (
                 <option key={type.id} value={type.id}>
-                  {type.name}
+                  {type.name} - Loại pin {type.id}
                 </option>
               ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+              <MapPin className="w-4 h-4" />
+              <span>Trạng thái</span>
+            </label>
+            <select
+              name="status"
+              value={form.status || ""}
+              onChange={(e) => {
+                handleChange(e);
+              }}
+              className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
+            >
+              <option value="AVAILABLE">Hoạt động</option>
+              <option value="MAINTENANCE">Bảo trì</option>
+              <option value="CHARGING">Đang sạc</option>
+              <option value="RESERVED">Đã đặt</option>
+              <option value="IN_USE">Đang được sử dụng</option>
             </select>
           </div>
 
@@ -306,7 +326,11 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ batteryId }) => {
           <button
             type="button"
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={
+              loading ||
+              (cabinDetail?.batteryTypeId !== undefined &&
+                Number(form.batteryTypeId) !== cabinDetail.batteryTypeId)
+            }
             className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
           >
             {loading ? (

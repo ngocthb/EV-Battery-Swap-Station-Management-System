@@ -14,14 +14,20 @@ import {
 } from "lucide-react";
 import { toast } from "react-toastify";
 import useFetchList from "@/hooks/useFetchList";
-import { Station } from "@/types";
+import { BatteryType, Station } from "@/types";
 import { getCabinetsById, updateCabinetAPI } from "@/services/cabinetService";
-import { useCabinAdmin } from "../../../context/CabinAdminContext";
+import { getAllBatteryTypeListAPI } from "@/services/batteryTypeService";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  fetchStationDetail,
+  setStationId,
+} from "@/store/slices/adminDetailStateSlice";
 
 interface FormErrors {
   name?: string;
   stationId?: string;
-  temperature?: string;
+  batteryTypeId?: string;
+  slotCount?: string;
 }
 
 interface UpdateFormProps {
@@ -29,12 +35,13 @@ interface UpdateFormProps {
 }
 
 const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
-  const { setStationId } = useCabinAdmin();
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const [form, setForm] = useState({
     name: "",
     stationId: 0,
-    temperature: "",
+    batteryTypeId: 0,
+    slotCount: 0,
   });
 
   const [loading, setLoading] = useState(false);
@@ -42,6 +49,9 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
   const [errors, setErrors] = useState<FormErrors>({});
 
   const { data: stationList = [] } = useFetchList<Station[]>(getAllStationList);
+  const { data: batteryTypeList = [] } = useFetchList<BatteryType[]>(
+    getAllBatteryTypeListAPI
+  );
 
   const fetchCabinById = async () => {
     setLoading(true);
@@ -51,9 +61,12 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
       setForm({
         name: res.data?.name,
         stationId: res.data?.stationId,
-        temperature: res.data?.temperature,
+        batteryTypeId: res.data?.batteryTypeId,
+        slotCount: res.data?.slots.length,
       });
-      setStationId(res.data?.stationId);
+      const id = res.data?.stationId;
+      dispatch(setStationId(id));
+      dispatch(fetchStationDetail(id));
     } catch (error: unknown) {
       console.error("loi fetch cabin detail:", error);
     } finally {
@@ -78,15 +91,12 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
       newErrors.stationId = "Vui lòng chọn trạm";
     }
 
-    if (form.temperature.trim() === "") {
-      newErrors.temperature = "Vui lòng nhập nhiệt độ";
-    } else {
-      const temp = Number(form.temperature);
-      if (isNaN(temp)) {
-        newErrors.temperature = "Nhiệt độ phải là số";
-      } else if (temp < 0 || temp > 80) {
-        newErrors.temperature = "Nhiệt độ phải từ 0 đến 80 độ";
-      }
+    if (!form.batteryTypeId || form.batteryTypeId <= 0) {
+      newErrors.batteryTypeId = "Vui lòng chọn pin";
+    }
+
+    if (!form.slotCount || Number(form.slotCount) <= 0) {
+      newErrors.slotCount = "Số slot phải lớn hơn 0";
     }
 
     setErrors(newErrors);
@@ -101,7 +111,13 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
 
     setForm((prev) => ({
       ...prev,
-      [name]: type === "number" || name === "stationId" ? Number(value) : value,
+      [name]:
+        type === "number" ||
+        name === "stationId" ||
+        name === "slotCount" ||
+        name === "batteryTypeId"
+          ? Number(value)
+          : value,
     }));
 
     setErrors((prev) => ({
@@ -193,27 +209,49 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
             )}
           </div>
 
-          {/* Temperature */}
+          {/*battery */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Thermometer className="w-4 h-4" />
-              <span>Nhiệt độ hoạt động (°C)</span>
+              <MapPin className="w-4 h-4" />
+              <span>Loại pin</span>
+            </label>
+            <select
+              name="batteryTypeId"
+              value={Number(form.batteryTypeId || 0)}
+              onChange={(e) => {
+                handleChange(e);
+              }}
+              className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
+            >
+              <option value={0}>Chọn theo loại pin</option>
+              {batteryTypeList.map((battery) => (
+                <option key={battery.id} value={battery.id}>
+                  {battery.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Slot count */}
+          <div>
+            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
+              <span>Số ô pin</span>
             </label>
             <input
-              name="temperature"
-              type="text"
-              min="0"
-              max="80"
-              value={form.temperature}
+              name="slotCount"
+              type="number"
+              min={1}
+              max={12}
+              value={form.slotCount}
               onChange={handleChange}
               className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.temperature
+                errors.slotCount
                   ? "border-red-300 bg-red-50"
                   : "border-gray-300"
               }`}
             />
-            {errors.temperature && (
-              <p className="mt-1 text-sm text-red-600">{errors.temperature}</p>
+            {errors.slotCount && (
+              <p className="mt-1 text-sm text-red-600">{errors.slotCount}</p>
             )}
           </div>
 
@@ -228,7 +266,9 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ cabinId }) => {
               value={Number(form.stationId || 0)}
               onChange={(e) => {
                 handleChange(e);
-                setStationId(Number(e.target.value));
+                const id = Number(e.target.value);
+                dispatch(setStationId(id));
+                dispatch(fetchStationDetail(id));
               }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >

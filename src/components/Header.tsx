@@ -5,7 +5,16 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSelector, useDispatch } from "react-redux";
 import { useRouter } from "next/navigation";
-import { Menu, X, LogIn, UserPlus, User, History, LogOut } from "lucide-react";
+import {
+  Menu,
+  X,
+  LogIn,
+  UserPlus,
+  User,
+  History,
+  LogOut,
+  Calendar,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -125,8 +134,18 @@ export const Header = () => {
                       href="/booking"
                       className="flex items-center space-x-2"
                     >
-                      <History className="w-4 h-4" />
+                      <Calendar className="w-4 h-4" />
                       <span>Đặt lịch</span>
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link
+                      href="/history"
+                      className="flex items-center space-x-2"
+                    >
+                      <History className="w-4 h-4" />
+                      <span>Lịch sử</span>
                     </Link>
                   </DropdownMenuItem>
 
@@ -222,6 +241,12 @@ export const Header = () => {
                     className="block text-gray-600 hover:text-blue-600 transition-colors"
                   >
                     Đặt lịch
+                  </Link>
+                  <Link
+                    href="/history"
+                    className="block text-gray-600 hover:text-blue-600 transition-colors"
+                  >
+                    Lịch sử
                   </Link>
                   <button
                     onClick={handleLogout}

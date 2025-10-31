@@ -74,6 +74,7 @@ function FilterSearch({
               <option value="MAINTENANCE">Bảo trì</option>
               <option value="CHARGING">Đang sạc</option>
               <option value="IN_USE">Đang sử dụng</option>
+              <option value="RESERVED">Đã được đặt</option>
             </select>
             {/* Sort order */}
             <select

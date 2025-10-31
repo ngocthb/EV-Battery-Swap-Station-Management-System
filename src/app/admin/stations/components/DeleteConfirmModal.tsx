@@ -3,23 +3,59 @@
 import React from "react";
 import { AlertTriangle, X } from "lucide-react";
 import { Station } from "@/types";
+import { useAppDispatch } from "@/store/hooks";
+import { useSelector } from "react-redux";
+import { RootState } from "@/store";
+import {
+  closeDeleteModal,
+  setDeleteLoading,
+} from "@/store/slices/adminModalSlice";
+import { toast } from "react-toastify";
+
+interface ApiResponse<T = unknown> {
+  success?: boolean;
+  message?: string;
+  data?: T;
+}
 
 interface DeleteConfirmModalProps {
-  isOpen: boolean;
   station: Station | null;
-  loading: boolean;
-  onConfirm: () => void;
-  onCancel: () => void;
+  onConfirmAPI: (id: number) => Promise<ApiResponse>;
+  refreshList: () => void;
 }
 
 const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
-  isOpen,
   station,
-  loading,
-  onConfirm,
-  onCancel,
+  onConfirmAPI,
+  refreshList,
 }) => {
-  if (!isOpen || !station) return null;
+  const dispatch = useAppDispatch();
+  const { deleteModal } = useSelector((state: RootState) => state.adminModal);
+
+  if (!deleteModal.isOpen || !station) return null;
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.data) return;
+
+    dispatch(setDeleteLoading(true));
+
+    try {
+      const response = await onConfirmAPI((deleteModal.data as Station).id);
+      if (response.success) {
+        toast.success(response.message);
+        refreshList();
+        dispatch(closeDeleteModal());
+      } else {
+        toast.error(response.message);
+      }
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Có lỗi xảy ra khi xóa tủ";
+      toast.error(errorMessage);
+    } finally {
+      dispatch(setDeleteLoading(false));
+    }
+  };
 
   const getStatusText = (status: boolean) => {
     return status ? "Hoạt động" : "Đóng cửa";
@@ -45,8 +81,8 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
             </h3>
           </div>
           <button
-            onClick={onCancel}
-            disabled={loading}
+            onClick={() => dispatch(closeDeleteModal())}
+            disabled={deleteModal.loading}
             className="p-1 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
           >
             <X className="w-5 h-5 text-gray-500" />
@@ -78,21 +114,21 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
               </div>
 
               <div className="flex justify-between items-center">
-                <div>
+                <div className="flex flex-col">
                   <span className="text-sm font-medium text-gray-700">
-                    Số pin:
+                    Thời gian hoạt động
                   </span>
-                  <span className="ml-2 text-gray-900">
-                    {station.batteryCount || 0}
+                  <span className=" text-gray-900">
+                    {station.openTime || 0} - {station.closeTime || 0}
                   </span>
                 </div>
 
-                <div>
+                <div className="flex flex-col">
                   <span className="text-sm font-medium text-gray-700">
                     Trạng thái:
                   </span>
                   <span
-                    className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
+                    className={`mt-1 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
                       station.status
                     )}`}
                   >
@@ -114,21 +150,21 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
         {/* Actions */}
         <div className="flex justify-end space-x-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
           <button
-            onClick={onCancel}
-            disabled={loading}
+            onClick={() => dispatch(closeDeleteModal())}
+            disabled={deleteModal.loading}
             className="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
           >
             Hủy
           </button>
           <button
-            onClick={onConfirm}
-            disabled={loading}
+            onClick={handleDeleteConfirm}
+            disabled={deleteModal.loading}
             className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center space-x-2"
           >
-            {loading && (
+            {deleteModal.loading && (
               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
             )}
-            <span>{loading ? "Đang xóa..." : "Xóa trạm"}</span>
+            <span>{deleteModal.loading ? "Đang xóa..." : "Xóa trạm"}</span>
           </button>
         </div>
       </div>

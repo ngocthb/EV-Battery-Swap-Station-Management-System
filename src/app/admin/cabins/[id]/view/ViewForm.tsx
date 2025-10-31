@@ -7,21 +7,34 @@ import {
   getCabinetByIdAPI,
   getCabinetsByStationId,
 } from "@/services/cabinetService";
-import { Cabinet, Slot } from "@/types";
+import { Cabinet, Slot, Station } from "@/types";
 import { MapPin, Building, ArrowLeft, Loader2, Battery } from "lucide-react";
+import { getStationById } from "@/services/stationService";
+import { getBatteryTypeById } from "@/services/batteryTypeService";
+import { getSlotStatusText } from "@/utils/formateStatus";
 
 const ViewForm = ({ cabinId }: { cabinId: number }) => {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [cabinDetail, setCabinDetail] = useState<Cabinet | null>(null);
+  const [stationDetail, setStationDetail] = useState<Station | null>(null);
+  const [batteryTypeDetail, setBatteryTypeDetail] = useState<Station | null>(
+    null
+  );
 
   const fetchCabinById = async () => {
     setLoading(true);
     try {
       const res = await getCabinetsById(cabinId);
+      console.log("cabin view", res.data);
 
       setCabinDetail(res.data);
-      console.log(cabinDetail);
+
+      const stationDetailRes = await getStationById(res.data.stationId);
+      setStationDetail(stationDetailRes.data);
+
+      const batteryTypeRes = await getBatteryTypeById(res.data.batteryTypeId);
+      setBatteryTypeDetail(batteryTypeRes.data);
     } catch (error: unknown) {
       console.error("loi fetch cabin detail:", error);
     } finally {
@@ -69,7 +82,7 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
         </div>
 
         {/* Cabinet Details */}
-        <div className="flex-1 overflow-auto p-6">
+        <div className="flex-1 overflow-auto p-6 scrollbar-custom">
           {/* Basic Information */}
           <div className=" rounded-lg p-4">
             <div className="space-y-4">
@@ -83,14 +96,14 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
                   {cabinDetail?.name || "Không có dữ liệu"}
                 </div>
               </div>
-              {/*Nhiệt độ */}
+              {/*slot*/}
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
                   <MapPin className="w-4 h-4 mr-2 text-gray-500" />
-                  Nhiệt độ
+                  Số ô pin
                 </label>
                 <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {cabinDetail?.temperature || "Không có dữ liệu"}
+                  {cabinDetail?.slots?.length || "Không có dữ liệu"}
                 </div>
               </div>
               {/*Station */}
@@ -100,7 +113,18 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
                   Trạm
                 </label>
                 <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
-                  {cabinDetail?.station?.name || "Không có dữ liệu"}
+                  {stationDetail?.name || "Không có dữ liệu"}
+                </div>
+              </div>
+
+              {/*battery */}
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
+                  <MapPin className="w-4 h-4 mr-2 text-gray-500" />
+                  Loại pin
+                </label>
+                <div className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg text-gray-900">
+                  {batteryTypeDetail?.name || "Không có dữ liệu"}
                 </div>
               </div>
             </div>
@@ -195,15 +219,7 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
                         }
                       `}
                     >
-                      {slot.status === "CHARGING"
-                        ? "Đang sạc"
-                        : slot.status === "RESERVED"
-                        ? "Đã đặt"
-                        : slot.status === "SWAPPING"
-                        ? "Đang thay"
-                        : slot.status === "MAINTENANCE"
-                        ? "Bảo trì"
-                        : "Trống"}
+                      {getSlotStatusText(slot.status)}
                     </span>
                   </div>
                 </div>

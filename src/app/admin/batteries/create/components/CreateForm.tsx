@@ -8,26 +8,26 @@ import useFetchList from "@/hooks/useFetchList";
 import { BatteryType } from "@/types";
 import { createBatteryAPI } from "@/services/batteryService";
 import { getAllBatteryTypeListAPI } from "@/services/batteryTypeService";
-import { useBatteryAdmin } from "../../context/BatteryAdminContext";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  fetchBatteryTypeDetail,
+  setBatteryTypeId,
+} from "@/store/slices/adminDetailStateSlice";
 
 interface FormErrors {
   batteryTypeId?: number;
   model?: string;
-  capacity?: number;
-  price?: number;
-  cycleLife?: number;
+  status?: string;
 }
 
 const CreateForm = () => {
-  const { setBatteryTypeId } = useBatteryAdmin();
+  const dispatch = useAppDispatch();
 
   const router = useRouter();
   const [form, setForm] = useState({
     batteryTypeId: 0,
     model: "",
-    capacity: 0,
-    price: 0,
-    cycleLife: 0,
+    status: "AVAILABLE",
   });
 
   const [loading, setLoading] = useState(false);
@@ -71,7 +71,6 @@ const CreateForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("form", form);
     setError(null);
 
     if (!validateForm()) {
@@ -80,24 +79,34 @@ const CreateForm = () => {
 
     setLoading(true);
     try {
+      // thêm tiền tố theo loại pin
+      const voltageMap: Record<number, string> = {
+        1: "48V",
+        2: "60V",
+      };
+      const voltage = voltageMap[form.batteryTypeId] || "";
+
+      let finalModel = form.model.trim();
+
+      if (voltage && !finalModel.startsWith(`BAT${voltage}`)) {
+        finalModel = `BAT${voltage}${finalModel}`;
+      }
+
       const submitData = {
         ...form,
-        capacity: Number(form.capacity),
-        price: Number(form.price),
-        cycleLife: Number(form.cycleLife),
+        model: finalModel,
       };
+
       console.log("create battery form", submitData);
+
       const res = await createBatteryAPI(submitData);
       if (res.success) {
         toast.success(res.message);
         setForm({
           batteryTypeId: 0,
           model: "",
-          capacity: 0,
-          price: 0,
-          cycleLife: 0,
+          status: "AVAILABLE",
         });
-        setBatteryTypeId(0);
       } else {
         toast.error(res.message);
       }
@@ -133,9 +142,14 @@ const CreateForm = () => {
         <div className="space-y-6">
           {/* Pin model */}
           <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Building className="w-4 h-4" />
-              <span>Mẫu pin sạc</span>
+            <label className="flex flex-col text-sm font-medium text-gray-700 mb-2">
+              <div className="flex items-center space-x-2">
+                <Building className="w-4 h-4" />
+                <span>Mẫu pin sạc</span>
+              </div>
+              <span className="text-gray-500 text-xs font-normal mt-1">
+                (BAT48Vxxx — chỉ cần nhập phần <strong>xxx</strong>)
+              </span>
             </label>
             <input
               name="model"
@@ -151,74 +165,6 @@ const CreateForm = () => {
             )}
           </div>
 
-          {/* Capacity */}
-          <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Thermometer className="w-4 h-4" />
-              <span>Dung lượng</span>
-            </label>
-            <input
-              name="capacity"
-              type="text"
-              min="0"
-              max="100"
-              value={form.capacity}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.capacity ? "border-red-300 bg-red-50" : "border-gray-300"
-              }`}
-            />
-            {errors.capacity && (
-              <p className="mt-1 text-sm text-red-600">{errors.capacity}</p>
-            )}
-          </div>
-
-          {/* Cycle life */}
-          <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Thermometer className="w-4 h-4" />
-              <span>Vòng đời</span>
-            </label>
-            <input
-              name="cycleLife"
-              type="text"
-              min="0"
-              max="80"
-              value={form.cycleLife}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.cycleLife
-                  ? "border-red-300 bg-red-50"
-                  : "border-gray-300"
-              }`}
-            />
-            {errors.cycleLife && (
-              <p className="mt-1 text-sm text-red-600">{errors.cycleLife}</p>
-            )}
-          </div>
-
-          {/* Gía trị */}
-          <div>
-            <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
-              <Thermometer className="w-4 h-4" />
-              <span>Gía trị</span>
-            </label>
-            <input
-              name="price"
-              type="text"
-              min="0"
-              max="80"
-              value={form.price}
-              onChange={handleChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
-                errors.price ? "border-red-300 bg-red-50" : "border-gray-300"
-              }`}
-            />
-            {errors.price && (
-              <p className="mt-1 text-sm text-red-600">{errors.price}</p>
-            )}
-          </div>
-
           {/*battery type */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
@@ -230,7 +176,9 @@ const CreateForm = () => {
               value={Number(form.batteryTypeId || 0)}
               onChange={(e) => {
                 handleChange(e);
-                setBatteryTypeId(Number(e.target.value));
+                const id = Number(e.target.value);
+                dispatch(setBatteryTypeId(id));
+                dispatch(fetchBatteryTypeDetail(id));
               }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >

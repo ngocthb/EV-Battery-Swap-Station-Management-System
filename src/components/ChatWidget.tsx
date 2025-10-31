@@ -5,82 +5,110 @@ import { MessageCircle, X, Send, User, Bot } from "lucide-react";
 import { useSelector } from "react-redux";
 import Link from "next/link";
 import { io } from "socket.io-client";
+import { getChatRoomByUserId, sendMessageAPI } from "@/services/chatService";
+import { toast } from "react-toastify";
 
 interface Message {
-  id: number;
-  text: string;
-  sender: "user" | "staff";
-  timestamp: Date;
+  id: string;
+  content: string;
+  senderId: number;
+  createdAt: string;
 }
 
 export default function ChatWidget() {
   const user = useSelector((state: any) => state.auth.user);
 
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 1,
-      text: "Xin chào! Tôi có thể giúp gì cho bạn?",
-      sender: "staff",
-      timestamp: new Date(),
-    },
-  ]);
-  const [newMessage, setNewMessage] = useState("");
-  const [hasStart, setHasStart] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [messageText, setMessageText] = useState("");
+  const [roomId, setRoomId] = useState<number | null>(null);
 
   const socketRef = useRef<any>(null);
+  const messageContainerRef = useRef<HTMLDivElement | null>(null);
 
+  // scroll message container down
   useEffect(() => {
-    if (hasStart) {
-      socketRef.current = io("http://localhost:8080/chat", {
+    const container = messageContainerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  }, [messages, isOpen]);
+
+  const handleStartChat = async () => {
+    try {
+      // get room by id
+      const res = await getChatRoomByUserId();
+      setRoomId(res?.data?.id);
+      setMessages(res?.data?.messages);
+
+      // connect socket
+      const socket = io("http://146.190.95.182:8080/chat", {
         transports: ["websocket"],
         withCredentials: true,
       });
 
-      const socket = socketRef.current;
+      socketRef.current = socket;
 
       socket.on("connect", () => {
-        console.log("connected socket", socket.connected);
-        socket.emit("user-join", { userId: user?.id });
-
-        socket.on("joined-room", (room: string) => {
-          console.log("room", room);
-        });
+        console.log("Connected:", socket.id);
+        socket.emit("joinRoom", { roomId: res?.data?.id });
       });
 
-      return () => {
-        socket.disconnect();
-        console.log("socket disconnected");
-      };
-    }
-  }, [hasStart]);
-
-  const handleSendMessage = () => {
-    if (newMessage.trim()) {
-      const userMessage: Message = {
-        id: messages.length + 1,
-        text: newMessage,
-        sender: "user",
-        timestamp: new Date(),
-      };
-
-      setMessages([...messages, userMessage]);
-      setNewMessage("");
+      socket.on("receiveMessage", (msg) => {
+        console.log("receiveMessage", msg);
+        setMessages((prev) => [...prev, msg]);
+      });
+    } catch (err) {
+      console.error("Lỗi khi bắt đầu chat:", err);
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
+  const handleSendMessage = async () => {
+    if (!messageText.trim()) {
+      toast.warning("Vui lòng nhập tin nhắn trước khi gửi.");
+      return;
+    }
+    try {
+      const res = await sendMessageAPI({
+        roomId: roomId,
+        content: messageText.trim(),
+      });
+
+      const newMessage = res.data;
+
+      setMessageText("");
+
+      socketRef.current?.emit("receiveMessage", {
+        roomId: roomId,
+        content: newMessage.content,
+        senderId: newMessage.senderId,
+      });
+    } catch (error) {
+      console.error("Error sending message:", error);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && !socketRef.current) {
+      handleStartChat();
+    }
+
+    return () => {
+      if (!isOpen && socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+        console.log("Socket disconnected");
+      }
+    };
+  }, [isOpen]);
 
   return (
     <>
       {/* Chat Button */}
       <button
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setIsOpen(true);
+        }}
         className="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 z-50 group"
       >
         <MessageCircle className="w-6 h-6" />
@@ -137,83 +165,54 @@ export default function ChatWidget() {
             </button>
           </div>
 
-          {/* start with btn*/}
-          {!hasStart && user && (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-6">
-              <p className="text-gray-700 mb-4 text-sm">
-                Chào bạn! Nhấn nút bên dưới để bắt đầu trò chuyện với nhân viên
-                hỗ trợ.
-              </p>
-              <button
-                onClick={() => setHasStart(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm px-6 py-2 rounded-lg shadow transition-all"
-              >
-                Bắt đầu
-              </button>
-            </div>
-          )}
-
-          {/* Messages Input*/}
-          {hasStart && (
-            <>
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {messages.map((message) => (
+          {/* Messages */}
+          <div
+            className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-custom"
+            ref={messageContainerRef}
+          >
+            {messages.length > 0 &&
+              messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${
+                    message.senderId === user?.id
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
+                >
                   <div
-                    key={message.id}
-                    className={`flex ${
-                      message.sender === "user"
-                        ? "justify-end"
-                        : "justify-start"
+                    className={`max-w-xs px-4 py-2 rounded-lg ${
+                      message.senderId === user?.id
+                        ? "bg-blue-600 text-white"
+                        : "bg-gray-100 text-gray-800"
                     }`}
                   >
-                    <div
-                      className={`max-w-xs px-4 py-2 rounded-lg ${
-                        message.sender === "user"
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-100 text-gray-800"
-                      }`}
-                    >
-                      <div className="flex items-start space-x-2">
-                        {message.sender === "staff" && (
-                          <User className="w-4 h-4 mt-1 text-gray-500" />
-                        )}
-                        <div>
-                          <p className="text-sm">{message.text}</p>
-                          <p className="text-xs opacity-70 mt-1">
-                            {message.timestamp.toLocaleTimeString("vi-VN", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </p>
-                        </div>
-                      </div>
+                    <div className="flex items-start space-x-2">
+                      <p className="text-sm">{message.content}</p>
                     </div>
                   </div>
-                ))}
-              </div>
-
-              {/* Input */}
-              <div className="p-4 border-t border-gray-200">
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={newMessage}
-                    onChange={(e) => setNewMessage(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    placeholder="Nhập tin nhắn..."
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
-                  />
-                  <button
-                    onClick={handleSendMessage}
-                    className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors"
-                  >
-                    <Send className="w-4 h-4" />
-                  </button>
                 </div>
-              </div>
-            </>
-          )}
+              ))}
+          </div>
+
+          {/* Input */}
+          <div className="p-4 border-t border-gray-200">
+            <div className="flex space-x-2">
+              <input
+                type="text"
+                value={messageText}
+                onChange={(e) => setMessageText(e.target.value)}
+                placeholder="Nhập tin nhắn..."
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
+              />
+              <button
+                onClick={() => handleSendMessage()}
+                className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors"
+              >
+                <Send className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </>

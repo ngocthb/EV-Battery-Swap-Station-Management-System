@@ -164,7 +164,7 @@ export default function CabinsPage() {
                     Trạm
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Nhiệt độ
+                    Loại pin
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Trạng thái
@@ -198,7 +198,7 @@ export default function CabinsPage() {
                     <tr key={cabinet.id} className="hover:bg-gray-50">
                       {/*name */}
                       <td
-                        className="px-6 py-4 whitespace-nowrap"
+                        className="px-6 py-4 whitespace-nowrap cursor-pointer"
                         onClick={() =>
                           router.push(`/admin/cabins/${cabinet.id}`)
                         }
@@ -215,9 +215,9 @@ export default function CabinsPage() {
                           {cabinet?.station?.name}
                         </div>
                       </td>
-                      {/*temp */}
+                      {/*battery */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {cabinet?.temperature} độ
+                        {cabinet?.batteryTypeId}
                       </td>
                       {/*Status */}
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -244,7 +244,6 @@ export default function CabinsPage() {
                           </button>
                           {cabinet?.status === false ? (
                             <button
-                              // onClick={() => handleRestoreClick(cabinet)}
                               onClick={() =>
                                 dispatch(openRestoreModal(cabinet))
                               }
