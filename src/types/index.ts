@@ -206,6 +206,7 @@ export interface Membership {
   price?: number;
   createdAt?: string;
   updatedAt?: string;
+  swapLimit?: number | null;
 }
 
 export interface Slot {

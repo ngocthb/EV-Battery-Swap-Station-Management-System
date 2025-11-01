@@ -7,7 +7,7 @@ import {
   ArrowLeft,
   Mail,
   Lock,
-  User as UserIcon,
+  User,
   Phone,
   Building,
   Check,
@@ -19,13 +19,8 @@ import { toast } from "react-toastify";
 import authService from "@/services/authService";
 
 const RegisterPage: React.FC = () => {
-  const router = useRouter();
-
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -42,15 +37,7 @@ const RegisterPage: React.FC = () => {
     }));
   };
 
-  // Tạo username từ email hoặc họ+tên (slugify đơn giản)
-  function makeUsername(email: string, firstName: string, lastName: string) {
-    const fromEmail = (email || "").split("@")[0]?.trim();
-    if (fromEmail) return fromEmail.toLowerCase();
-    const base = `${firstName}.${lastName}`.replace(/\s+/g, ".").toLowerCase();
-    return base || `user_${Date.now()}`;
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Basic validation
     if (formData.password.length < 6) {
@@ -204,7 +191,18 @@ const RegisterPage: React.FC = () => {
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Mail className="h-5 w-5 text-gray-400" />
                   </div>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    required
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                    placeholder="nguyenvana@example.com"
+                  />
                 </div>
+              </div>
 
               {/* Email */}
               {/* (email input already present below; kept in place) */}
@@ -236,189 +234,104 @@ const RegisterPage: React.FC = () => {
                     className="absolute inset-y-0 right-0 pr-3 flex items-center"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    Số điện thoại
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Phone className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      id="phone"
-                      name="phone"
-                      type="tel"
-                      required
-                      value={formData.phone}
-                      onChange={handleInputChange}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                      placeholder="0901234567"
-                    />
-                  </div>
-                </div>
-
-                {/* Company */}
-                <div>
-                  <label
-                    htmlFor="company"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Công ty (tùy chọn)
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Building className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      id="company"
-                      name="company"
-                      type="text"
-                      value={formData.company}
-                      onChange={handleInputChange}
-                      className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                      placeholder="Tên công ty của bạn"
-                    />
-                  </div>
-                </div>
-
-                {/* Password */}
-                <div>
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Mật khẩu
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      id="password"
-                      name="password"
-                      type={showPassword ? "text" : "password"}
-                      autoComplete="new-password"
-                      required
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                      placeholder="Tối thiểu 8 ký tự"
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                      onClick={() => setShowPassword(!showPassword)}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      )}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Confirm Password */}
-                <div>
-                  <label
-                    htmlFor="confirmPassword"
-                    className="block text-sm font-medium text-gray-700 mb-2"
-                  >
-                    Xác nhận mật khẩu
-                  </label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <input
-                      id="confirmPassword"
-                      name="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      autoComplete="new-password"
-                      required
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
-                      placeholder="Nhập lại mật khẩu"
-                    />
-                    <button
-                      type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                    >
-                      {showConfirmPassword ? (
-                        <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      ) : (
-                        <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
-                      )}
-                    </button>
-                  </div>
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    )}
+                  </button>
                 </div>
               </div>
 
-              {/* Checkboxes */}
-              <div className="space-y-4">
-                <div className="flex items-start">
+              {/* Confirm Password */}
+              <div>
+                <label
+                  htmlFor="confirmPassword"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Xác nhận mật khẩu
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-gray-400" />
+                  </div>
                   <input
-                    id="agreeToTerms"
-                    name="agreeToTerms"
-                    type="checkbox"
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
                     required
-                    checked={formData.agreeToTerms}
+                    value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
+                    className="block w-full pl-10 pr-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                    placeholder="Nhập lại mật khẩu"
                   />
-                  <label
-                    htmlFor="agreeToTerms"
-                    className="ml-2 block text-sm text-gray-700"
+                  <button
+                    type="button"
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   >
-                    Tôi đồng ý với{" "}
-                    <a href="#" className="text-blue-600 hover:text-blue-700">
-                      Điều khoản dịch vụ
-                    </a>{" "}
-                    và{" "}
-                    <a href="#" className="text-blue-600 hover:text-blue-700">
-                      Chính sách bảo mật
-                    </a>
-                  </label>
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    ) : (
+                      <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600" />
+                    )}
+                  </button>
                 </div>
+              </div>
+            </div>
 
-                <div className="flex items-start">
-                  <input
-                    id="subscribeNewsletter"
-                    name="subscribeNewsletter"
-                    type="checkbox"
-                    checked={formData.subscribeNewsletter}
-                    onChange={handleInputChange}
-                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
-                  />
-                  <label
-                    htmlFor="subscribeNewsletter"
-                    className="ml-2 block text-sm text-gray-700"
-                  >
-                    Tôi muốn nhận thông tin cập nhật sản phẩm và tin tức qua
-                    email
-                  </label>
-                </div>
+            {/* Checkboxes */}
+            <div className="space-y-4">
+              <div className="flex items-start">
+                <input
+                  id="agreeToTerms"
+                  name="agreeToTerms"
+                  type="checkbox"
+                  required
+                  checked={formData.agreeToTerms}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded mt-1"
+                />
+                <label
+                  htmlFor="agreeToTerms"
+                  className="ml-2 block text-sm text-gray-700"
+                >
+                  Tôi đồng ý với{" "}
+                  <a href="#" className="text-blue-600 hover:text-blue-700">
+                    Điều khoản dịch vụ
+                  </a>{" "}
+                  và{" "}
+                  <a href="#" className="text-blue-600 hover:text-blue-700">
+                    Chính sách bảo mật
+                  </a>
+                </label>
               </div>
 
               {/* newsletter checkbox removed - minimal payload only */}
             </div>
 
-              <div className="text-center">
-                <p className="text-sm text-gray-600">
-                  Đã có tài khoản?{" "}
-                  <Link
-                    href="/login"
-                    className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                  >
-                    Đăng nhập ngay
-                  </Link>
-                </p>
-              </div>
-              </div>
-            </form>
-          </div>
+            <div>
+              <button
+                type="submit"
+                className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              >
+                Tạo tài khoản
+              </button>
+            </div>
+
+            <div className="text-center">
+              <p className="text-sm text-gray-600">
+                Đã có tài khoản?{" "}
+                <Link
+                  href="/login"
+                  className="text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                >
+                  Đăng nhập ngay
+                </Link>
+              </p>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );

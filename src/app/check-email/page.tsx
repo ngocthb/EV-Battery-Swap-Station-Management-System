@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { authService } from "@/services/authService";
 import { getVerifyEmailCache } from "@/lib/storage";
 import { MESSAGES } from "@/constants/messages";
 
-export default function CheckEmailPage() {
+function CheckEmailContent() {
   const params = useSearchParams();
   const queryEmail = (params.get("email") ?? "").trim().toLowerCase();
 
@@ -134,5 +134,24 @@ export default function CheckEmailPage() {
 
       {message && <p className="mt-4 text-sm text-gray-700">{message}</p>}
     </div>
+  );
+}
+
+export default function CheckEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="max-w-lg mx-auto py-10">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
+            <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
+            <div className="h-4 bg-gray-200 rounded w-2/3 mb-6"></div>
+            <div className="h-10 bg-gray-200 rounded w-48"></div>
+          </div>
+        </div>
+      }
+    >
+      <CheckEmailContent />
+    </Suspense>
   );
 }

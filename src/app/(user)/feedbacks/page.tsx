@@ -1,40 +1,59 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import FeedbackForm from "./components/FeedbackForm";
 import FeedbackList from "./components/FeedbackList";
-import { User } from "lucide-react";
-import { UserLayout } from "@/layout/UserLayout";
 
 interface FeedbackPageProps {
-  stationId?: number; // Optional: if provided, will pre-select this station
+  searchParams?: Promise<{
+    stationId?: string;
+  }>;
 }
 
-const FeedbackPage: React.FC<FeedbackPageProps> = ({ stationId }) => {
+const FeedbackPage: React.FC<FeedbackPageProps> = ({ searchParams }) => {
+  const [stationId, setStationId] = useState<number | undefined>(undefined);
   const [activeTab, setActiveTab] = useState<"all" | "my">("all");
   const [refreshKey, setRefreshKey] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Handle async searchParams (Next.js 15)
+  useEffect(() => {
+    const loadSearchParams = async () => {
+      if (searchParams) {
+        const params = await searchParams;
+        if (params.stationId) {
+          setStationId(parseInt(params.stationId));
+        }
+      }
+      setIsLoading(false);
+    };
+
+    loadSearchParams();
+  }, [searchParams]);
 
   const handleFeedbackSuccess = () => {
     // Refresh danh sách sau khi tạo feedback thành công
     setRefreshKey((prev) => prev + 1);
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center px-4 py-2 bg-blue-50 border border-blue-100 rounded-full mb-6">
-            <span className="text-sm font-medium text-blue-600">
-              Đánh giá & Phản hồi
-            </span>
-          </div>
-          <h2 className="text-4xl font-bold text-gray-900 mb-4">
-            Chia sẻ trải nghiệm của bạn về trạm đổi pin
-          </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">
-            Giúp chúng tôi cải thiện dịch vụ bằng cách gửi đánh giá và phản hồi
-            chân thực từ bạn.
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            Đánh giá trạm sạc
+          </h1>
+          <p className="text-gray-600">
+            Chia sẻ trải nghiệm của bạn và xem đánh giá từ cộng đồng
           </p>
         </div>
 
