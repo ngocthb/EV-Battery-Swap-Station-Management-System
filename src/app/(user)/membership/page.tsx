@@ -3,10 +3,13 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Membership, MembershipResponse } from "@/types/index";
 import { getPublicMemberships } from "@/services/membershipService";
-
+import { createUserMembership } from "@/services/userMembershipService";
 import { toast } from "react-toastify";
 import MembershipCard from "./components/MembershipCard";
+import ConfirmationModal from "./components/ConfirmationModal";
 import { UserLayout } from "@/layout/UserLayout";
+
+const PAYMENT_METHOD_ID = 2; // E-wallet payment method
 
 const MembershipList: React.FC = () => {
   const [page, setPage] = useState(1);
@@ -14,11 +17,16 @@ const MembershipList: React.FC = () => {
   const [memberships, setMemberships] = useState<Membership[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedMembership, setSelectedMembership] =
+    useState<Membership | null>(null);
   const [subscribing, setSubscribing] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const params = useMemo(() => ({ page, limit }), [page, limit]);
 
+  /**
+   * Fetch all available memberships from the API
+   */
   const fetchMemberships = async () => {
     try {
       setLoading(true);
@@ -45,23 +53,68 @@ const MembershipList: React.FC = () => {
     fetchMemberships();
   }, [page, limit]);
 
-  const handleSelectMembership = async (id: number) => {
-    setSelectedId(id);
+  /**
+   * Handle when user clicks on "Select this package" button
+   * Opens the confirmation modal
+   */
+  const handleSelectMembership = (id: number) => {
+    const membership = memberships.find((m) => m.id === id);
+    if (membership) {
+      setSelectedMembership(membership);
+      setIsModalOpen(true);
+    }
+  };
+
+  /**
+   * Handle modal close
+   */
+  const handleCloseModal = () => {
+    if (!subscribing) {
+      setIsModalOpen(false);
+      setSelectedMembership(null);
+    }
+  };
+
+  /**
+   * Handle subscription confirmation
+   * Creates user membership and redirects to payment URL
+   */
+  const handleConfirmSubscription = async () => {
+    if (!selectedMembership) return;
+
     setSubscribing(true);
 
     try {
-      // TODO: Implement subscription logic here
-      // await subscribeMembership(id);
-      toast.success("Đăng ký gói thành công!");
-      fetchMemberships();
+      // Create user membership with e-wallet payment
+      // Authentication token is automatically added by axios interceptor
+      const response = await createUserMembership({
+        membershipId: selectedMembership.id,
+        paymentId: PAYMENT_METHOD_ID,
+      });
+
+      if (response.success && response.data.paymentUrl) {
+        toast.success(
+          "Đăng ký gói thành công! Đang chuyển đến trang thanh toán..."
+        );
+
+        // Redirect to payment URL
+        setTimeout(() => {
+          window.location.href = response.data.paymentUrl;
+        }, 1500);
+      } else {
+        throw new Error(response.message || "Không thể tạo gói thành viên");
+      }
     } catch (error: any) {
       const errorMessage =
         error?.response?.data?.message ||
         error?.message ||
         "Đăng ký gói thất bại";
       toast.error(errorMessage);
+
+      // Close modal on error so user can try again
+      setIsModalOpen(false);
+      setSelectedMembership(null);
     } finally {
-      setSelectedId(null);
       setSubscribing(false);
     }
   };
@@ -151,8 +204,8 @@ const MembershipList: React.FC = () => {
                   key={membership.id}
                   membership={membership}
                   onSelect={handleSelectMembership}
-                  isLoading={subscribing && selectedId === membership.id}
-                  isSelected={selectedId === membership.id}
+                  isLoading={false}
+                  isSelected={selectedMembership?.id === membership.id}
                 />
               ))}
             </div>
@@ -241,6 +294,15 @@ const MembershipList: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        onConfirm={handleConfirmSubscription}
+        membership={selectedMembership}
+        isLoading={subscribing}
+      />
     </UserLayout>
   );
 };
