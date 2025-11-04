@@ -1,12 +1,24 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { MessageCircle, X, Send, User, Bot } from "lucide-react";
+import { MessageCircle, X, Send, Bot } from "lucide-react";
 import { useSelector } from "react-redux";
 import Link from "next/link";
 import { io } from "socket.io-client";
 import { getChatRoomByUserId, sendMessageAPI } from "@/services/chatService";
 import { toast } from "react-toastify";
+import { formatTimeHCM } from "@/utils/format";
+import { User } from "@/types";
+
+interface Chat {
+  id: number;
+  name: string;
+  messages?: Message[];
+  time?: string;
+  createdBy?: number;
+  supporterId?: number;
+  supporter?: User;
+}
 
 interface Message {
   id: string;
@@ -22,6 +34,7 @@ export default function ChatWidget() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [messageText, setMessageText] = useState("");
   const [roomId, setRoomId] = useState<number | null>(null);
+  const [roomDetail, setRoomDetail] = useState<Chat | null>(null);
 
   const socketRef = useRef<any>(null);
   const messageContainerRef = useRef<HTMLDivElement | null>(null);
@@ -34,15 +47,24 @@ export default function ChatWidget() {
     }
   }, [messages, isOpen]);
 
+  console.log("roomid", roomId);
+
   const handleStartChat = async () => {
     try {
-      // get room by id
       const res = await getChatRoomByUserId();
-      setRoomId(res?.data?.id);
-      setMessages(res?.data?.messages);
+      const roomData = res?.data;
 
-      // connect socket
-      const socket = io("http://146.190.95.182:8080/chat", {
+      if (!roomData?.id) {
+        console.warn("Không tìm thấy roomId!");
+        return;
+      }
+
+      setRoomId(roomData.id);
+      setMessages(roomData.messages || []);
+      setRoomDetail(roomData);
+
+      // Kết nối socket
+      const socket = io("http://localhost:8080/chat", {
         transports: ["websocket"],
         withCredentials: true,
       });
@@ -51,7 +73,7 @@ export default function ChatWidget() {
 
       socket.on("connect", () => {
         console.log("Connected:", socket.id);
-        socket.emit("joinRoom", { roomId: res?.data?.id });
+        socket.emit("joinRoom", { roomId: roomData.id }); 
       });
 
       socket.on("receiveMessage", (msg) => {
@@ -68,6 +90,10 @@ export default function ChatWidget() {
       toast.warning("Vui lòng nhập tin nhắn trước khi gửi.");
       return;
     }
+    console.log("send message form", {
+      roomId: roomId,
+      content: messageText.trim(),
+    });
     try {
       const res = await sendMessageAPI({
         roomId: roomId,
@@ -153,8 +179,16 @@ export default function ChatWidget() {
                 <Bot className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="font-semibold">Hỗ trợ khách hàng</h3>
-                <p className="text-xs text-blue-100">Trực tuyến</p>
+                <h3 className="font-semibold">
+                  {roomDetail?.supporterId
+                    ? roomDetail?.supporter?.fullName
+                    : "Hỗ trợ khách hàng"}
+                </h3>
+                <p className="text-xs text-blue-100">
+                  {roomDetail?.supporterId
+                    ? "Hỗ trợ khách hàng"
+                    : "Chưa có người hỗ trợ"}
+                </p>
               </div>
             </div>
             <button
@@ -170,7 +204,8 @@ export default function ChatWidget() {
             className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-custom"
             ref={messageContainerRef}
           >
-            {messages.length > 0 &&
+            {Array.isArray(messages) &&
+              messages.length > 0 &&
               messages.map((message) => (
                 <div
                   key={message.id}
@@ -181,15 +216,30 @@ export default function ChatWidget() {
                   }`}
                 >
                   <div
-                    className={`max-w-xs px-4 py-2 rounded-lg ${
+                    className={`flex flex-col  ${
                       message.senderId === user?.id
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-100 text-gray-800"
+                        ? "items-end"
+                        : "items-start"
                     }`}
                   >
-                    <div className="flex items-start space-x-2">
-                      <p className="text-sm">{message.content}</p>
+                    <div
+                      className={`max-w-md px-4 py-2 rounded-2xl relative group ${
+                        message.senderId === user?.id
+                          ? "bg-blue-500 text-white"
+                          : "bg-white text-gray-900 border border-gray-200"
+                      }`}
+                    >
+                      <p className="text-sm break-words">{message.content}</p>
                     </div>
+                    <span
+                      className={`text-[10px] opacity-70 ${
+                        message.senderId === user?.id
+                          ? "text-black mr-[2px]"
+                          : "text-gray-500 ml-[2px]"
+                      }`}
+                    >
+                      {formatTimeHCM(message.createdAt)}
+                    </span>
                   </div>
                 </div>
               ))}

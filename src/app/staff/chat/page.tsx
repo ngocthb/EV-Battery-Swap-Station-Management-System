@@ -5,9 +5,23 @@ import {
   getAllChatRoom,
   getChatRoomByRoomId,
   sendMessageAPI,
+  staffStartChatAPI,
 } from "@/services/chatService";
 import { RootState } from "@/store";
-import { Search, ChevronDown, Hash, Smile, Send, X } from "lucide-react";
+import { User } from "@/types";
+import { formatTimeHCM } from "@/utils/format";
+import {
+  Search,
+  ChevronDown,
+  Hash,
+  Smile,
+  Send,
+  X,
+  MessageCircle,
+  LoaderIcon,
+  Loader2Icon,
+  LoaderCircleIcon,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -25,6 +39,8 @@ interface Chat {
   lastMessage?: LastMessage;
   time?: string;
   createdBy?: number;
+  supporterId?: number;
+  supporter?: User;
 }
 
 interface Message {
@@ -53,6 +69,8 @@ function ChatWithCustomer() {
   const [messageText, setMessageText] = useState("");
   const [messageList, setMessageList] = useState<Message[]>([]);
   const [showQuickReplies, setShowQuickReplies] = useState(false);
+  const [chatRoomDetail, setChatRoomDetail] = useState<Chat | null>(null);
+  console.log("message list", messageList);
 
   const { user } = useSelector((state: RootState) => state.auth);
 
@@ -76,7 +94,8 @@ function ChatWithCustomer() {
   // connect socket first
   useEffect(() => {
     console.log("Connecting to socket...");
-    const socket = io("http://146.190.95.182:8080/chat", {
+    const socket = io("http://localhost:8080/chat", {
+      // const socket = io("http://146.190.95.182:8080/chat", {
       transports: ["websocket"],
       withCredentials: true,
     });
@@ -128,9 +147,38 @@ function ChatWithCustomer() {
     try {
       // get room by id
       const res = await getChatRoomByRoomId(selectedChat?.id as number);
+      console.log("get room by id", res.data);
       setMessageList(res?.data?.messages);
+      setChatRoomDetail(res?.data);
     } catch (error) {
       console.log("Error fetching chat rooms:", error);
+    }
+  };
+
+  const handleStaffStartChat = async () => {
+    try {
+      const res = await staffStartChatAPI({ roomId: selectedChat?.id });
+
+      const chatDetail = await getChatRoomByRoomId(selectedChat?.id as number);
+
+      setChatRoomDetail(chatDetail?.data);
+      setMessageList(chatDetail?.data?.messages || []); 
+
+      const resSendMessage = await sendMessageAPI({
+        roomId: selectedChat?.id,
+        content: `Chào bạn, mình là ${user?.fullName}, nhân viên của Amply rất mong được hỗ trợ bạn!`,
+      });
+
+      const newMessage = resSendMessage.data;
+      setMessageText("");
+
+      socketRef.current?.emit("receiveMessage", {
+        roomId: selectedChat?.id,
+        content: newMessage.content,
+        senderId: newMessage.senderId,
+      });
+    } catch (error) {
+      console.log("staff start chat err", error);
     }
   };
 
@@ -187,8 +235,14 @@ function ChatWithCustomer() {
                 <ChevronDown size={16} />
               </button>
             </div>
-            <button className="w-full py-2 px-4 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors flex items-center gap-2">
-              <span className="text-lg">+</span> New chat
+            <button
+              onClick={() => handleFetchAllRooms()}
+              className="w-full py-2 px-4 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors flex items-center gap-2"
+            >
+              <span className="text-lg">
+                <Loader2Icon size={16} />
+              </span>
+              Tải lại danh sách
             </button>
           </div>
 
@@ -266,7 +320,8 @@ function ChatWithCustomer() {
                   <div className="flex items-center gap-3">
                     <div>
                       <p className="font-medium text-gray-900 flex items-center gap-2">
-                        {selectedChat?.name}
+                        {selectedChat?.name} / Nhân viên:{" "}
+                        {chatRoomDetail?.supporter?.fullName}
                       </p>
                     </div>
                   </div>
@@ -302,16 +357,35 @@ function ChatWithCustomer() {
                         message.senderId !== selectedChat?.createdBy
                           ? "justify-end"
                           : "justify-start"
-                      }`}
+                      } mb-2`}
                     >
                       <div
-                        className={`max-w-md px-4 py-2 rounded-2xl ${
+                        className={`flex flex-col  ${
                           message.senderId === user?.id
-                            ? "bg-blue-500 text-white"
-                            : "bg-white text-gray-900 border border-gray-200"
+                            ? "items-end"
+                            : "items-start"
                         }`}
                       >
-                        <p className="text-sm">{message.content}</p>
+                        <div
+                          className={`max-w-md px-4 py-2 rounded-2xl relative group ${
+                            message.senderId === user?.id
+                              ? "bg-blue-500 text-white"
+                              : "bg-white text-gray-900 border border-gray-200"
+                          }`}
+                        >
+                          <p className="text-sm break-words">
+                            {message.content}
+                          </p>
+                        </div>
+                        <span
+                          className={`text-[10px] opacity-70 ${
+                            message.senderId === user?.id
+                              ? "text-black mr-[2px]"
+                              : "text-gray-500 ml-[2px]"
+                          }`}
+                        >
+                          {formatTimeHCM(message.createdAt)}
+                        </span>
                       </div>
                     </div>
                   ))}
@@ -340,32 +414,44 @@ function ChatWithCustomer() {
               {/*input */}
               <div className="bg-white border-t border-gray-200 p-4">
                 <div className="max-w-3xl mx-auto">
-                  <div className="flex items-end gap-3">
-                    <button
-                      onClick={() => setShowQuickReplies(!showQuickReplies)}
-                      className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
-                    >
-                      <Hash size={24} />
-                    </button>
-                    <button className="p-2 text-gray-400 hover:text-blue-500 transition-colors">
-                      <Smile size={24} />
-                    </button>
-                    <div className="flex-1 relative">
-                      <input
-                        type="text"
-                        value={messageText}
-                        onChange={(e) => setMessageText(e.target.value)}
-                        placeholder="Start typing..."
-                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      />
+                  {chatRoomDetail?.supporterId ? (
+                    <div className="flex items-end gap-3">
+                      <button
+                        onClick={() => setShowQuickReplies(!showQuickReplies)}
+                        className="p-2 text-gray-400 hover:text-blue-500 transition-colors"
+                      >
+                        <Hash size={24} />
+                      </button>
+                      <button className="p-2 text-gray-400 hover:text-blue-500 transition-colors">
+                        <Smile size={24} />
+                      </button>
+                      <div className="flex-1 relative">
+                        <input
+                          type="text"
+                          value={messageText}
+                          onChange={(e) => setMessageText(e.target.value)}
+                          placeholder="Start typing..."
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                      </div>
+                      <button
+                        onClick={() => handleSendMessage()}
+                        className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                      >
+                        <Send size={24} />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleSendMessage()}
-                      className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                    >
-                      <Send size={24} />
-                    </button>
-                  </div>
+                  ) : (
+                    <div className="flex justify-center">
+                      <button
+                        onClick={() => handleStaffStartChat()}
+                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-500 text-white font-medium rounded-xl shadow-md hover:from-blue-600 hover:to-indigo-600 hover:shadow-lg transition-all duration-200"
+                      >
+                        <MessageCircle size={20} className="text-white" />
+                        Đảm nhận nhắn tin
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
             </>

@@ -21,3 +21,13 @@ export const formatDateHCM = (dateStr: string) => {
     hour12: false,
   });
 };
+
+export const formatTimeHCM = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return date.toLocaleString("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+};

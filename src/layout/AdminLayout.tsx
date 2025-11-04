@@ -45,7 +45,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       href: "/admin/stations",
       icon: MapPin,
     },
-    { id: "cabins", label: "Quản lý Cabin", href: "/admin/cabins", icon: Zap },
+    { id: "cabins", label: "Quản lý Tủ pin", href: "/admin/cabins", icon: Zap },
     { id: "slots", label: "Quản lý Ô Sạc", href: "/admin/slots", icon: Box },
     {
       id: "battery-types",

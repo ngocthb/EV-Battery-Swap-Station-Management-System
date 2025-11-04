@@ -11,7 +11,12 @@ import { Cabinet, Slot, Station } from "@/types";
 import { MapPin, Building, ArrowLeft, Loader2, Battery } from "lucide-react";
 import { getStationById } from "@/services/stationService";
 import { getBatteryTypeById } from "@/services/batteryTypeService";
-import { getSlotStatusText } from "@/utils/formateStatus";
+import {
+  getSlotStatusBGAndTextWhiteStyle,
+  getSlotStatusBorderAndBgStyle,
+  getSlotStatusText,
+  getSlotStatusTextStyle,
+} from "@/utils/formateStatus";
 
 const ViewForm = ({ cabinId }: { cabinId: number }) => {
   const router = useRouter();
@@ -154,17 +159,7 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
                   key={slot.id}
                   className={`
                     relative rounded-lg border-2 p-4 transition-all hover:shadow-md
-                    ${
-                      slot.status === "CHARGING"
-                        ? "border-green-500 bg-green-50"
-                        : slot.status === "RESERVED"
-                        ? "border-yellow-500 bg-yellow-50"
-                        : slot.status === "SWAPPING"
-                        ? "border-blue-500 bg-blue-50"
-                        : slot.status === "MAINTENANCE"
-                        ? "border-red-500 bg-red-50"
-                        : "border-gray-300 bg-gray-50"
-                    }
+                    ${getSlotStatusBorderAndBgStyle(slot?.status)}
                   `}
                 >
                   {/* Slot Number */}
@@ -180,17 +175,9 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
                   {/* Battery Icon */}
                   <div className="flex justify-center mb-2">
                     <Battery
-                      className={`w-8 h-8 ${
-                        slot.status === "CHARGING"
-                          ? "text-green-600"
-                          : slot.status === "RESERVED"
-                          ? "text-yellow-600"
-                          : slot.status === "SWAPPING"
-                          ? "text-blue-600"
-                          : slot.status === "MAINTENANCE"
-                          ? "text-red-600"
-                          : "text-gray-400"
-                      }`}
+                      className={`w-8 h-8 ${getSlotStatusTextStyle(
+                        slot.status
+                      )}`}
                     />
                   </div>
 
@@ -207,15 +194,7 @@ const ViewForm = ({ cabinId }: { cabinId: number }) => {
                       className={`
                         inline-block px-2 py-1 text-xs font-semibold rounded
                         ${
-                          slot.status === "CHARGING"
-                            ? "bg-green-600 text-white"
-                            : slot.status === "RESERVED"
-                            ? "bg-yellow-600 text-white"
-                            : slot.status === "SWAPPING"
-                            ? "bg-blue-600 text-white"
-                            : slot.status === "MAINTENANCE"
-                            ? "bg-red-600 text-white"
-                            : "bg-gray-400 text-white"
+                          getSlotStatusBGAndTextWhiteStyle(slot?.status)
                         }
                       `}
                     >

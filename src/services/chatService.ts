@@ -19,3 +19,8 @@ export const sendMessageAPI = async <T>(data: T) => {
   const res = await api.post(`/chat-messages`, data);
   return res.data;
 };
+
+export const staffStartChatAPI = async <T>(data: T) => {
+  const res = await api.post(`/chat-rooms/staff-start-chat`, data);
+  return res.data;
+};

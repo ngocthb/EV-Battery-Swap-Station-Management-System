@@ -14,7 +14,12 @@ import { getAllSlotListAPI } from "@/services/slotService";
 import FilterSearch from "./components/FilterSearch";
 import { getAllCabinetListAPI } from "@/services/cabinetService";
 import StatsList from "./components/StatsList";
-import { getSlotStatusText } from "@/utils/formateStatus";
+import {
+  getSlotStatusBGAndTextWhiteStyle,
+  getSlotStatusBorderAndBgStyle,
+  getSlotStatusText,
+  getSlotStatusTextStyle,
+} from "@/utils/formateStatus";
 
 export default function SlotPage() {
   const router = useRouter();
@@ -129,19 +134,7 @@ export default function SlotPage() {
                   key={slot.id}
                   className={` group 
                       relative rounded-lg border-2 p-4 transition-all hover:shadow-md 
-                      ${
-                        slot.status === "AVAILABLE"
-                          ? "border-green-500 bg-green-50"
-                          : slot.status === "CHARGING"
-                          ? "border-yellow-500 bg-yellow-50"
-                          : slot.status === "SWAPPING"
-                          ? "border-purple-500 bg-purple-50"
-                          : slot.status === "MAINTENANCE"
-                          ? "border-red-500 bg-red-50"
-                          : slot.status === "RESERVED"
-                          ? "border-blue-500 bg-blue-50"
-                          : "border-gray-300 bg-gray-50"
-                      }
+                      ${getSlotStatusBorderAndBgStyle(slot?.status)}
                     `}
                 >
                   {/* Slot Number */}
@@ -154,19 +147,9 @@ export default function SlotPage() {
                   {/* Battery Icon */}
                   <div className="flex justify-center mb-2">
                     <Battery
-                      className={`w-8 h-8 ${
-                        slot.status === "AVAILABLE"
-                          ? "text-green-600"
-                          : slot.status === "CHARGING"
-                          ? "text-yellow-600"
-                          : slot.status === "SWAPPING"
-                          ? "text-purple-600"
-                          : slot.status === "MAINTENANCE"
-                          ? "text-red-600"
-                          : slot.status === "RESERVED"
-                          ? "text-blue-600"
-                          : "text-gray-400"
-                      }`}
+                      className={`w-8 h-8 ${getSlotStatusTextStyle(
+                        slot?.status
+                      )}`}
                     />
                   </div>
 
@@ -177,6 +160,11 @@ export default function SlotPage() {
                         ? `Pin #${slot.batteryId} - ${slot?.battery?.model} (Loại pin ${slot?.battery?.batteryTypeId})`
                         : "Trống"}
                     </div>
+                    {slot?.battery?.healthScore && (
+                      <div className="text-xs text-gray-600 mt-1">
+                        Sức khỏe pin: {slot.battery.healthScore}%
+                      </div>
+                    )}
                   </div>
 
                   {/* Status Badge */}
@@ -184,19 +172,7 @@ export default function SlotPage() {
                     <span
                       className={`
                           inline-block px-2 py-1 text-xs font-semibold rounded
-                          ${
-                            slot.status === "AVAILABLE"
-                              ? "bg-green-600 text-white"
-                              : slot.status === "CHARGING"
-                              ? "bg-yellow-600 text-white"
-                              : slot.status === "SWAPPING"
-                              ? "bg-purple-600 text-white"
-                              : slot.status === "MAINTENANCE"
-                              ? "bg-red-600 text-white"
-                              : slot.status === "RESERVED"
-                              ? "bg-blue-600 text-white"
-                              : "bg-gray-400 text-white"
-                          }
+                          ${getSlotStatusBGAndTextWhiteStyle(slot?.status)}
                         `}
                     >
                       {getSlotStatusText(slot.status)}

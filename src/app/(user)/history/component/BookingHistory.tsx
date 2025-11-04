@@ -51,29 +51,6 @@ function BookingHistory() {
     QueryParams
   >(getUserBookingListAPI, debouncedQuery);
 
-  const renderStatus = (status: string) => {
-    switch (status) {
-      case "COMPLETED":
-        return (
-          <span className="flex items-center gap-1 text-green-600 font-medium">
-            <CheckCircle className="w-4 h-4" /> Hoàn thành
-          </span>
-        );
-      case "CANCELLED":
-        return (
-          <span className="flex items-center gap-1 text-red-600 font-medium">
-            <XCircle className="w-4 h-4" /> Đã hủy
-          </span>
-        );
-      default:
-        return (
-          <span className="flex items-center gap-1 text-blue-600 font-medium">
-            <Loader2 className="w-4 h-4 animate-spin" /> Đang xử lý
-          </span>
-        );
-    }
-  };
-
   // status
   const total = bookingList.length;
   const completed = bookingList.filter((b) => b.status === "COMPLETED").length;

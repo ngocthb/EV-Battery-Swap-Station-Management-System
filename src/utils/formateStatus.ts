@@ -111,6 +111,63 @@ export const getSlotStatusStyle = (status?: string) => {
   }
 };
 
+export const getSlotStatusBGAndTextWhiteStyle = (status?: string) => {
+  switch (status) {
+    case "AVAILABLE":
+      return "bg-green-600 text-white";
+    case "RESERVED":
+      return "bg-blue-600 text-white";
+    case "CHARGING":
+      return "bg-yellow-600 text-white";
+    case "SWAPPING":
+      return "bg-purple-600 text-white";
+    case "MAINTENANCE":
+      return "bg-orange-600 text-white";
+    case "EMPTY":
+      return "bg-gray-400 text-white";
+    default:
+      return "bg-gray-600 text-white";
+  }
+};
+
+export const getSlotStatusTextStyle = (status?: string) => {
+  switch (status) {
+    case "AVAILABLE":
+      return "text-green-600";
+    case "RESERVED":
+      return "text-blue-600";
+    case "CHARGING":
+      return "text-yellow-600";
+    case "SWAPPING":
+      return "text-purple-600";
+    case "MAINTENANCE":
+      return "text-orange-600";
+    case "EMPTY":
+      return "text-gray-400";
+    default:
+      return "text-gray-500";
+  }
+};
+
+export const getSlotStatusBorderAndBgStyle = (status?: string) => {
+  switch (status) {
+    case "AVAILABLE":
+      return "bg-green-50 border-green-500";
+    case "RESERVED":
+      return "bg-blue-50 border-blue-500";
+    case "CHARGING":
+      return "bg-yellow-50 border-yellow-500";
+    case "SWAPPING":
+      return "bg-purple-50 border-purple-500";
+    case "MAINTENANCE":
+      return "bg-orange-50 border-orange-500";
+    case "EMPTY":
+      return "bg-gray-100 border-gray-400";
+    default:
+      return "bg-gray-50 border-gray-500";
+  }
+};
+
 // booking
 export const getBookingStatusStyle = (status: string) => {
   switch (status) {
