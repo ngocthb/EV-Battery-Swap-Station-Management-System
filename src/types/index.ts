@@ -213,6 +213,7 @@ export interface Membership {
   price?: number;
   createdAt?: string;
   updatedAt?: string;
+  swapLimit?: number | null;
 }
 
 export interface Slot {
@@ -295,4 +296,15 @@ export interface QueryParams {
   lng?: number;
   role?: string;
   isHead?: boolean | null;
+}
+
+export interface MembershipResponse {
+  success: boolean;
+  message: string;
+  data: Membership[];
+}
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
 }

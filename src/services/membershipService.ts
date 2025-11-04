@@ -1,4 +1,5 @@
 import api from "@/lib/axios";
+import { Membership } from "@/types";
 
 export const getAllMembershipList = async <T>(params: T) => {
   const res = await api.get("/membership", { params });
@@ -55,4 +56,9 @@ export const restoreMembership = async (
   const res = await api.patch(`/membership/restore/${id}`);
   const data = res.data;
   return { success: data.success, message: data.message };
+};
+
+export const getPublicMemberships = async <T>(params: T) => {
+  const res = await api.get("/membership/public", { params });
+  return res.data;
 };
