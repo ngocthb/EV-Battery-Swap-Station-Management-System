@@ -1,9 +1,11 @@
 "use client";
 
-import React from "react";
-import Link from "next/link";
+import React, { useState } from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
 import { MapPin, Users, CreditCard, TrendingUp } from "lucide-react";
+import AdminBookingChart from "./components/chart/AdminBookingChart";
+import AdminRevenueChart from "./components/chart/AdminRevenueChart";
+import AdminStationMap from "./components/AdminStationMap";
 
 interface StatCardProps {
   title: string;
@@ -43,6 +45,7 @@ export default function AdminDashboard() {
       <div className="space-y-6">
         <h2 className="text-2xl font-bold text-gray-900">Tổng quan hệ thống</h2>
 
+        {/* stat */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <StatCard
             title="Tổng số trạm"
@@ -67,25 +70,28 @@ export default function AdminDashboard() {
           />
         </div>
 
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Thao tác nhanh
-          </h3>
-          <div className="grid grid-cols-2 gap-4">
-            <Link
-              href="/admin/stations"
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors block text-center"
-            >
-              <MapPin className="w-8 h-8 text-blue-600 mb-2 mx-auto" />
-              <p className="text-sm font-medium text-gray-900">Quản lý trạm</p>
-            </Link>
-            <Link
-              href="/admin/users"
-              className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors block text-center"
-            >
-              <Users className="w-8 h-8 text-purple-600 mb-2 mx-auto" />
-              <p className="text-sm font-medium text-gray-900">Quản lý user</p>
-            </Link>
+        {/*Chart */}
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <AdminBookingChart title="Tổng đơn" initialFilter="7d" />
+          <AdminRevenueChart />
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Summary 1/3 bên trái */}
+          <div className="space-y-4 col-span-1">
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <h3 className="font-bold mb-2">Trạm được đặt nhiều nhất</h3>
+              {/* Station info */}
+            </div>
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+              <h3 className="font-bold mb-2">Trạm đánh giá cao nhất</h3>
+              {/* Station info */}
+            </div>
+          </div>
+
+          {/* Map 2/3 bên phải */}
+          <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100">
+            <AdminStationMap />
           </div>
         </div>
       </div>

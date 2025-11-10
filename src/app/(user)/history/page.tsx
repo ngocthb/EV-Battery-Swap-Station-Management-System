@@ -4,23 +4,55 @@ import { useAuth } from "@/hooks/useAuth";
 import useFetchList from "@/hooks/useFetchList";
 import { UserLayout } from "@/layout/UserLayout";
 import { getUserBookingListAPI } from "@/services/bookingService";
-import { CalendarDays, CreditCard } from "lucide-react";
+import { CalendarDays, CreditCard, Crown, Star } from "lucide-react";
 import { useState } from "react";
 import BookingHistory from "./component/BookingHistory";
 import { formatDateHCM } from "@/utils/format";
 import TransactionHistory from "./component/TransactionHistory";
+import { useRouter } from "next/navigation";
+
+type TabKey = "booking" | "payment" | "membership" | "feedback";
+
+const tabs: {
+  key: TabKey;
+  label: string;
+  icon: any;
+  onClick?: () => void;
+}[] = [
+  {
+    key: "booking",
+    label: "Lịch sử đặt lịch",
+    icon: CalendarDays,
+  },
+  {
+    key: "payment",
+    label: "Lịch sử thanh toán",
+    icon: CreditCard,
+  },
+  {
+    key: "membership",
+    label: "Xem gói thành viên",
+    icon: Crown,
+  },
+  {
+    key: "feedback",
+    label: "Xem đánh giá của trạm",
+    icon: Star,
+  },
+];
 
 const ProfilePage: React.FC = () => {
+  const router = useRouter();
   const { user, refreshProfile } = useAuth();
 
-  console.log("user ", user);
-
-  const [activeTab, setActiveTab] = useState<"payment" | "booking">("booking");
+  const [activeTab, setActiveTab] = useState<
+    "payment" | "booking" | "membership" | "feedback"
+  >("booking");
 
   return (
     <UserLayout>
       <div className="px-16 py-8 bg-gray-50 min-h-screen">
-        <h2 className="text-2xl font-semibold mb-6">Thông tin đặt lịch</h2>
+        <h2 className="text-2xl font-semibold mb-6">Lịch sử</h2>
 
         <div className="grid grid-cols-12 gap-6">
           {/* LEFT SIDEBAR */}
@@ -68,32 +100,41 @@ const ProfilePage: React.FC = () => {
               </div>
 
               {/* Nút chuyển tab */}
-              <div className="space-y-3">
-                <button
-                  onClick={() => setActiveTab("booking")}
-                  className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border transition
-                    ${
-                      activeTab === "booking"
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                    }`}
-                >
-                  <CalendarDays className="w-4 h-4" />
-                  Lịch sử đặt lịch
-                </button>
+              <div className="space-y-2 mt-4">
+                {tabs.map((tab) => {
+                  const Icon = tab.icon;
+                  const isActive = activeTab === tab.key;
 
-                <button
-                  onClick={() => setActiveTab("payment")}
-                  className={`w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border transition
-                    ${
-                      activeTab === "payment"
-                        ? "bg-blue-600 text-white border-blue-600"
-                        : "bg-white text-gray-700 border-gray-200 hover:bg-gray-50"
-                    }`}
-                >
-                  <CreditCard className="w-4 h-4" />
-                  Lịch sử thanh toán
-                </button>
+                  const handleClick = () => {
+                    if (tab.key === "membership") {
+                      router.push("/membership");
+                    } else if (tab.key === "feedback") {
+                      router.push("/feedbacks");
+                    } else {
+                      setActiveTab(tab.key);
+                    }
+                  };
+
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={handleClick}
+                      className={`w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-full text-sm font-medium transition-all duration-200
+                                  ${
+                                    isActive
+                                      ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-md scale-[1.02]"
+                                      : "bg-gray-50 text-gray-700 border border-gray-200 hover:bg-gray-100"
+                                  }`}
+                    >
+                      <Icon
+                        className={`w-4 h-4 ${
+                          isActive ? "text-white" : "text-gray-500"
+                        }`}
+                      />
+                      <span>{tab.label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           </div>
