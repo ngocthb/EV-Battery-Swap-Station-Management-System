@@ -1,12 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
 import { MapPin, Users, CreditCard, TrendingUp } from "lucide-react";
-import AdminBookingChart from "./components/chart/AdminBookingChart";
-import AdminRevenueChart from "./components/chart/AdminRevenueChart";
-import AdminStationMap from "./components/AdminStationMap";
 
+import dynamic from "next/dynamic";
+
+const AdminStationMap = dynamic(() => import("./components/AdminStationMap"), {
+  ssr: false,
+});
+
+const AdminBookingChart = dynamic(
+  () => import("./components/chart/AdminBookingChart"),
+  {
+    ssr: false,
+  }
+);
+const AdminRevenueChart = dynamic(
+  () => import("./components/chart/AdminRevenueChart"),
+  {
+    ssr: false,
+  }
+);
 interface StatCardProps {
   title: string;
   value: string | number;
