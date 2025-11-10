@@ -36,7 +36,6 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   const dispatch = useAppDispatch();
   const { deleteModal } = useSelector((state: RootState) => state.adminModal);
 
-  console.log("battery", battery);
   if (!deleteModal.isOpen || !battery) return null;
 
   const handleDeleteConfirm = async () => {

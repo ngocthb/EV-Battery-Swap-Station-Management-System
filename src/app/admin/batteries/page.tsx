@@ -1,9 +1,10 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
 import {
   Battery,
+  Clock,
   Edit,
   MapPin,
   Plus,
@@ -39,6 +40,7 @@ import {
   openDeleteModal,
   openRestoreModal,
 } from "@/store/slices/adminModalSlice";
+import BatteryUsedHistoryModal from "./components/BatteryUsedHistoryModal";
 
 export default function BatteriesPage() {
   const router = useRouter();
@@ -47,6 +49,8 @@ export default function BatteriesPage() {
   const { deleteModal, restoreModal } = useAppSelector(
     (state: RootState) => state.adminModal
   );
+
+  const [batteryHistoryId, setBatteryHistoryID] = useState<number | null>(null);
 
   const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
     page: 1,
@@ -60,6 +64,10 @@ export default function BatteriesPage() {
     () => ({ ...query, search: debouncedSearch }),
     [query.page, query.limit, query.order, query.status, debouncedSearch]
   );
+
+  const handleCloseHistoryModal = useCallback(() => {
+    setBatteryHistoryID(null);
+  }, []);
 
   // fetch all pin
   const {
@@ -204,11 +212,21 @@ export default function BatteriesPage() {
                             onClick={() =>
                               router.push(`/admin/batteries/${battery.id}/edit`)
                             }
-                            className="text-blue-600 hover:text-blue-900 p-1 disabled:opacity-50"
+                            className="text-blue-600 hover:text-blue-900 p-1 disabled:opacity-50 cursor-pointer"
                             disabled={loading}
                             title="Chỉnh sửa pin"
                           >
                             <Edit className="w-4 h-4" />
+                          </button>
+
+                          <button
+                            onClick={() =>
+                              setBatteryHistoryID(Number(battery?.id))
+                            }
+                            className="text-green-600 hover:text-green-900 p-1 disabled:opacity-50 cursor-pointer"
+                            title="Lịch sử sử dụng"
+                          >
+                            <Clock className="w-4 h-4" />
                           </button>
                           {/* {battery?.status === "MAINTENANCE" ? (
                             <button
@@ -262,6 +280,13 @@ export default function BatteriesPage() {
         onConfirmAPI={restoreBatteryAPI}
         refreshList={refresh}
       />
+
+      {batteryHistoryId && (
+        <BatteryUsedHistoryModal
+          batteryId={batteryHistoryId}
+          onClose={handleCloseHistoryModal}
+        />
+      )}
     </AdminLayout>
   );
 }

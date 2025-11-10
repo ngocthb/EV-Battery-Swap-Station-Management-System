@@ -17,6 +17,7 @@ import {
   Box,
   Calendar,
   BarChart2,
+  Notebook,
 } from "lucide-react";
 import { RolePermission } from "@/hooks/rolePermission";
 import Image from "next/image";
@@ -44,6 +45,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       label: "Quản lý Trạm",
       href: "/admin/stations",
       icon: MapPin,
+    },
+    {
+      id: "feedbacks",
+      label: "Quản lý Đánh giá của trạm",
+      href: "/admin/feedbacks",
+      icon: Notebook,
     },
     { id: "cabins", label: "Quản lý Tủ pin", href: "/admin/cabins", icon: Zap },
     { id: "slots", label: "Quản lý Ô Sạc", href: "/admin/slots", icon: Box },
@@ -80,7 +87,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     {
       id: "booking",
       label: "Quản lý Đặt lịch",
-      href: "/admin/booking",
+      href: "/admin/bookings",
+      icon: Calendar,
+    },
+
+    {
+      id: "report",
+      label: "Quản lý Báo cáo",
+      href: "/admin/reports",
       icon: Calendar,
     },
     {

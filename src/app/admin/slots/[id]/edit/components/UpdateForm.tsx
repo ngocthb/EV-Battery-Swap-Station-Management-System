@@ -55,8 +55,6 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
   const router = useRouter();
   const [form, setForm] = useState({
     name: "",
-    cabinetId: 0,
-    batteryId: 0,
     status: "",
   });
 
@@ -81,8 +79,6 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
       console.log("slot detail", res.data);
       setForm({
         name: res.data?.name,
-        cabinetId: res.data?.cabinetId,
-        batteryId: res.data?.batteryId,
         status: res.data?.status,
       });
       setBatteryOfSlot(res.data.battery);
@@ -102,43 +98,42 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
   // end 1 fetch slot
 
   // 2. get cabin detail khi có form.cabinId để lấy đc battery type và lấy battery list theo type
-  const handleGetCabinDetail = async () => {
-    try {
-      // 2.1
-      const res = await getCabinetByIdAPI(form.cabinetId);
+  // const handleGetCabinDetail = async () => {
+  //   try {
+  //     // 2.1
+  //     const res = await getCabinetByIdAPI(form.cabinetId);
 
-      // 2.2
-      const batteryType = await getBatteryTypeById(res.data.batteryTypeId);
-      setBatteryTypeDetail(batteryType.data);
+  //     // 2.2
+  //     const batteryType = await getBatteryTypeById(res.data.batteryTypeId);
+  //     setBatteryTypeDetail(batteryType.data);
 
-      // 2.3
-      const batteryListRes = await getAllBatteryByTypeAPI(
-        res.data.batteryTypeId,
-        { page: 0, limit: 0, search: "" }
-      );
-      // 2.4 filter 1 lần nữa
-      const newBatteryList = batteryListRes.data.filter(
-        (item: Battery) =>
-          item.slotId == 0 ||
-          (item.slotId == null && item.userVehicleId == null)
-      );
-      // 2.5 thêm battery của slot vô battery list
-      if (
-        batteryOfSlot &&
-        !newBatteryList.some((b: Battery) => b.id === batteryOfSlot.id)
-      ) {
-        newBatteryList.unshift(batteryOfSlot);
-      }
+  //     // 2.3
+  //     const batteryListRes = await getAllBatteryByTypeAPI(
+  //       res.data.batteryTypeId,
+  //       { page: 0, limit: 0, search: "" }
+  //     );
+  //     // 2.4 filter 1 lần nữa
+  //     const newBatteryList = batteryListRes.data.filter(
+  //       (item: Battery) =>
+  //         item.slotId == 0 ||
+  //         (item.slotId == null && item.userVehicleId == null)
+  //     );
+  //     // 2.5 thêm battery của slot vô battery list
+  //     if (
+  //       batteryOfSlot &&
+  //       !newBatteryList.some((b: Battery) => b.id === batteryOfSlot.id)
+  //     ) {
+  //       newBatteryList.unshift(batteryOfSlot);
+  //     }
 
-      setBatteryList(newBatteryList);
-    } catch (error) {
-      console.log("get cabin detail err", error);
-    }
-  };
-  useEffect(() => {
-    if (form.cabinetId === 0) return;
-    handleGetCabinDetail();
-  }, [form]);
+  //     setBatteryList(newBatteryList);
+  //   } catch (error) {
+  //     console.log("get cabin detail err", error);
+  //   }
+  // };
+  // useEffect(() => {
+  //   handleGetCabinDetail();
+  // }, [form]);
   // end get cabin detail
 
   const validateForm = () => {
@@ -148,10 +143,6 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
       newErrors.name = "Tên ô sạc không được để trống";
     } else if (form.name.trim().length < 2) {
       newErrors.name = "Tên ô sạc phải có ít nhất 2 ký tự";
-    }
-
-    if (!form.cabinetId || form.cabinetId <= 0) {
-      newErrors.cabinetId = "Vui lòng chọn tủ";
     }
 
     setErrors(newErrors);
@@ -189,8 +180,8 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
     setLoading(true);
     try {
       console.log("update slot form", form);
-      const { cabinetId, ...newUpdateForm } = form;
-      const response = await updateSlotAPI(slotId, newUpdateForm);
+
+      const response = await updateSlotAPI(slotId, form);
 
       if (response.success) {
         toast.success(response.message);
@@ -243,7 +234,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
       <form className="flex-1 overflow-auto p-6 scrollbar-custom">
         <div className="space-y-6">
           {/*cabinet */}
-          <div>
+          {/* <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4" />
               <span>Tủ pin /</span>
@@ -272,7 +263,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
           {/* Name */}
           <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
@@ -294,7 +285,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
           </div>
 
           {/*battery */}
-          <div>
+          {/* <div>
             <label className="flex items-center space-x-2 text-sm font-medium text-gray-700 mb-2">
               <MapPin className="w-4 h-4" />
               <span>Pin</span>
@@ -310,21 +301,21 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
               }}
               className="px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 w-full"
             >
-              {/* {batteryOfSlot ? (
+              {batteryOfSlot ? (
                 <option value={form.batteryId}>
                   {batteryOfSlot.model} - Loại pin{" "}
                   {batteryOfSlot?.batteryTypeId}
                 </option>
               ) : (
                 <option value={0}>Chọn pin</option>
-              )} */}
+              )}
               {batteryList?.map((battery) => (
                 <option key={battery.id} value={battery.id}>
                   {battery.model} - {battery?.batteryType?.name}
                 </option>
               ))}
             </select>
-          </div>
+          </div> */}
 
           {/*status */}
           <div>
@@ -345,9 +336,7 @@ const UpdateForm: React.FC<UpdateFormProps> = ({ slotId }) => {
               <option value="CHARGING">Đang sạc</option>
               <option value="RESERVED">Đã đặt</option>
               <option value="SWAPPING">Đang đổi</option>
-              {form.batteryId == 0 && (
-                <option value="EMPTY">Chưa có pin</option>
-              )}
+              <option value="EMPTY">Trống</option>
             </select>
           </div>
 

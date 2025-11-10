@@ -36,3 +36,8 @@ export const getPaymentMethods = async (params: {
     );
   }
 };
+
+export const getPaymentMethodListAPI = async <T>(params: T) => {
+  const res = await api.get("/payment", { params });
+  return res.data;
+};

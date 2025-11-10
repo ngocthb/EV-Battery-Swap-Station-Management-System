@@ -6,6 +6,8 @@ type FilterBarProps = {
   query: QueryParams;
   loading: boolean;
   resultCount?: number;
+  showStatus?: boolean;
+  showOrder?: boolean;
   onSearch: (val: string) => void;
   onChangeStatus?: (val: string) => void;
   onUpdateQuery: (
@@ -20,6 +22,8 @@ function FilterSearch({
   query,
   loading,
   resultCount = 0,
+  showStatus = true,
+  showOrder = true,
   onSearch,
   onChangeStatus,
   onUpdateQuery,
@@ -29,8 +33,8 @@ function FilterSearch({
     query.search ||
     query.page !== 1 ||
     query.limit !== 10 ||
-    query.status !== "" ||
-    query.order !== "asc";
+    (showOrder && query.order !== "asc") ||
+    (showStatus && query.status !== "");
   return (
     <div className="p-6 border-b border-gray-200">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -40,7 +44,7 @@ function FilterSearch({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Tìm kiếm..."
+              placeholder="Tìm kiếm theo tên..."
               value={query.search}
               onChange={(e) => onSearch(e.target.value)}
               disabled={loading}
@@ -65,10 +69,9 @@ function FilterSearch({
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[120px]"
             >
               <option value="">Trạng thái</option>
-              <option value="SUCCESS">Thành công</option>
-              <option value="PENDING">Chờ thanh toán</option>
-              <option value="FAILED">Lỗi giao dịch</option>
-              <option value="CANCELLED">Đã hủy</option>
+              <option value="VERIFIED">Đã xác thực</option>
+              <option value="PENDING_VERIFICATION">Chờ xác thực</option>
+              <option value="INACTIVE">Chưa kích hoạt</option>
             </select>
             {/* Sort order */}
             <select

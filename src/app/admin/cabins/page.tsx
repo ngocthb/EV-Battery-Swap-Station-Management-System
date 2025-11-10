@@ -68,8 +68,6 @@ export default function CabinsPage() {
     debouncedQuery
   );
 
-  console.log("cabinList", cabinList);
-
   // fetch all station
   const { data: stationList = [] } = useFetchList<Station[], QueryParams>(
     getAllStationList

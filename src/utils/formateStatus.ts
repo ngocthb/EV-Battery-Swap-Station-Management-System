@@ -237,3 +237,69 @@ export const getTransactionStatusLabel = (status: string) => {
       return "Không xác định";
   }
 };
+
+// User
+export const getUserRoleColor = (role: string) => {
+  switch (role) {
+    case "AMIN":
+      return "bg-purple-100 text-purple-800";
+    case "STAFF":
+      return "bg-blue-100 text-blue-800";
+    case "USER":
+      return "bg-gray-100 text-gray-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+export const getUserRoleText = (role: string) => {
+  switch (role) {
+    case "ADMIN":
+      return "Quản lý";
+    case "STAFF":
+      return "Nhân viên";
+    case "USER":
+      return "Khách hàng";
+    default:
+      return "Unknown";
+  }
+};
+
+export const getUserStatusText = (status: string) => {
+  switch (status) {
+    case "VERIFIED":
+      return "Đã xác thực";
+    case "PENDING_VERIFICATION":
+      return "Chưa xác thực";
+    case "INACTIVE":
+      return "Chưa kích hoạt";
+    default:
+      return "Unknown";
+  }
+};
+
+export const getUserStatusColor = (status: string) => {
+  switch (status) {
+    case "VERIFIED":
+      return "bg-green-100 text-green-800";
+    case "PENDING_VERIFICATION":
+      return "bg-yellow-100 text-yellow-800";
+    case "INACTIVE":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+export const getMembershipColor = (type: string) => {
+  switch (type) {
+    case "premium":
+      return "bg-yellow-100 text-yellow-800";
+    case "standard":
+      return "bg-blue-100 text-blue-800";
+    case "basic":
+      return "bg-gray-100 text-gray-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};

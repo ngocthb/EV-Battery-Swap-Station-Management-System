@@ -1,5 +1,13 @@
 import api from "@/lib/axios";
 
+export const getFeedbackByStationIdListAPI = async <T>(
+  id: number,
+  params: T
+) => {
+  const res = await api.get(`/feedback/station/${id}`, { params });
+  return res.data;
+};
+
 export interface Feedback {
   id: number;
   userId: number;

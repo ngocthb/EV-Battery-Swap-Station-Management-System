@@ -187,7 +187,6 @@ const BookingModal: React.FC<BookingModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("bookingData", bookingData);
     try {
       const res = await createBookingAPI(bookingData);
       toast.success(res?.message || "Đặt lịch thành công");
@@ -205,6 +204,24 @@ const BookingModal: React.FC<BookingModalProps> = ({
       console.log("create booking err", err);
       toast.warn(err.response?.data?.message || "Không thể chọn");
     }
+  };
+
+  // Kiểm tra dữ liệu booking data
+  const isBookingDataValid = () => {
+    const { userVehicleId, stationId, userLat, userLng, bookingDetails } =
+      bookingData;
+    const hasBattery =
+      bookingDetails?.[0]?.batteryId && bookingDetails[0].batteryId !== 0;
+    const hasMessage = bookingMessage?.includes("Hãy"); // nếu có từ "Hãy" mới hợp lệ
+
+    return (
+      userVehicleId !== 0 &&
+      stationId !== 0 &&
+      userLat !== 0 &&
+      userLng !== 0 &&
+      hasBattery &&
+      hasMessage
+    );
   };
 
   if (!openBookingModal) return null;
@@ -397,8 +414,14 @@ const BookingModal: React.FC<BookingModalProps> = ({
               </button>
               <button
                 type="button"
+                disabled={!isBookingDataValid()}
                 onClick={handleSubmit}
-                className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition"
+                className={`px-4 py-2 rounded-lg text-white transition 
+                ${
+                  isBookingDataValid()
+                    ? "bg-blue-600 hover:bg-blue-700 cursor-pointer"
+                    : "bg-gray-300 cursor-not-allowed"
+                }`}
               >
                 Xác nhận
               </button>

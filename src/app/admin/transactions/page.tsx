@@ -13,7 +13,10 @@ import StatsList from "./components/StatsList";
 import { useRouter } from "next/navigation";
 import { formatDateHCM } from "@/utils/format";
 import { getAllTransactionAPI } from "@/services/transactionService";
-import { getTransactionStatusLabel } from "@/utils/formateStatus";
+import {
+  getTransactionStatusLabel,
+  getTransactionStatusStyle,
+} from "@/utils/formateStatus";
 
 function AdminTransactionPage() {
   const router = useRouter();
@@ -132,14 +135,24 @@ function AdminTransactionPage() {
                         {transaction?.payment?.name}
                       </td>
                       {/*price */}
-                      <td className="px-6 py-4">{transaction?.totalPrice}</td>
+                      <td className="px-6 py-4">
+                        {Number(transaction?.totalPrice)?.toLocaleString(
+                          "vi-VN"
+                        )}
+                      </td>
                       {/*date time*/}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {transaction?.dateTime}
+                        {formatDateHCM(String(transaction?.dateTime))}
                       </td>
-                      {/*status */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {getTransactionStatusLabel(transaction?.status)}
+                      {/* status */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <span
+                          className={`px-2 py-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTransactionStatusStyle(
+                            transaction?.status
+                          )}`}
+                        >
+                          {getTransactionStatusLabel(transaction?.status)}
+                        </span>
                       </td>
                     </tr>
                   ))

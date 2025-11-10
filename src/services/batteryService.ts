@@ -33,3 +33,18 @@ export const restoreBatteryAPI = async (id: number) => {
   const res = await api.patch(`/battery/restore/${id}`);
   return res.data;
 };
+
+export const getBatteryHistoryByBatteryId = async (id: number) => {
+  const res = await api.get(`/battery-used-history/battery/${id}`);
+  return res.data;
+};
+
+export const getBatteryHistoryByUserId = async (id: number) => {
+  const res = await api.get(`/battery-used-history/user/${id}`);
+  return res.data;
+};
+
+export const getBatteryHistoryByBookingId = async (id: number) => {
+  const res = await api.get(`/battery-used-history/booking/${id}`);
+  return res.data;
+};

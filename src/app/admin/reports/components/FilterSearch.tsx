@@ -6,8 +6,12 @@ type FilterBarProps = {
   query: QueryParams;
   loading: boolean;
   resultCount?: number;
+  showStatus?: boolean;
+  showOrder?: boolean;
+  showStation?: boolean;
+  stationList?: Station[];
   onSearch: (val: string) => void;
-  onChangeStatus?: (val: string) => void;
+  onChangeStatus?: (val: boolean) => void;
   onUpdateQuery: (
     newQuery: Partial<
       Record<string, string | number | boolean | null | undefined>
@@ -20,8 +24,8 @@ function FilterSearch({
   query,
   loading,
   resultCount = 0,
+  stationList = [],
   onSearch,
-  onChangeStatus,
   onUpdateQuery,
   onReset,
 }: FilterBarProps) {
@@ -29,8 +33,8 @@ function FilterSearch({
     query.search ||
     query.page !== 1 ||
     query.limit !== 10 ||
-    query.status !== "" ||
-    query.order !== "asc";
+    query.stationId !== 1 ||
+    query.status !== "PENDING"; 
   return (
     <div className="p-6 border-b border-gray-200">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -40,7 +44,7 @@ function FilterSearch({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Tìm kiếm..."
+              placeholder="Tìm kiếm"
               value={query.search}
               onChange={(e) => onSearch(e.target.value)}
               disabled={loading}
@@ -57,19 +61,6 @@ function FilterSearch({
           </div>
 
           <div className="flex gap-3">
-            {/* Status filter */}
-            <select
-              value={String(query.status)}
-              onChange={(e) => onChangeStatus?.(e.target.value)}
-              disabled={loading}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[120px]"
-            >
-              <option value="">Trạng thái</option>
-              <option value="SUCCESS">Thành công</option>
-              <option value="PENDING">Chờ thanh toán</option>
-              <option value="FAILED">Lỗi giao dịch</option>
-              <option value="CANCELLED">Đã hủy</option>
-            </select>
             {/* Sort order */}
             <select
               value={query.order}
@@ -79,6 +70,22 @@ function FilterSearch({
             >
               <option value="ASC">A → Z</option>
               <option value="DESC">Z → A</option>
+            </select>
+
+            {/*Station */}
+            <select
+              value={String(query.stationId || "")}
+              onChange={(e) =>
+                onUpdateQuery({ stationId: Number(e.target.value) })
+              }
+              disabled={loading}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 min-w-[100px]"
+            >
+              {stationList.map((station) => (
+                <option key={station.id} value={station.id}>
+                  {station.name}
+                </option>
+              ))}
             </select>
 
             {/* Items per page */}
@@ -106,7 +113,7 @@ function FilterSearch({
                 <span>Đang tải...</span>
               </span>
             ) : (
-              `Tìm thấy ${resultCount} trạm`
+              `Tìm thấy ${resultCount}`
             )}
           </p>
           {isFiltered && !loading && (

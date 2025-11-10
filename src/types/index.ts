@@ -200,7 +200,7 @@ export interface Transaction {
   status: "SUCCESS" | "PENDING" | "FAILED" | "CANCELLED";
   dateTime?: string;
   totalPrice?: string;
-  userMembership?: string | null;
+  userMembership?: UserMemberShip;
   paymentUrl?: string | null;
 }
 
@@ -270,6 +270,7 @@ export interface BookingDetail {
   batteryId: number;
   price?: number | string | null;
   status: string;
+  bookingId?: number;
 }
 
 export interface Booking {
@@ -307,4 +308,23 @@ export interface MembershipResponse {
 export interface PaginationParams {
   page?: number;
   limit?: number;
+}
+
+export interface FeedBack {
+  id?: number;
+  userId?: number;
+  stationId?: number;
+  content?: string;
+  rating?: number;
+  status?: boolean;
+  createdAt?: string;
+}
+
+export interface Report {
+  id?: number;
+  bookingDetail?: BookingDetail;
+  description?: string;
+  faultyBatteryId?: number;
+  status?: "PENDING";
+  user?: User;
 }

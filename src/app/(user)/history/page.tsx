@@ -8,6 +8,7 @@ import { CalendarDays, CreditCard } from "lucide-react";
 import { useState } from "react";
 import BookingHistory from "./component/BookingHistory";
 import { formatDateHCM } from "@/utils/format";
+import TransactionHistory from "./component/TransactionHistory";
 
 const ProfilePage: React.FC = () => {
   const { user, refreshProfile } = useAuth();
@@ -16,14 +17,10 @@ const ProfilePage: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<"payment" | "booking">("booking");
 
-  const { data: bookingList = [], refresh } = useFetchList<[]>(
-    getUserBookingListAPI
-  );
-
   return (
     <UserLayout>
       <div className="px-16 py-8 bg-gray-50 min-h-screen">
-        <h2 className="text-2xl font-semibold mb-6">Hồ sơ của tôi</h2>
+        <h2 className="text-2xl font-semibold mb-6">Thông tin đặt lịch</h2>
 
         <div className="grid grid-cols-12 gap-6">
           {/* LEFT SIDEBAR */}
@@ -45,9 +42,12 @@ const ProfilePage: React.FC = () => {
                       {user?.memberships?.[0]?.membership?.name ??
                         "Chưa có thẻ"}
                     </h3>
-                    <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
-                      {user?.memberships?.[0]?.remainingSwaps ?? 0} lần còn lại
-                    </span>
+                    {user?.memberships?.[0]?.membership?.name !== "VIP" && (
+                      <span className="text-xs bg-white/20 px-2 py-1 rounded-full">
+                        {user?.memberships?.[0]?.remainingSwaps ?? 0} lần còn
+                        lại
+                      </span>
+                    )}
                   </div>
 
                   <p className="text-sm">
@@ -102,17 +102,7 @@ const ProfilePage: React.FC = () => {
           <div className="col-span-12 lg:col-span-8 space-y-6">
             {activeTab === "booking" && <BookingHistory />}
 
-            {activeTab === "payment" && (
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                  Lịch sử thanh toán
-                </h3>
-                <p className="text-gray-600 text-sm">
-                  Hiển thị danh sách các giao dịch của bạn...
-                </p>
-                {/* TODO: Render payment history list */}
-              </div>
-            )}
+            {activeTab === "payment" && <TransactionHistory />}
           </div>
         </div>
       </div>
