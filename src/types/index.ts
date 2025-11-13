@@ -136,6 +136,9 @@ export interface Station {
   image?: string;
   swappableBatteries: number;
   slotAvailable?: number;
+  bookingCount?: number;
+  avgRating?: number;
+  feedbackCount?: number;
 }
 
 export interface Battery {

@@ -79,7 +79,7 @@ export default function AdminStaffPage() {
           </div>
           <div
             onClick={() => setOpenCreateModal(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Thêm nhân viên mới</span>
@@ -214,6 +214,7 @@ export default function AdminStaffPage() {
         <CreateStaffModal
           openCreateModal={openCreateModal}
           setOpenCreateModal={setOpenCreateModal}
+          refresh={refresh}
         />
       )}
     </AdminLayout>

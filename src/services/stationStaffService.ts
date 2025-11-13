@@ -11,6 +11,10 @@ export const getAllStationStaffByStation = async <T>(params: T) => {
 };
 
 export const createStationStaffAPI = async <T>(data: T) => {
-  const res = await api.post("/station-staff/create-account", data);
+  const res = await api.post("/station-staff/import-excel", data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return res.data;
 };
