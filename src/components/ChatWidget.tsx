@@ -64,7 +64,7 @@ export default function ChatWidget() {
       setRoomDetail(roomData);
 
       // Kết nối socket
-      const socket = io("http://localhost:8080/chat", {
+      const socket = io("https://amply.io.vn/chat", {
         transports: ["websocket"],
         withCredentials: true,
       });
@@ -73,7 +73,7 @@ export default function ChatWidget() {
 
       socket.on("connect", () => {
         console.log("Connected:", socket.id);
-        socket.emit("joinRoom", { roomId: roomData.id }); 
+        socket.emit("joinRoom", { roomId: roomData.id });
       });
 
       socket.on("receiveMessage", (msg) => {
