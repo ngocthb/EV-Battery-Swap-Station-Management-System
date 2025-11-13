@@ -94,7 +94,7 @@ function ChatWithCustomer() {
   // connect socket first
   useEffect(() => {
     console.log("Connecting to socket...");
-    const socket = io("http://localhost:8080/chat", {
+    const socket = io("https://amply.io.vn/chat", {
       // const socket = io("http://146.190.95.182:8080/chat", {
       transports: ["websocket"],
       withCredentials: true,
@@ -162,7 +162,7 @@ function ChatWithCustomer() {
       const chatDetail = await getChatRoomByRoomId(selectedChat?.id as number);
 
       setChatRoomDetail(chatDetail?.data);
-      setMessageList(chatDetail?.data?.messages || []); 
+      setMessageList(chatDetail?.data?.messages || []);
 
       const resSendMessage = await sendMessageAPI({
         roomId: selectedChat?.id,

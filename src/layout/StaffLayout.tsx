@@ -60,6 +60,12 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
       href: "/staff/chat",
       icon: MessageCircleMore,
     },
+    {
+      id: "reports",
+      label: "Báo cáo",
+      href: "/staff/reports",
+      icon: Search,
+    },
   ];
 
   return (
