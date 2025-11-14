@@ -3,7 +3,12 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Membership, MembershipResponse } from "@/types/index";
 import { getPublicMemberships } from "@/services/membershipService";
-import { createUserMembership } from "@/services/userMembershipService";
+import {
+  createUserMembership,
+  upgradeUserMembership,
+  getCurrentUserMembership,
+  UserMembership,
+} from "@/services/userMembershipService";
 import { toast } from "react-toastify";
 import MembershipCard from "./components/MembershipCard";
 import ConfirmationModal from "./components/ConfirmationModal";
@@ -21,8 +26,28 @@ const MembershipList: React.FC = () => {
     useState<Membership | null>(null);
   const [subscribing, setSubscribing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentUserMembership, setCurrentUserMembership] =
+    useState<UserMembership | null>(null);
 
   const params = useMemo(() => ({ page, limit }), [page, limit]);
+
+  /**
+   * Fetch current user's active membership
+   */
+  const fetchCurrentMembership = async () => {
+    try {
+      const response = await getCurrentUserMembership();
+      if (response.success && response.data) {
+        setCurrentUserMembership(response.data);
+      } else {
+        setCurrentUserMembership(null);
+      }
+    } catch (err: any) {
+      // User might not have an active membership, which is okay
+      console.log("No active membership found or error:", err.message);
+      setCurrentUserMembership(null);
+    }
+  };
 
   /**
    * Fetch all available memberships from the API
@@ -50,8 +75,36 @@ const MembershipList: React.FC = () => {
   };
 
   useEffect(() => {
+    fetchCurrentMembership();
     fetchMemberships();
   }, [page, limit]);
+
+  /**
+   * Determine membership tier for comparison
+   */
+  const getMembershipTier = (name: string): number => {
+    const tiers: { [key: string]: number } = {
+      Basic: 1,
+      Premium: 2,
+      VIP: 3,
+      Vip: 3,
+    };
+    return tiers[name] || 0;
+  };
+
+  /**
+   * Check if the selected membership is an upgrade
+   */
+  const isUpgrade = (targetMembership: Membership): boolean => {
+    if (!currentUserMembership) return false;
+
+    const currentTier = getMembershipTier(
+      currentUserMembership.membership.name
+    );
+    const targetTier = getMembershipTier(targetMembership.name);
+
+    return targetTier > currentTier;
+  };
 
   /**
    * Handle when user clicks on "Select this package" button
@@ -60,6 +113,25 @@ const MembershipList: React.FC = () => {
   const handleSelectMembership = (id: number) => {
     const membership = memberships.find((m) => m.id === id);
     if (membership) {
+      // Check if it's the current plan
+      if (currentUserMembership && currentUserMembership.membership.id === id) {
+        toast.info("Đây là gói bạn đang sử dụng");
+        return;
+      }
+
+      // Check if it's a downgrade
+      if (currentUserMembership) {
+        const currentTier = getMembershipTier(
+          currentUserMembership.membership.name
+        );
+        const targetTier = getMembershipTier(membership.name);
+
+        if (targetTier <= currentTier) {
+          toast.warning("Chỉ có thể nâng cấp gói, không thể hạ cấp");
+          return;
+        }
+      }
+
       setSelectedMembership(membership);
       setIsModalOpen(true);
     }
@@ -77,7 +149,7 @@ const MembershipList: React.FC = () => {
 
   /**
    * Handle subscription confirmation
-   * Creates user membership and redirects to payment URL
+   * Creates user membership or upgrades existing membership and redirects to payment URL
    */
   const handleConfirmSubscription = async () => {
     if (!selectedMembership) return;
@@ -85,30 +157,42 @@ const MembershipList: React.FC = () => {
     setSubscribing(true);
 
     try {
-      // Create user membership with e-wallet payment
-      // Authentication token is automatically added by axios interceptor
-      const response = await createUserMembership({
-        membershipId: selectedMembership.id,
-        paymentId: PAYMENT_METHOD_ID,
-      });
+      let response;
+
+      // Use upgrade API if user has active membership, otherwise use create API
+      if (currentUserMembership && isUpgrade(selectedMembership)) {
+        response = await upgradeUserMembership({
+          newMembershipId: selectedMembership.id,
+          paymentId: PAYMENT_METHOD_ID,
+        });
+      } else {
+        response = await createUserMembership({
+          membershipId: selectedMembership.id,
+          paymentId: PAYMENT_METHOD_ID,
+        });
+      }
 
       if (response.success && response.data.paymentUrl) {
-        toast.success(
-          "Đăng ký gói thành công! Đang chuyển đến trang thanh toán..."
-        );
+        const message = currentUserMembership
+          ? "Nâng cấp gói thành công! Đang chuyển đến trang thanh toán..."
+          : "Đăng ký gói thành công! Đang chuyển đến trang thanh toán...";
+
+        toast.success(message);
 
         // Redirect to payment URL
         setTimeout(() => {
           window.location.href = response.data.paymentUrl;
         }, 1500);
       } else {
-        throw new Error(response.message || "Không thể tạo gói thành viên");
+        throw new Error(
+          response.message || "Không thể tạo/nâng cấp gói thành viên"
+        );
       }
     } catch (error: any) {
       const errorMessage =
         error?.response?.data?.message ||
         error?.message ||
-        "Đăng ký gói thất bại";
+        "Đăng ký/Nâng cấp gói thất bại";
       toast.error(errorMessage);
 
       // Close modal on error so user can try again
@@ -178,6 +262,9 @@ const MembershipList: React.FC = () => {
     );
   }
 
+  // Get current membership details for display
+  const currentMembership = currentUserMembership?.membership || null;
+
   return (
     <UserLayout>
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -190,6 +277,14 @@ const MembershipList: React.FC = () => {
             <p className="text-xl text-gray-600">
               Đổi pin dễ dàng, tiện lợi với các gói thành viên đa dạng
             </p>
+            {currentMembership && (
+              <div className="mt-4 inline-block rounded-lg bg-green-100 px-6 py-2">
+                <p className="text-sm font-medium text-green-800">
+                  Gói hiện tại:{" "}
+                  <span className="font-bold">{currentMembership.name}</span>
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Membership Cards Grid */}
@@ -206,6 +301,8 @@ const MembershipList: React.FC = () => {
                   onSelect={handleSelectMembership}
                   isLoading={false}
                   isSelected={selectedMembership?.id === membership.id}
+                  currentMembership={currentMembership}
+                  isCurrentPlan={currentMembership?.id === membership.id}
                 />
               ))}
             </div>

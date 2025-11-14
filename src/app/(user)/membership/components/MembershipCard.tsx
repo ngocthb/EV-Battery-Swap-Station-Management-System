@@ -6,6 +6,8 @@ interface MembershipCardProps {
   onSelect: (id: number) => void;
   isLoading?: boolean;
   isSelected?: boolean;
+  currentMembership?: Membership | null;
+  isCurrentPlan?: boolean;
 }
 
 const MembershipCard: React.FC<MembershipCardProps> = ({
@@ -13,6 +15,8 @@ const MembershipCard: React.FC<MembershipCardProps> = ({
   onSelect,
   isLoading = false,
   isSelected = false,
+  currentMembership = null,
+  isCurrentPlan = false,
 }) => {
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat("vi-VN", {
@@ -23,18 +27,81 @@ const MembershipCard: React.FC<MembershipCardProps> = ({
 
   const isPopular = membership.name === "Premium";
 
+  // Determine membership hierarchy (lower number = lower tier)
+  const getMembershipTier = (name: string): number => {
+    const tiers: { [key: string]: number } = {
+      Basic: 1,
+      Premium: 2,
+      VIP: 3,
+      Vip: 3,
+    };
+    return tiers[name] || 0;
+  };
+
+  // Check if this is an upgrade, downgrade, or new subscription
+  const getButtonState = () => {
+    if (!currentMembership) {
+      return {
+        text: "Chọn gói này",
+        disabled: false,
+        isUpgrade: false,
+        isDowngrade: false,
+      };
+    }
+
+    if (isCurrentPlan) {
+      return {
+        text: "Gói hiện tại",
+        disabled: true,
+        isUpgrade: false,
+        isDowngrade: false,
+      };
+    }
+
+    const currentTier = getMembershipTier(currentMembership.name);
+    const targetTier = getMembershipTier(membership.name);
+
+    if (targetTier > currentTier) {
+      return {
+        text: "Nâng cấp gói",
+        disabled: false,
+        isUpgrade: true,
+        isDowngrade: false,
+      };
+    } else {
+      return {
+        text: "Không thể hạ cấp",
+        disabled: true,
+        isUpgrade: false,
+        isDowngrade: true,
+      };
+    }
+  };
+
+  const buttonState = getButtonState();
+
   return (
     <div
       className={`relative rounded-2xl border-2 p-8 transition-all duration-300 hover:shadow-xl ${
         isPopular
           ? "border-blue-500 bg-gradient-to-br from-blue-50 to-white"
           : "border-gray-200 bg-white hover:border-blue-300"
-      } ${isSelected ? "ring-4 ring-blue-400" : ""}`}
+      } ${isSelected ? "ring-4 ring-blue-400" : ""} ${
+        isCurrentPlan ? "ring-2 ring-green-500" : ""
+      }`}
     >
       {isPopular && (
         <div className="absolute -top-4 left-1/2 -translate-x-1/2 transform">
           <span className="rounded-full bg-blue-500 px-4 py-1 text-sm font-semibold text-white shadow-lg">
             Phổ biến nhất
+          </span>
+        </div>
+      )}
+
+      {isCurrentPlan && (
+        <div className="absolute -top-4 right-4">
+          <span className="rounded-full bg-green-500 px-4 py-1 text-sm font-semibold text-white shadow-lg">
+            Đang sử dụng
           </span>
         </div>
       )}
@@ -114,10 +181,14 @@ const MembershipCard: React.FC<MembershipCardProps> = ({
 
         <button
           onClick={() => onSelect(membership.id)}
-          disabled={isLoading}
+          disabled={isLoading || buttonState.disabled}
           className={`w-full rounded-lg px-6 py-3 font-semibold text-white transition-all duration-300 ${
-            isPopular
+            buttonState.isUpgrade
+              ? "bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg hover:shadow-xl"
+              : isPopular && !buttonState.disabled
               ? "bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl"
+              : buttonState.disabled
+              ? "bg-gray-400 cursor-not-allowed"
               : "bg-gray-800 hover:bg-gray-900"
           } disabled:cursor-not-allowed disabled:opacity-50`}
         >
@@ -146,9 +217,15 @@ const MembershipCard: React.FC<MembershipCardProps> = ({
               Đang xử lý...
             </span>
           ) : (
-            "Chọn gói này"
+            buttonState.text
           )}
         </button>
+
+        {buttonState.isDowngrade && (
+          <p className="mt-2 text-sm text-red-600">
+            Chỉ có thể nâng cấp gói, không thể hạ cấp
+          </p>
+        )}
       </div>
     </div>
   );
