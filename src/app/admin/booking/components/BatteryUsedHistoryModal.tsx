@@ -1,27 +1,30 @@
-import { getBatteryHistoryByBatteryId } from "@/services/batteryService";
+import {
+  getBatteryHistoryByBatteryId,
+  getBatteryHistoryByBookingId,
+} from "@/services/batteryService";
 import { Battery, Zap, X, Pin } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 interface BatteryUsedHistoryModalProps {
-  batteryId: number;
+  bookingId: number;
   onClose: () => void;
 }
 
 const BatteryUsedHistoryModal: React.FC<BatteryUsedHistoryModalProps> = ({
-  batteryId,
+  bookingId,
   onClose,
 }) => {
   const [batteryHistory, setBatteryHistory] = useState<any[] | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!batteryId) return;
+    if (!bookingId) return;
 
     (async () => {
       setIsLoading(true);
       try {
-        const res = await getBatteryHistoryByBatteryId(batteryId);
+        const res = await getBatteryHistoryByBookingId(bookingId);
         const data = Array.isArray(res?.data) ? res.data : [];
         setBatteryHistory(data);
       } catch (error) {
@@ -31,7 +34,7 @@ const BatteryUsedHistoryModal: React.FC<BatteryUsedHistoryModalProps> = ({
         setIsLoading(false);
       }
     })();
-  }, [batteryId]);
+  }, [bookingId]);
 
   return (
     <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
@@ -40,7 +43,7 @@ const BatteryUsedHistoryModal: React.FC<BatteryUsedHistoryModalProps> = ({
           <div>
             <h2 className="text-xl font-bold">Lịch sử sử dụng pin</h2>
             <p className="text-sm text-gray-500">
-              ID của pin: <strong>{batteryId}</strong>
+              ID đơn đặt: <strong>{bookingId}</strong>
             </p>
           </div>
           <button
@@ -75,7 +78,7 @@ const BatteryUsedHistoryModal: React.FC<BatteryUsedHistoryModalProps> = ({
               {(batteryHistory || []).map((item: any) => {
                 const {
                   id,
-                  bookingId,
+                  batteryId,
                   currentCapacity,
                   currentCycle,
                   healthScore,
@@ -98,9 +101,9 @@ const BatteryUsedHistoryModal: React.FC<BatteryUsedHistoryModalProps> = ({
                         <Battery className="w-6 h-6 text-yellow-500" />
                       </div>
                       <div>
-                        {bookingId != null && (
+                        {batteryId != null && (
                           <p className="text-xs text-gray-500">
-                            ID đơn đặt: {bookingId}
+                            ID pin: {batteryId}
                           </p>
                         )}
                         <p className="text-sm font-medium text-gray-800">

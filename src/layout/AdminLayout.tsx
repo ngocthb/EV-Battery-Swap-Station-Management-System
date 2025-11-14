@@ -81,7 +81,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     {
       id: "bookings",
       label: "Đặt lịch",
-      href: "/admin/bookings",
+      href: "/admin/booking",
       icon: Calendar,
     },
 

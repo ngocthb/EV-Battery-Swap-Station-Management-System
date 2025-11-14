@@ -1,5 +1,4 @@
 import api from "@/lib/axios";
-import { Membership } from "@/types";
 
 export const getAllMembershipList = async <T>(params: T) => {
   const res = await api.get("/membership", { params });

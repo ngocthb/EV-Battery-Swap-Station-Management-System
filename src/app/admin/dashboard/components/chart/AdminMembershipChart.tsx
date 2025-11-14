@@ -1,3 +1,5 @@
+
+import { getDashboardUserMembershipChartAPI } from "@/services/dashboardService";
 import React, { useEffect, useState } from "react";
 import {
   PieChart,
@@ -7,9 +9,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-import { getDashboardUserMembershipAPI } from "@/services/dashboardService";
 
-const COLORS = ["#d1d5db", "#3b82f6", "#fbbf24", "#10b981", "#8b5cf6"];
 
 interface MembershipStat {
   membershipId: number;
@@ -25,164 +25,121 @@ interface MembershipData {
   membershipStats: MembershipStat[];
 }
 
+interface MembershipChartItem {
+  name: string;
+  value: number;
+  color: string;
+  [key: string]: string | number;
+}
+
 const AdminMembershipChart = () => {
-  const [chartData, setChartData] = useState<
-    { name: string; value: number; color: string }[]
-  >([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [month, setMonth] = useState<number>(new Date().getMonth() + 1);
-  const [year, setYear] = useState<number>(new Date().getFullYear());
-  const [stats, setStats] = useState<MembershipData | null>(null);
 
-  const fetchMembershipData = async (
-    selectedMonth: number,
-    selectedYear: number
-  ) => {
+  const [chartData, setChartData] = useState<MembershipChartItem[]>([]);
+  const [month, setMonth] = useState(11);
+  const [year, setYear] = useState(2025);
+
+  const fetchUserMembershipChart = async () => {
     try {
-      setLoading(true);
-      console.log(
-        "📊 [Membership] Fetching data for",
-        selectedMonth,
-        "/",
-        selectedYear
-      );
-      const res = await getDashboardUserMembershipAPI({
-        month: selectedMonth,
-        year: selectedYear,
+      const res = await getDashboardUserMembershipChartAPI({
+        month: month,
+        year: year,
       });
-      const data: MembershipData = res?.data;
-      console.log("📊 [Membership] Received data:", data);
 
-      if (data) {
-        setStats(data);
+      const apiData = res.data;
 
-        // Build chart data - always show all memberships in legend
-        const formatted: { name: string; value: number; color: string }[] = [];
-
-        // Add users without membership
-        formatted.push({
-          name: "Không có gói",
-          value: data.usersWithoutMembership,
+      const formatted = [
+        {
+          name: "Miễn phí",
+          value: apiData.usersWithoutMembership,
           color: "#d1d5db",
-        });
+        },
+        ...apiData.membershipStats.map((m: any) => ({
+          name:
+            m.membershipName === "Basic"
+              ? "Cơ bản"
+              : m.membershipName === "Premium"
+              ? "Cao cấp"
+              : m.membershipName === "VIP"
+              ? "Vip"
+              : "Miễn phí",
+          value: m.userCount,
+          color:
+            m.membershipName === "Basic"
+              ? "black"
+              : m.membershipName === "Premium"
+              ? "gold"
+              : m.membershipName === "VIP"
+              ? "#3b82f6"
+              : "#ccc",
+        })),
+      ];
 
-        // Add all membership stats (always include in legend even if count is 0)
-        data.membershipStats.forEach((stat, index) => {
-          formatted.push({
-            name: stat.membershipName,
-            value: stat.userCount,
-            color: COLORS[(index + 1) % COLORS.length],
-          });
-        });
-
-        console.log("📊 [Membership] Formatted data:", formatted);
-        setChartData(formatted);
-      }
+      setChartData(formatted);
     } catch (error) {
-      console.error("❌ [Membership] Error fetching data:", error);
-    } finally {
-      setLoading(false);
+      console.log("fetch membership chart err", error);
     }
   };
 
   useEffect(() => {
-    fetchMembershipData(month, year);
+
+    fetchUserMembershipChart();
   }, [month, year]);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 transition-colors duration-300 hover:border-gray-300">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">
-              Đăng ký thành viên
-            </h3>
-            {stats && (
-              <p className="text-sm text-gray-500 mt-1">
-                Tổng: {stats.totalUsers} người dùng
-              </p>
-            )}
-          </div>
-          <div className="flex gap-2">
-            <select
-              value={month}
-              onChange={(e) => setMonth(Number(e.target.value))}
-              className="border border-gray-300 rounded-md px-3 py-1 text-sm text-gray-700"
-            >
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                <option key={m} value={m}>
-                  Tháng {m}
-                </option>
-              ))}
-            </select>
-            <select
-              value={year}
-              onChange={(e) => setYear(Number(e.target.value))}
-              className="border border-gray-300 rounded-md px-3 py-1 text-sm text-gray-700"
-            >
-              {Array.from(
-                { length: 5 },
-                (_, i) => new Date().getFullYear() - i
-              ).map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
-          </div>
+
+      <div className="mb-6 flex items-center gap-4">
+        <h3 className="text-lg font-semibold text-gray-900">
+          Đăng ký thành viên
+        </h3>
+        <div className="ml-auto gap-2 flex">
+          <select
+            value={month}
+            onChange={(e) => setMonth(Number(e.target.value))}
+            className="border border-gray-300 rounded-full px-3 py-1 text-sm focus:outline-none bg-gray-100"
+          >
+            {[...Array(12)].map((_, i) => (
+              <option key={i} value={i + 1}>
+                Tháng {i + 1}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={year}
+            onChange={(e) => setYear(Number(e.target.value))}
+            className="border border-gray-300 rounded-full px-3 py-1 text-sm focus:outline-none bg-gray-100"
+          >
+            {[2023, 2024, 2025].map((y) => (
+              <option key={y} value={y}>
+                Năm {y}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
-      {/* Chart */}
       <div className="h-[300px] w-full">
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-gray-500">Đang tải dữ liệu...</div>
-          </div>
-        ) : chartData.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-gray-400">Không có dữ liệu thành viên</div>
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <PieChart>
-              <Pie
-                data={chartData}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
 
-              {/* Tooltip */}
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "white",
-                  border: "1px solid #e5e7eb",
-                  color: "black",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                }}
-                formatter={(value: number) => [`${value} người`, "Số lượng"]}
-              />
-
-              {/* Legend */}
-              <Legend
-                verticalAlign="bottom"
-                height={36}
-                iconType="circle"
-                wrapperStyle={{ color: "#374151" }}
-              />
-            </PieChart>
-          </ResponsiveContainer>
-        )}
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
+              outerRadius={100}
+              paddingAngle={5}
+              dataKey="value"
+            >
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.color} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend verticalAlign="bottom" height={36} iconType="circle" />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );

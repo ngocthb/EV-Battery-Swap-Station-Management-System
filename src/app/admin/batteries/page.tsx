@@ -228,27 +228,6 @@ export default function BatteriesPage() {
                           >
                             <Clock className="w-4 h-4" />
                           </button>
-                          {/* {battery?.status === "MAINTENANCE" ? (
-                            <button
-                              onClick={() =>
-                                dispatch(openRestoreModal(battery))
-                              }
-                              className="text-green-600 hover:text-green-900 p-1 disabled:opacity-50"
-                              disabled={loading}
-                              title="Khôi phục pin"
-                            >
-                              <RotateCcw className="w-4 h-4" />
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => dispatch(openDeleteModal(battery))}
-                              className="text-red-600 hover:text-red-900 p-1 disabled:opacity-50"
-                              disabled={loading}
-                              title="Xóa pin"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          )} */}
                         </div>
                       </td>
                     </tr>

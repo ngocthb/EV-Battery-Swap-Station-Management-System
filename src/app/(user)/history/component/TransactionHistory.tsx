@@ -194,10 +194,10 @@ function TransactionHistory() {
                   <div className="flex flex-col justify-between items-end ml-6">
                     <p
                       className={`px-3 py-1 rounded-full text-sm font-semibold ${getTransactionStatusStyle(
-                        t.status
+                        String(t?.status)
                       )}`}
                     >
-                      {getTransactionStatusLabel(t.status)}
+                      {getTransactionStatusLabel(String(t?.status))}
                     </p>
                   </div>
                 </div>

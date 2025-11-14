@@ -78,7 +78,7 @@ function PaymentByCashModal({
                   : "text-gray-600"
               }`}
             >
-              {getTransactionStatusLabel(transactionDetail?.status)}
+              {getTransactionStatusLabel(String(transactionDetail?.status))}
             </span>
           </div>
         </div>

@@ -149,53 +149,45 @@ const AdminTransactionChart = () => {
 
       {/* Chart */}
       <div className="h-[300px] w-full">
-        {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-gray-500">Đang tải dữ liệu...</div>
-          </div>
-        ) : chartData.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="text-gray-400">Không có dữ liệu giao dịch</div>
-          </div>
-        ) : (
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-              <XAxis
-                dataKey="date"
-                stroke="#6B7280"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <YAxis
-                stroke="#6B7280"
-                fontSize={12}
-                tickLine={false}
-                axisLine={false}
-              />
-              <Tooltip
-                contentStyle={{
-                  backgroundColor: "white",
-                  border: "1px solid #e5e7eb",
-                  color: "black",
-                  borderRadius: "8px",
-                  boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-                }}
-                formatter={(value: number) => [`${value} giao dịch`, "Tổng"]}
-                labelFormatter={(label) => `Ngày ${label}`}
-              />
-              <Line
-                type="monotone"
-                dataKey="total"
-                stroke="#3b82f6"
-                strokeWidth={3}
-                dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
-                activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2 }}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        )}
+
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+            <XAxis
+              dataKey="date"
+              stroke="#6B7280"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+            />
+            <YAxis
+              stroke="#6B7280"
+              fontSize={12}
+              tickLine={false}
+              axisLine={false}
+              allowDecimals={false}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: "white",
+                border: "1px solid #e5e7eb",
+                color: "black",
+                borderRadius: "8px",
+                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+              }}
+              formatter={(value: number) => [`${value} giao dịch`, "Tổng"]}
+              labelFormatter={(label) => `Ngày ${label}`}
+            />
+            <Line
+              type="monotone"
+              dataKey="total"
+              stroke="#3b82f6"
+              strokeWidth={3}
+              dot={{ fill: "#3b82f6", strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, stroke: "#3b82f6", strokeWidth: 2 }}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
