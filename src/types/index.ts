@@ -161,6 +161,7 @@ export interface Battery {
   lastChargeTime?: string;
   healthScore?: number;
   estimatedFullChargeTime?: string;
+  station?: Station;
 }
 
 export interface BatteryType {
@@ -193,6 +194,7 @@ export interface Vehicle {
 export interface Payment {
   id: number;
   name: string;
+  description?: string;
 }
 
 export interface Transaction {
@@ -206,6 +208,8 @@ export interface Transaction {
   totalPrice?: string;
   userMembership?: UserMemberShip;
   paymentUrl?: string | null;
+  descrition?: string;
+  paymentMethod?: number;
 }
 
 export interface Membership {
@@ -281,7 +285,7 @@ export interface BookingDetail {
 export interface Booking {
   id: number;
   status?: string;
-  station?: number | null;
+  station?: Station | null;
   isFree?: boolean;
   expectedPickupTime?: string | null;
   createdAt?: string;

@@ -2,12 +2,20 @@
 
 import React, { useMemo, useState } from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
-import { Plus, Shield, User, CheckCircle, XCircle } from "lucide-react";
+import {
+  Plus,
+  Shield,
+  User,
+  CheckCircle,
+  XCircle,
+  RotateCcw,
+  Trash2,
+  Move,
+} from "lucide-react";
 import { useDebounce } from "@/hooks/useDebounce";
 import useQuery from "@/hooks/useQuery";
 import useFetchList from "@/hooks/useFetchList";
-import { Cabinet, QueryParams, Station, StationStaff } from "@/types";
-import { deleteCabinetAPI, restoreCabinetAPI } from "@/services/cabinetService";
+import { QueryParams, Station, StationStaff, User as IUser } from "@/types";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import StatsList from "./components/StatsList";
 import { getAllStationList } from "@/services/stationService";
@@ -15,13 +23,24 @@ import FilterSearch from "./components/FilterSearch";
 import PaginationTable from "@/components/PaginationTable";
 import { useSelector } from "react-redux";
 import { RootState } from "@/store";
-import { getAllStationStaffAPI } from "@/services/stationStaffService";
+import {
+  DeleteStaffAPI,
+  getAllStationStaffAPI,
+  restoreStaffAPI,
+} from "@/services/stationStaffService";
 import CreateStaffModal from "./components/CreateStaffModal";
+import MoveStaffStationModal from "./components/MoveStaffStationModal";
+import DeleteConfirmModal from "./components/DeleteConfirmModal";
+import RestoreConfirmModal from "./components/RestoreConfirmModal";
 
 export default function AdminStaffPage() {
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const { deleteModal, restoreModal } = useSelector(
     (state: RootState) => state.adminModal
+  );
+
+  const [staffMoveStationId, setStaffMoveStationId] = useState<number | null>(
+    null
   );
 
   const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
@@ -128,6 +147,10 @@ export default function AdminStaffPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Trạng thái
                   </th>
+
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Thao tác
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -194,6 +217,41 @@ export default function AdminStaffPage() {
                           </span>
                         )}
                       </td>
+                      {/*Action */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex items-center space-x-2">
+                          <button
+                            className="text-blue-600 hover:text-blue-900 p-1"
+                            title="Đổi trạm"
+                            onClick={() => setStaffMoveStationId(staff?.id)}
+                          >
+                            <Move className="w-4 h-4" />
+                          </button>
+                          {staff?.status === false ? (
+                            <button
+                              // onClick={() =>
+                              //   dispatch(openRestoreModal(vehicleType))
+                              // }
+                              className="text-green-600 hover:text-green-900 p-1 disabled:opacity-50"
+                              disabled={loading}
+                              title="Khôi phục nhân viên"
+                            >
+                              <RotateCcw className="w-4 h-4" />
+                            </button>
+                          ) : (
+                            <button
+                              // onClick={() =>
+                              //   dispatch(openDeleteModal(vehicleType))
+                              // }
+                              className="text-red-600 hover:text-red-900 p-1 disabled:opacity-50"
+                              disabled={loading}
+                              title="Xóa nhân viên"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -210,10 +268,32 @@ export default function AdminStaffPage() {
           />
         </div>
       </div>
+
+      <DeleteConfirmModal
+        user={deleteModal.data as IUser | null}
+        onConfirmAPI={DeleteStaffAPI}
+        refreshList={refresh}
+      />
+
+      {/* Restore Confirmation Modal */}
+      <RestoreConfirmModal
+        user={restoreModal.data as IUser | null}
+        onConfirmAPI={restoreStaffAPI}
+        refreshList={refresh}
+      />
+
       {openCreateModal && (
         <CreateStaffModal
           openCreateModal={openCreateModal}
           setOpenCreateModal={setOpenCreateModal}
+          refresh={refresh}
+        />
+      )}
+
+      {staffMoveStationId && (
+        <MoveStaffStationModal
+          staffId={staffMoveStationId}
+          setStaffMoveStationId={setStaffMoveStationId}
           refresh={refresh}
         />
       )}

@@ -160,11 +160,12 @@ const ViewForm = ({ batteryId }: { batteryId: number }) => {
               </div>
 
               {/* Thuộc ô / tủ */}
-              <div className="flex items-center space-x-3">
+              <div className="flex items-start space-x-3">
                 <MapPin className="w-5 h-5 text-red-600" />
                 <div>
                   <p className="text-sm text-gray-500">Vị trí</p>
                   <p className="text-base font-medium text-gray-800">
+                    {batteryDetail?.station?.name}{" "}
                     {batteryDetail?.slot?.name || "Không có dữ liệu"}{" "}
                     {batteryDetail?.slot?.cabinetId &&
                       `- Tủ ${batteryDetail.slot.cabinetId}`}

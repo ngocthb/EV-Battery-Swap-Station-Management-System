@@ -4,11 +4,56 @@ import RevenueChart from "@/components/Charts/BarChart";
 import UserGrowthChart from "@/components/Charts/LineChart";
 import UserDistributionChart from "@/components/Charts/PieChart";
 import { StaffLayout } from "@/layout/StaffLayout";
+import { getStationById } from "@/services/stationService";
 import { RootState } from "@/store";
+import { Station } from "@/types";
+import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
+import { io } from "socket.io-client";
 
 export default function StaffDashboard() {
   const { user } = useSelector((state: RootState) => state.auth);
+  const [station, setStation] = useState<Station | null>(null);
+  const socketRef = useRef<any>(null);
+
+  const handleStartConnectSocket = async () => {
+    try {
+      // Kết nối socket
+      const socket = io("https://amply.io.vn/chat", {
+        transports: ["websocket"],
+        withCredentials: true,
+      });
+
+      socketRef.current = socket;
+
+      socket.on("connect", () => {
+        console.log("Connected:", socket.id);
+        // socket.emit("joinRoom", { roomId: roomData.id });
+      });
+    } catch (err) {
+      console.error("Lỗi khi bắt đầu chat:", err);
+    }
+  };
+
+  const fetchStationData = async () => {
+    try {
+      const stationResponse = await getStationById(Number(user?.stationId));
+
+      if (stationResponse.success) {
+        setStation(stationResponse.data);
+      }
+    } catch (error: unknown) {
+      console.error("Error fetching station or cabinets:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!socketRef.current) {
+      handleStartConnectSocket();
+    }
+
+    fetchStationData();
+  }, [user]);
 
   return (
     <StaffLayout>
@@ -18,55 +63,17 @@ export default function StaffDashboard() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-4xl font-extrabold text-blue-700 mb-2">
-                Staff Dashboard
+                Nhân viên {station?.name}
               </h1>
               <p className="text-lg text-gray-600 mb-2">
-                Welcome Manage your station operations here.
+                Chào mừng đến trang quản lý
               </p>
             </div>
-            <div className="flex gap-4">
-              <button className="px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-700 transition">
-                Start Shift
-              </button>
-              <button className="px-6 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition">
-                End Shift
-              </button>
-            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-blue-100 dark:bg-gray-800 rounded-xl p-6 flex flex-col items-center shadow">
-              <span className="text-2xl font-bold text-blue-700 mb-2">24</span>
-              <span className="text-gray-600">Batteries Available</span>
-            </div>
-            <div className="bg-blue-100 dark:bg-gray-800 rounded-xl p-6 flex flex-col items-center shadow">
-              <span className="text-2xl font-bold text-blue-700 mb-2">12</span>
-              <span className="text-gray-600">Today's Swaps</span>
-            </div>
-            <div className="bg-blue-100 dark:bg-gray-800 rounded-xl p-6 flex flex-col items-center shadow">
-              <span className="text-2xl font-bold text-blue-700 mb-2">98%</span>
-              <span className="text-gray-600">Station Health</span>
-            </div>
-          </div>
-
+          {/*thông báo socket */}
           <div className="bg-white rounded-xl p-6 shadow mt-4">
-            <h2 className="text-xl font-bold text-blue-700 mb-4">
-              Quick Actions
-            </h2>
-            <div className="flex flex-wrap gap-4">
-              <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                Battery Swap
-              </button>
-              <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                Check Inventory
-              </button>
-              <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                Report Issue
-              </button>
-              <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
-                Maintenance Log
-              </button>
-            </div>
+            <h2 className="text-xl font-bold text-blue-700 mb-4">Thông báo</h2>
           </div>
         </div>
 

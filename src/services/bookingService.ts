@@ -10,6 +10,11 @@ export const getAllBookingListAPI = async <T>(params: T) => {
   return res.data;
 };
 
+export const getBookingByIdAPI = async (id: number) => {
+  const res = await api.get(`/booking/${id}`);
+  return res.data;
+};
+
 export const createBookingAPI = async <T>(data: T) => {
   const res = await api.post("/booking", data);
   return res.data;

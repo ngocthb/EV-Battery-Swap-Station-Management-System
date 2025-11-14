@@ -4,13 +4,22 @@ import {
   Cabinet,
   Slot,
   Station,
+  User,
   VehicleType,
 } from "@/types";
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface ModalState {
   isOpen: boolean;
-  data: Cabinet | Station | Battery | BatteryType | VehicleType | Slot | null;
+  data:
+    | Cabinet
+    | Station
+    | Battery
+    | BatteryType
+    | VehicleType
+    | Slot
+    | User
+    | null;
   loading: boolean;
 }
 
@@ -40,7 +49,7 @@ const adminModalSlice = createSlice({
     openDeleteModal: (
       state,
       action: PayloadAction<
-        Cabinet | Station | Battery | BatteryType | VehicleType | Slot
+        Cabinet | Station | Battery | BatteryType | VehicleType | Slot | User
       >
     ) => {
       state.deleteModal = {
@@ -60,7 +69,7 @@ const adminModalSlice = createSlice({
     openRestoreModal: (
       state,
       action: PayloadAction<
-        Cabinet | Station | Battery | BatteryType | VehicleType | Slot
+        Cabinet | Station | Battery | BatteryType | VehicleType | Slot | User
       >
     ) => {
       state.restoreModal = {

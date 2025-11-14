@@ -18,3 +18,18 @@ export const createStationStaffAPI = async <T>(data: T) => {
   });
   return res.data;
 };
+
+export const transferStaffAPI = async <T>(data: T) => {
+  const res = await api.post("/station-staff/transfer", data);
+  return res.data;
+};
+
+export const restoreStaffAPI = async (id: number) => {
+  const res = await api.patch(`/station-staff/restore/${id}`);
+  return res.data;
+};
+
+export const DeleteStaffAPI = async (id: number) => {
+  const res = await api.patch(`/station-staff/delete/${id}`);
+  return res.data;
+};

@@ -74,7 +74,7 @@ const PaymentSuccessPage: React.FC = () => {
   }, [searchParams]);
 
   const handleGoToMemberships = () => {
-    router.push("/memberships");
+    router.push("/membership");
   };
 
   const handleGoToHome = () => {
