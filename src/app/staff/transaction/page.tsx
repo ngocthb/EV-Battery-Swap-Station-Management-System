@@ -163,6 +163,7 @@ export default function StaffManageUser() {
                           {getTransactionStatusLabel(
                             String(transaction?.status)
                           )}
+
                         </span>
                       </td>
 

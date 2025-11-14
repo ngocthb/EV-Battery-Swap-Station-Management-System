@@ -225,53 +225,6 @@ export default function MembershipsPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <CreditCard className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Tổng gói</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {Array.isArray(membershipList) ? membershipList.length : 0}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CreditCard className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Hoạt động</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {Array.isArray(membershipList)
-                    ? membershipList.filter((m) => m.status === true).length
-                    : 0}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <Clock className="w-6 h-6 text-yellow-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Tạm dừng</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {Array.isArray(membershipList)
-                    ? membershipList.filter((m) => m.status === false).length
-                    : 0}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">

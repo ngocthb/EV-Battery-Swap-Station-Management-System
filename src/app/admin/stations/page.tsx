@@ -110,51 +110,6 @@ export default function StationsPage() {
           </Link>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <MapPin className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Tổng trạm</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stationList?.length}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <MapPin className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Hoạt động</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stationList?.filter((s) => s.status === true).length}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-100">
-            <div className="flex items-center">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <MapPin className="w-6 h-6 text-red-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Offline</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {stationList.filter((s) => s.status === false).length}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
           <FilterSearch
             query={query}

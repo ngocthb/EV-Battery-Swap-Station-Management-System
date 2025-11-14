@@ -14,8 +14,6 @@ export interface Role {
   status: boolean;
   createdAt: Date;
   updatedAt: Date;
-
-  // Quan hệ
   users?: User[];
 }
 
@@ -151,7 +149,13 @@ export interface Battery {
   stationId?: string;
   batteryType?: BatteryType;
   batteryLevel?: number;
-  status: "AVAILABLE" | "CHARGING" | "IN_USE" | "MAINTENANCE" | "RESERVED";
+  status:
+    | "AVAILABLE"
+    | "CHARGING"
+    | "IN_USE"
+    | "MAINTENANCE"
+    | "RESERVED"
+    | "DAMAGED_BATTERY";
   health?: number;
   lastUsed?: string;
   slotId?: number;
@@ -162,6 +166,7 @@ export interface Battery {
   healthScore?: number;
   estimatedFullChargeTime?: string;
   station?: Station;
+  inUse?: boolean;
 }
 
 export interface BatteryType {
@@ -208,7 +213,7 @@ export interface Transaction {
   totalPrice?: string;
   userMembership?: UserMemberShip;
   paymentUrl?: string | null;
-  descrition?: string;
+  description?: string;
   paymentMethod?: number;
 }
 
@@ -233,6 +238,7 @@ export interface Slot {
     | "CHARGING"
     | "SWAPPING"
     | "MAINTENANCE"
+    | "DAMAGED_BATTERY"
     | "EMPTY";
   name?: string;
   cabinetId?: string;

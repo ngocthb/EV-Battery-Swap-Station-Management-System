@@ -181,8 +181,6 @@ function AdminTransactionPage() {
           </div>
         </div>
 
-        <StatsList transactionList={transactionList} />
-
         {/*Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
           {/* Filters and Search */}
@@ -286,6 +284,7 @@ function AdminTransactionPage() {
                           {getTransactionStatusLabel(
                             String(transaction?.status)
                           )}
+
                         </span>
                       </td>
                     </tr>

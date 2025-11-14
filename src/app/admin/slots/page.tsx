@@ -29,7 +29,6 @@ export default function SlotPage() {
     page: 1,
     limit: 12,
     search: "",
-    order: "asc",
     status: "",
     cabinetId: 1,
   });
@@ -37,14 +36,7 @@ export default function SlotPage() {
   const debouncedSearch = useDebounce(query.search, 500);
   const debouncedQuery = useMemo(
     () => ({ ...query, search: debouncedSearch }),
-    [
-      query.page,
-      query.limit,
-      query.order,
-      query.status,
-      query.cabinetId,
-      debouncedSearch,
-    ]
+    [query.page, query.limit, query.status, query.cabinetId, debouncedSearch]
   );
 
   // 1. fetch all slot
@@ -99,9 +91,6 @@ export default function SlotPage() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <StatsList slotList={slotList} />
-
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
           <FilterSearch
             query={query}
@@ -117,7 +106,6 @@ export default function SlotPage() {
                 page: 1,
                 limit: 10,
                 search: "",
-                order: "asc",
                 status: "",
                 cabinetId: 1,
               })

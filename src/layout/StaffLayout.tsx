@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,6 +16,10 @@ import {
 } from "lucide-react";
 import { RolePermission } from "@/hooks/rolePermission";
 import Image from "next/image";
+import { StaffNotificationModal } from "@/components/StaffNotificationModal";
+import { useSelector } from "react-redux";
+import { io, Socket } from "socket.io-client";
+
 interface StaffLayoutProps {
   children: React.ReactNode;
 }
@@ -23,6 +27,42 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
   const { user, logout, isLoading } = useAuth();
   const pathname = usePathname();
   const router = useRouter();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [hasNewNotification, setHasNewNotification] = useState(false);
+  const stationId = useSelector((state: any) => state?.auth?.user?.stationId);
+  const socketRef = useRef<Socket | null>(null);
+
+  // Socket connection for real-time notifications
+  useEffect(() => {
+    if (!stationId) return;
+
+    const socket = io("https://amply.io.vn/request", {
+      path: "/socket.io",
+      transports: ["websocket", "polling"],
+    });
+
+    socketRef.current = socket;
+
+    socket.on("connect", () => {
+      console.log("Connected to /request namespace for notifications");
+    });
+
+    socket.on("request_created", (data: any) => {
+      console.log("New request notification:", data);
+
+      // Show red badge if request involves this station
+      if (
+        data.currentStationId === stationId ||
+        data.newStationId === stationId
+      ) {
+        setHasNewNotification(true);
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [stationId]);
 
   const handleLogout = () => {
     logout();
@@ -90,9 +130,14 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
               </div>
 
               <div className="flex items-center space-x-4">
-                <button className="relative p-2 text-gray-600 hover:text-gray-900">
+                <button
+                  onClick={() => setShowNotifications(true)}
+                  className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors"
+                >
                   <Bell className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                  {hasNewNotification && (
+                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+                  )}
                 </button>
                 <div className="flex items-center space-x-3">
                   <div className="text-right">
@@ -143,6 +188,15 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
           {/* Main Content */}
           <main className="flex-1 p-6">{children}</main>
         </div>
+
+        {/* Notification Modal */}
+        <StaffNotificationModal
+          isOpen={showNotifications}
+          onClose={() => setShowNotifications(false)}
+          stationId={stationId}
+          hasNewNotification={hasNewNotification}
+          onNotificationRead={() => setHasNewNotification(false)}
+        />
       </div>
     </RolePermission>
   );

@@ -85,6 +85,8 @@ export const getSlotStatusText = (status?: string) => {
       return "Đang đổi pin";
     case "MAINTENANCE":
       return "Bảo trì";
+    case "DAMAGED_BATTERY":
+      return "Bảo trì";
     case "EMPTY":
       return "Trống";
     default:
@@ -123,6 +125,8 @@ export const getSlotStatusBGAndTextWhiteStyle = (status?: string) => {
       return "bg-purple-600 text-white";
     case "MAINTENANCE":
       return "bg-orange-600 text-white";
+    case "DAMAGED_BATTERY":
+      return "bg-orange-600 text-white";
     case "EMPTY":
       return "bg-gray-400 text-white";
     default:
@@ -142,6 +146,8 @@ export const getSlotStatusTextStyle = (status?: string) => {
       return "text-purple-600";
     case "MAINTENANCE":
       return "text-orange-600";
+    case "DAMAGED_BATTERY":
+      return "text-orange-600";
     case "EMPTY":
       return "text-gray-400";
     default:
@@ -160,6 +166,8 @@ export const getSlotStatusBorderAndBgStyle = (status?: string) => {
     case "SWAPPING":
       return "bg-purple-50 border-purple-500";
     case "MAINTENANCE":
+      return "bg-orange-50 border-orange-500";
+    case "DAMAGED_BATTERY":
       return "bg-orange-50 border-orange-500";
     case "EMPTY":
       return "bg-gray-100 border-gray-400";

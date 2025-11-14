@@ -77,8 +77,6 @@ export default function UsersPage() {
           </div>
         </div>
 
-        <StatsList userList={userList} />
-
         {/* Filters and Search */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
           <FilterSearch

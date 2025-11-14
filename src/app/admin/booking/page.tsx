@@ -111,8 +111,6 @@ function AdminBookingPage() {
           </div>
         </div>
 
-        <StatsList bookingList={bookingList} />
-
         {/*Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
           {/* Filters and Search */}
