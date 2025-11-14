@@ -43,10 +43,6 @@ function AsideStation({
 
   // query
   const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
-    // page: 1,
-    // limit: 100,
-    // search: "",
-    // order: "asc",
     lat: 0,
     lng: 0,
     limit: 10,

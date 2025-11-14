@@ -51,10 +51,14 @@ export default function StaffManageUser() {
     ]
   );
 
-  const { data: transactionList = [], loading } = useFetchList<
-    Transaction[],
-    QueryParams
-  >(getAllTransactionByStation, debouncedQuery);
+  const {
+    data: transactionList = [],
+    loading,
+    refresh,
+  } = useFetchList<Transaction[], QueryParams>(
+    getAllTransactionByStation,
+    debouncedQuery
+  );
 
   const handleSearch = (data: string) => {
     updateQuery({ search: data });
@@ -163,7 +167,6 @@ export default function StaffManageUser() {
                           {getTransactionStatusLabel(
                             String(transaction?.status)
                           )}
-
                         </span>
                       </td>
 
@@ -195,6 +198,7 @@ export default function StaffManageUser() {
         <PaymentByCashModal
           transactionDetail={transactionDetail}
           setTransactionDetail={setTransactionDetail}
+          refresh={refresh}
         />
       )}
     </StaffLayout>

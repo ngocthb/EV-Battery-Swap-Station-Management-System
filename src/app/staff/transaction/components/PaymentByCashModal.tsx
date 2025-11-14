@@ -10,11 +10,13 @@ import { getTransactionStatusLabel } from "@/utils/formateStatus";
 interface PaymentByCashModalProps {
   transactionDetail: Transaction | null;
   setTransactionDetail: (value: Transaction | null) => void;
+  refresh: () => void;
 }
 
 function PaymentByCashModal({
   setTransactionDetail,
   transactionDetail,
+  refresh,
 }: PaymentByCashModalProps) {
   const [loading, setLoading] = useState(false);
 
@@ -27,6 +29,7 @@ function PaymentByCashModal({
         transactionId: transactionDetail.id,
       });
       console.log("res payment cash", res.data);
+      refresh();
       setTransactionDetail(null);
     } catch (error) {
       console.error("payment cash error", error);

@@ -41,6 +41,7 @@ export default function StaffReportsPage() {
   } | null>(null);
 
   const stationId = user?.stationId; // TODO: derive from staff context
+  console.log("station id", stationId);
 
   const fetchReports = async () => {
     setLoading(true);
@@ -61,9 +62,11 @@ export default function StaffReportsPage() {
   };
 
   useEffect(() => {
-    fetchReports();
+    if (user?.stationId) {
+      fetchReports();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, limit, search, statusFilter]);
+  }, [page, limit, search, statusFilter, user?.stationId]);
 
   const handleConfirmAction = (
     reportId: number,

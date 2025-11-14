@@ -56,7 +56,7 @@ function MoveStaffStationModal({
     }
 
     const payload = {
-      staffId,
+      userId: Number(staffId),
       newStationId,
       date: moveDate,
     };

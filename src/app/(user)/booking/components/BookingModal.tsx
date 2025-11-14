@@ -42,9 +42,12 @@ const BookingModal: React.FC<BookingModalProps> = ({
   const router = useRouter();
   const [userAddress, setUserAddress] = useState<string>("");
   const [loadingAddress, setLoadingAddress] = useState(false);
+
+  // lấy đc battery type từ xe user rồi tìm cabin từ battery type = cho user select pin
   const [userVehicleBattery, setUserVehicleBattery] =
     useState<BatteryType | null>(null);
   const [bookingMessage, setBookingMessage] = useState<string>("");
+  const [cabinSelect, setCabinSelect] = useState<number | null>(null);
 
   const { data: vehicleList = [], refresh } =
     useFetchList<Vehicle[]>(getUserVehicleAPI);
@@ -88,6 +91,10 @@ const BookingModal: React.FC<BookingModalProps> = ({
 
   // 2. khi user click chọn xe goi thg này lấy pin từ xe để so sánh vs trạm coi pin còn ko
   const handleGetBatteryByUserVehicle = async () => {
+    console.log(
+      " bookingData?.bookingDetails[0]?.batteryId",
+      bookingData?.bookingDetails[0]?.batteryId
+    );
     try {
       const res = await getBatteryTypeById(
         bookingData?.bookingDetails[0]?.batteryId
@@ -185,6 +192,7 @@ const BookingModal: React.FC<BookingModalProps> = ({
     }
   };
 
+  // create booking
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {

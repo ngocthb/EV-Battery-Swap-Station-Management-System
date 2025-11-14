@@ -220,7 +220,9 @@ export default function AdminStaffPage() {
                           <button
                             className="text-blue-600 hover:text-blue-900 p-1"
                             title="Đổi trạm"
-                            onClick={() => setStaffMoveStationId(staff?.id)}
+                            onClick={() =>
+                              setStaffMoveStationId(staff?.user?.id)
+                            }
                           >
                             <Move className="w-4 h-4" />
                           </button>
