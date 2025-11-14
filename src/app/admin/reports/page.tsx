@@ -1,191 +1,287 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { AdminLayout } from "@/layout/AdminLayout";
-import { Eye, Plus } from "lucide-react";
-import Link from "next/link";
-import useQuery from "@/hooks/useQuery";
-import { QueryParams, Report, Station } from "@/types";
-import { useDebounce } from "@/hooks/useDebounce";
-import useFetchList from "@/hooks/useFetchList";
-import { LoadingSpinner } from "@/components/LoadingSpinner";
-import PaginationTable from "@/components/PaginationTable";
-import StatsList from "./components/StatsList";
-import FilterSearch from "./components/FilterSearch";
+import { User } from "lucide-react";
+import api from "@/lib/axios";
+import { toast } from "react-toastify";
 import { getAllStationList } from "@/services/stationService";
-import { getAllReportByStationAPI } from "@/services/reportService";
 
-export default function ReportPage() {
+type Station = {
+  id: number;
+  name: string;
+};
+
+type ReportItem = {
+  id: number;
+  bookingDetailId: number;
+  userId: number;
+  description: string;
+  faultyBatteryId?: number;
+  status: string;
+  createdAt: string;
+  bookingDetail?: any;
+  user?: { id: number; username: string; fullName: string; email: string };
+};
+
+export default function AdminReportsPage() {
+  const [reports, setReports] = useState<ReportItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
-    page: 1,
-    limit: 10,
-    search: "",
-    stationId: 1,
-    status: "PENDING",
-  });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [stations, setStations] = useState<Station[]>([]);
 
-  const debouncedSearch = useDebounce(query.search, 500);
-  const debouncedQuery = useMemo(
-    () => ({ ...query, search: debouncedSearch }),
-    [query.page, query.limit, query.stationId, debouncedSearch]
-  );
+  // filters
+  const [search, setSearch] = useState("");
+  const [stationId, setStationId] = useState<number>(1);
+  const [statusFilter, setStatusFilter] = useState<
+    "ALL" | "PENDING" | "CONFIRMED" | "REJECTED"
+  >("ALL");
 
-  // get all report by station
-  const { data: reportList = [] } = useFetchList<Report[], QueryParams>(
-    getAllReportByStationAPI,
-    debouncedQuery
-  );
-
-  // fetch all station
-  const { data: stationList = [] } = useFetchList<Station[]>(getAllStationList);
-
-  const handleSearch = (data: string) => {
-    updateQuery({ search: data });
+  const fetchStations = async () => {
+    try {
+      const resp = await getAllStationList({});
+      const data = resp.data || [];
+      setStations(data);
+    } catch (err: unknown) {
+      console.error("Lỗi khi lấy danh sách trạm:", err);
+    }
   };
+
+  const fetchReports = async () => {
+    setLoading(true);
+    try {
+      const params: any = { page, limit };
+      if (search) params.search = search;
+      if (statusFilter && statusFilter !== "ALL") params.status = statusFilter;
+      const resp = await api.get(`/report/station/${stationId}`, { params });
+      const data = resp.data?.data || [];
+      setReports(data);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Lấy báo cáo thất bại";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStations();
+  }, []);
+
+  useEffect(() => {
+    fetchReports();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit, search, statusFilter, stationId]);
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+      <div className="p-6">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Quản lý Báo cáo
-            </h1>
-            <p className="text-gray-600 mt-1">
-              Quản lý các báo cáo của các trạm
+            <h1 className="text-2xl font-semibold">Quản lý báo cáo</h1>
+            <p className="text-sm text-gray-600">
+              Danh sách tất cả các báo cáo trong hệ thống
             </p>
           </div>
         </div>
 
-        <StatsList reportList={reportList} />
+        {/* Wrapper with white background for filters + table */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
+          {/* Filters */}
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 sm:flex-none">
+                <input
+                  type="text"
+                  placeholder="Tìm kiếm theo nội dung hoặc người báo cáo..."
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
+                  className="w-full sm:w-80 pl-3 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
 
-        {/*Content */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-          {/* Filters and Search */}
-          <FilterSearch
-            query={query}
-            loading={loading}
-            stationList={stationList}
-            resultCount={reportList?.length}
-            onSearch={handleSearch}
-            onUpdateQuery={updateQuery}
-            onReset={() =>
-              updateQuery({
-                page: 1,
-                limit: 10,
-                search: "",
-                stationId: 1,
-                status: "PENDING",
-              })
-            }
-          />
+              <select
+                value={stationId}
+                onChange={(e) => {
+                  setStationId(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-lg bg-white"
+              >
+                {stations.map((station) => (
+                  <option key={station.id} value={station.id}>
+                    {station.name}
+                  </option>
+                ))}
+              </select>
 
-          {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Người dùng
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pin lỗi
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Đơn đặt
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Mô tả
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Trạng thái
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thao tác
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {loading ? (
-                  <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center">
-                      <div className="flex items-center justify-center space-x-2">
-                        <LoadingSpinner />
-                        <span className="text-gray-500">Đang tải...</span>
-                      </div>
-                    </td>
-                  </tr>
-                ) : reportList?.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={5}
-                      className="px-6 py-8 text-center text-gray-500"
-                    >
-                      Không tìm thấy đánh giá nào
-                    </td>
-                  </tr>
-                ) : (
-                  reportList?.map((report) => (
-                    <tr key={report?.id} className="hover:bg-gray-50">
-                      {/*name */}
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <p className="text-sm font-medium text-gray-900">
-                            {report?.user?.email}
-                          </p>
-                          <p className="text-sm font-medium text-gray-900">
-                            {report?.user?.username}
-                          </p>
-                        </div>
-                      </td>
-                      {/*pin */}
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs">
-                          {report?.faultyBatteryId}
-                        </div>
-                      </td>
-                      {/*booking */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {report?.bookingDetail?.bookingId}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs">
-                          {report?.description}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs">
-                          {report?.status}
-                        </div>
-                      </td>
-                      {/*Action */}
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-2">
-                          <button
-                            className="text-blue-600 hover:text-blue-900 p-1 disabled:opacity-50"
-                            disabled={loading}
-                            title="Chỉnh sửa loại pin"
-                          >
-                            <Eye className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value as any);
+                  setPage(1);
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-lg bg-white"
+              >
+                <option value="ALL">Tất cả trạng thái</option>
+                <option value="PENDING">PENDING</option>
+                <option value="CONFIRMED">CONFIRMED</option>
+                <option value="REJECTED">REJECTED</option>
+              </select>
+
+              <select
+                value={limit}
+                onChange={(e) => {
+                  setLimit(Number(e.target.value));
+                  setPage(1);
+                }}
+                className="px-3 py-2 border border-gray-300 rounded-lg bg-white"
+              >
+                <option value={5}>5/trang</option>
+                <option value={10}>10/trang</option>
+                <option value={20}>20/trang</option>
+              </select>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="text-sm text-gray-600">
+                Tổng: <span className="font-medium">{reports.length}</span>
+              </div>
+              <button
+                onClick={() => {
+                  setSearch("");
+                  setStationId(stations[0]?.id || 1);
+                  setStatusFilter("ALL");
+                  setLimit(10);
+                  setPage(1);
+                }}
+                className="text-sm text-blue-600 hover:text-blue-800"
+              >
+                Xóa bộ lọc
+              </button>
+            </div>
           </div>
 
-          {/* Pagination footer */}
-          <PaginationTable
-            data={reportList}
-            query={query}
-            onUpdateQuery={updateQuery}
-            loading={loading}
-          />
+          <div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Người báo cáo
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Nội dung
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Trạng thái
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Thời gian
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {loading ? (
+                    <tr>
+                      <td colSpan={4} className="px-6 py-8 text-center">
+                        Đang tải...
+                      </td>
+                    </tr>
+                  ) : reports.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={4}
+                        className="px-6 py-8 text-center text-gray-500"
+                      >
+                        Không có báo cáo
+                      </td>
+                    </tr>
+                  ) : (
+                    reports.map((r) => (
+                      <tr key={r.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                              <User className="w-5 h-5 text-gray-600" />
+                            </div>
+                            <div className="ml-3">
+                              <div className="text-sm font-medium text-gray-900">
+                                {r.user?.fullName ||
+                                  r.user?.username ||
+                                  `User ${r.userId}`}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {r.user?.email}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-900">
+                            {r.description}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            Booking detail: {r.bookingDetailId}
+                          </div>
+                        </td>
+
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              r.status === "PENDING"
+                                ? "bg-yellow-100 text-yellow-800"
+                                : r.status === "CONFIRMED"
+                                ? "bg-blue-100 text-blue-800"
+                                : r.status === "COMPLETED"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-red-100 text-red-800"
+                            }`}
+                          >
+                            {r.status}
+                          </span>
+                        </td>
+
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {new Date(r.createdAt).toLocaleString()}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-200 bg-gray-50 flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Hiển thị <span className="font-medium">{reports.length}</span>{" "}
+                báo cáo
+              </div>
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border"
+                >
+                  Prev
+                </button>
+                <div className="text-sm">Trang {page}</div>
+                <button
+                  onClick={() => setPage((p) => p + 1)}
+                  disabled={reports.length < limit}
+                  className="inline-flex items-center px-3 py-2 text-sm font-medium rounded-md border"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </AdminLayout>
