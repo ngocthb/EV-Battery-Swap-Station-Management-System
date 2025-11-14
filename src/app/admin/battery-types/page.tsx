@@ -12,7 +12,11 @@ import useFetchList from "@/hooks/useFetchList";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import PaginationTable from "@/components/PaginationTable";
-import { deleteBatteryTypeAPI, getAllBatteryTypeListAPI, restoreBatteryTypeAPI } from "@/services/batteryTypeService";
+import {
+  deleteBatteryTypeAPI,
+  getAllBatteryTypeListAPI,
+  restoreBatteryTypeAPI,
+} from "@/services/batteryTypeService";
 import StatsList from "./components/StatsList";
 import FilterSearch from "./components/FilterSearch";
 import {
@@ -107,8 +111,6 @@ export default function BatteryTypePage() {
             <span>Thêm loại pin mới</span>
           </Link>
         </div>
-
-        <StatsList batteryTypeList={batteryTypeList} />
 
         {/*Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">

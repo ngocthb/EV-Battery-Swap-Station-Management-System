@@ -37,7 +37,6 @@ function FilterSearch({
     query.search ||
     // query.page !== 1 ||
     // query.limit !== 10 ||
-    (showOrder && query.order !== "asc") ||
     (showCabin && query.cabinetId && query.cabinetId !== 0) ||
     (showStatus && query.status !== true);
 
@@ -81,16 +80,6 @@ function FilterSearch({
               <option value="EMPTY">Chưa có pin</option>
               <option value="MAINTENANCE">Bảo trì</option>
             </select>
-            {/* Sort order */}
-            <select
-              value={query.order}
-              onChange={(e) => onUpdateQuery({ order: e.target.value })}
-              disabled={loading}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[120px]"
-            >
-              <option value="ASC">A → Z</option>
-              <option value="DESC">Z → A</option>
-            </select>
 
             {/*cabin */}
             <select
@@ -101,7 +90,6 @@ function FilterSearch({
               disabled={loading}
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 bg-white disabled:bg-gray-50 min-w-[100px]"
             >
-              <option value="">Tìm theo tủ</option>
               {cabinList.map((cabin) => (
                 <option key={cabin.id} value={cabin.id}>
                   {cabin.name} - Pin loại {cabin.batteryTypeId}

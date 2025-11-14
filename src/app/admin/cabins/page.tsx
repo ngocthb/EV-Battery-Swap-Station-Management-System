@@ -123,9 +123,6 @@ export default function CabinsPage() {
           </Link>
         </div>
 
-        {/* Stats Cards */}
-        <StatsList cabinList={cabinList} />
-
         {/*Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
           {/* Filters and Search */}

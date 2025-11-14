@@ -151,7 +151,13 @@ export interface Battery {
   stationId?: string;
   batteryType?: BatteryType;
   batteryLevel?: number;
-  status: "AVAILABLE" | "CHARGING" | "IN_USE" | "MAINTENANCE" | "RESERVED";
+  status:
+    | "AVAILABLE"
+    | "CHARGING"
+    | "IN_USE"
+    | "MAINTENANCE"
+    | "RESERVED"
+    | "DAMAGED_BATTERY";
   health?: number;
   lastUsed?: string;
   slotId?: number;
@@ -161,6 +167,7 @@ export interface Battery {
   lastChargeTime?: string;
   healthScore?: number;
   estimatedFullChargeTime?: string;
+  inUse?: boolean;
 }
 
 export interface BatteryType {
@@ -229,6 +236,7 @@ export interface Slot {
     | "CHARGING"
     | "SWAPPING"
     | "MAINTENANCE"
+    | "DAMAGED_BATTERY"
     | "EMPTY";
   name?: string;
   cabinetId?: string;

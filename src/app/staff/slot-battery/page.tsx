@@ -2,8 +2,7 @@
 import { StaffLayout } from "@/layout/StaffLayout";
 
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { MapPin, Edit, Battery, Eye } from "lucide-react";
+import { Battery, Eye } from "lucide-react";
 import useQuery from "@/hooks/useQuery";
 import { useDebounce } from "@/hooks/useDebounce";
 import useFetchList from "@/hooks/useFetchList";
@@ -19,35 +18,51 @@ import {
   getSlotStatusText,
   getSlotStatusTextStyle,
 } from "@/utils/formateStatus";
-import StatsList from "./component/StatsList";
+
 import SlotDetailModal from "./component/SlotDetailModal";
+import TransferRequestPanel from "./component/TransferRequestPanel";
 import { useSelector } from "react-redux";
+import api from "@/lib/axios";
+import { toast } from "react-toastify";
+import { io, Socket } from "socket.io-client";
+
+interface TransferRequest {
+  id: number;
+  status: string;
+  battery: {
+    id: number;
+  };
+  currentStation: {
+    id: number;
+  };
+  newStation: {
+    id: number;
+  };
+}
 
 function SlotAndBattery() {
   const [station, setStation] = useState<Station | null>(null);
   const stationId = useSelector((state: any) => state?.auth?.user?.stationId);
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
+  const [outgoingRequests, setOutgoingRequests] = useState<TransferRequest[]>(
+    []
+  );
+  const [selectedBatteryId, setSelectedBatteryId] = useState<number | null>(
+    null
+  );
 
   const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
     page: 1,
     limit: 12,
     search: "",
-    order: "asc",
     status: "",
-    cabinetId: 1,
+    cabinetId: undefined,
   });
 
   const debouncedSearch = useDebounce(query.search, 500);
   const debouncedQuery = useMemo(
     () => ({ ...query, search: debouncedSearch }),
-    [
-      query.page,
-      query.limit,
-      query.order,
-      query.status,
-      query.cabinetId,
-      debouncedSearch,
-    ]
+    [query.page, query.limit, query.status, query.cabinetId, debouncedSearch]
   );
 
   // 1. fetch all slot
@@ -68,6 +83,13 @@ function SlotAndBattery() {
     stationId
   );
 
+  // Set default cabinetId to first cabinet of station
+  useEffect(() => {
+    if (cabinList.length > 0 && !query.cabinetId) {
+      updateQuery({ cabinetId: cabinList[0].id });
+    }
+  }, [cabinList]);
+
   // 3. fetch station khi có cabinId để bt trạm nào
   const fetchStationDetail = async (id: number) => {
     try {
@@ -78,6 +100,69 @@ function SlotAndBattery() {
     }
   };
 
+  // Fetch outgoing transfer requests
+  const fetchRequests = useCallback(async () => {
+    if (!stationId) return;
+    try {
+      const response = await api.get(`/request/station/${stationId}`, {
+        params: { page: 1, limit: 50 },
+      });
+      const requests = response.data.data || [];
+      const outgoing = requests.filter(
+        (req: TransferRequest) => req.currentStation.id === stationId
+      );
+      setOutgoingRequests(outgoing);
+    } catch (error) {
+      console.error("Error fetching requests:", error);
+    }
+  }, [stationId]);
+
+  useEffect(() => {
+    fetchRequests();
+  }, [fetchRequests]);
+
+  // Setup socket for real-time updates
+  useEffect(() => {
+    if (!stationId) return;
+
+    const socket: Socket = io("https://amply.io.vn/request", {
+      path: "/socket.io",
+      transports: ["websocket", "polling"],
+    });
+
+    socket.on("connect", () => {
+      console.log("Staff slot-battery socket connected");
+    });
+
+    socket.on("request_created", (data: any) => {
+      console.log("New request created:", data);
+      if (
+        data.currentStationId === stationId ||
+        data.newStationId === stationId
+      ) {
+        // Reload slots and requests
+        refresh();
+        fetchRequests();
+      }
+    });
+
+    socket.on("request_updated", (data: any) => {
+      console.log("Request updated:", data);
+      if (
+        data.currentStationId === stationId ||
+        data.newStationId === stationId
+      ) {
+        // Reload slots and requests
+        refresh();
+        fetchRequests();
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [stationId, refresh, fetchRequests]);
+
   useEffect(() => {
     if (slotList.length > 0) {
       const stationId = slotList[0]?.cabinet?.stationId;
@@ -86,7 +171,6 @@ function SlotAndBattery() {
       }
     }
   }, [slotList, query.cabinetId]);
-  // end fetch station
 
   const handleSearch = (data: string) => {
     updateQuery({ search: data });
@@ -94,6 +178,52 @@ function SlotAndBattery() {
 
   const handleChangStatus = (data: string) => {
     updateQuery({ status: data });
+  };
+
+  // Check if slot needs "Lấy pin" button
+  const needsTakeBatteryButton = (slot: Slot) => {
+    if (!slot.batteryId) return false;
+
+    if (slot.status === "DAMAGED_BATTERY") return true;
+
+    const hasOutgoingRequest = outgoingRequests.some(
+      (req) => req.battery.id === slot.batteryId
+    );
+
+    return hasOutgoingRequest;
+  };
+
+  // Handle put battery into empty slot
+  const handlePutBattery = async (slotId: number) => {
+    if (!selectedBatteryId) {
+      toast.warning("Vui lòng chọn pin từ danh sách bên phải");
+      return;
+    }
+
+    try {
+      await api.post("/transfer-battery/put-battery", {
+        slotId: slotId,
+        batteryId: selectedBatteryId,
+      });
+      refresh();
+      setSelectedBatteryId(null);
+      toast.success("Đã bỏ pin vào slot thành công!");
+    } catch (error) {
+      toast.error("Pin không phù hợp với tủ pin này!");
+    }
+  };
+
+  // Handle take battery from slot
+  const handleTakeBattery = async (slotId: number) => {
+    try {
+      await api.post("/transfer-battery/take-battery", {
+        slotId: slotId,
+      });
+      refresh();
+      toast.success("Đã lấy pin ra khỏi slot thành công!");
+    } catch (error) {
+      toast.error("Lỗi khi lấy pin ra khỏi slot");
+    }
   };
   return (
     <StaffLayout>
@@ -108,104 +238,141 @@ function SlotAndBattery() {
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <StatsList slotList={slotList} />
+        <div className="grid grid-cols-5 ">
+          {/* Main Slot Grid - 3/4 width */}
+          <div className="col-span-4 bg-white rounded-l-lg shadow-sm border border-gray-100">
+            <FilterSearch
+              query={query}
+              loading={loading}
+              resultCount={slotList.length}
+              showCabin={true}
+              cabinList={cabinList}
+              onSearch={handleSearch}
+              onChangeStatus={handleChangStatus}
+              onUpdateQuery={updateQuery}
+              onReset={() =>
+                updateQuery({
+                  page: 1,
+                  limit: 10,
+                  search: "",
+                  order: "asc",
+                  status: "",
+                  cabinetId: 1,
+                })
+              }
+            />
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-          <FilterSearch
-            query={query}
-            loading={loading}
-            resultCount={slotList.length}
-            showCabin={true}
-            cabinList={cabinList}
-            onSearch={handleSearch}
-            onChangeStatus={handleChangStatus}
-            onUpdateQuery={updateQuery}
-            onReset={() =>
-              updateQuery({
-                page: 1,
-                limit: 10,
-                search: "",
-                order: "asc",
-                status: "",
-                cabinetId: 1,
-              })
-            }
-          />
+            <p className="p-4 pb-0 font-semibold text-xl">{station?.name}</p>
 
-          <p className="p-4 pb-0 font-semibold text-xl">{station?.name}</p>
-
-          {/* slot grid */}
-          <div className="p-4">
-            <div className="grid grid-cols-4 gap-4">
-              {slotList.map((slot) => (
-                <div
-                  key={slot.id}
-                  className={` group 
+            {/* slot grid */}
+            <div className="p-4">
+              <div className="grid grid-cols-4 gap-4">
+                {slotList.map((slot) => (
+                  <div
+                    key={slot.id}
+                    className={` group 
                       relative rounded-lg border-2 p-4 transition-all hover:shadow-md 
                       ${getSlotStatusBorderAndBgStyle(slot?.status)}
                     `}
-                >
-                  {/* Slot Number */}
-                  <div className="text-center mb-2">
-                    <p className="text-md font-medium mb-1">
-                      Slot <b className="text-black">{slot.id}</b>
-                    </p>
-                  </div>
-
-                  {/* Battery Icon */}
-                  <div className="flex justify-center mb-2">
-                    <Battery
-                      className={`w-8 h-8 ${getSlotStatusTextStyle(
-                        slot?.status
-                      )}`}
-                    />
-                  </div>
-
-                  {/* Battery ID */}
-                  <div className="text-center mb-2">
-                    <div className="text-xs text-gray-600">
-                      {slot.batteryId
-                        ? `Pin #${slot.batteryId} - ${slot?.battery?.model} (Loại pin ${slot?.battery?.batteryTypeId})`
-                        : "Trống"}
+                  >
+                    {/* Slot Number */}
+                    <div className="text-center mb-2">
+                      <p className="text-md font-medium mb-1">
+                        <b className="text-black">{slot.name}</b>
+                      </p>
                     </div>
-                    {slot?.battery?.healthScore && (
-                      <div className="text-xs text-gray-600 mt-1">
-                        Sức khỏe pin: {slot.battery.healthScore}%
-                      </div>
-                    )}
-                  </div>
 
-                  {/* Status Badge */}
-                  <div className="flex justify-center">
-                    <span
-                      className={`
+                    {/* Battery Icon */}
+                    <div className="flex justify-center mb-2">
+                      <Battery
+                        className={`w-8 h-8 ${getSlotStatusTextStyle(
+                          slot?.status
+                        )}`}
+                      />
+                    </div>
+
+                    {/* Battery ID */}
+                    <div className="text-center mb-2">
+                      <div className="text-xs text-gray-600">
+                        {slot.batteryId
+                          ? `Pin #${slot.batteryId} - ${slot?.battery?.model} (Loại pin ${slot?.battery?.batteryTypeId})`
+                          : "Trống"}
+                      </div>
+                      {slot?.battery?.healthScore && (
+                        <div className="text-xs text-gray-600 mt-1">
+                          Sức khỏe pin: {slot.battery.healthScore}%
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="flex justify-center">
+                      <span
+                        className={`
                           inline-block px-2 py-1 text-xs font-semibold rounded
                           ${getSlotStatusBGAndTextWhiteStyle(slot?.status)}
                         `}
-                    >
-                      {getSlotStatusText(slot?.status)}
-                    </span>
-                  </div>
+                      >
+                        {getSlotStatusText(slot?.status)}
+                      </span>
+                    </div>
 
-                  {/*action list */}
-                  <div
-                    className="absolute right-2 top-4 flex flex-col gap-3
+                    {/* Take Battery Button */}
+                    {needsTakeBatteryButton(slot) && (
+                      <div className="mt-2">
+                        <button
+                          onClick={() => handleTakeBattery(slot.id)}
+                          className="w-full px-2 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+                        >
+                          Lấy pin
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Put Battery Button for Empty Slots */}
+                    {slot.status === "EMPTY" && (
+                      <div className="mt-2">
+                        <button
+                          onClick={() => handlePutBattery(slot.id)}
+                          disabled={!selectedBatteryId}
+                          className="w-full px-2 py-1 bg-green-600 text-white text-xs rounded hover:bg-green-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        >
+                          {selectedBatteryId ? "Bỏ pin vào" : "Chọn pin trước"}
+                        </button>
+                      </div>
+                    )}
+
+                    {/*action list */}
+                    <div
+                      className="absolute right-2 top-4 flex flex-col gap-3
     opacity-0 translate-y-2
     transition-all duration-200 ease-out
     group-hover:opacity-100 group-hover:translate-y-0"
-                  >
-                    <span
-                      onClick={() => {
-                        setSelectedSlotId(slot.id);
-                      }}
                     >
-                      <Eye size={20} color="blue" className="cursor-pointer" />
-                    </span>
+                      <span
+                        onClick={() => {
+                          setSelectedSlotId(slot.id);
+                        }}
+                      >
+                        <Eye
+                          size={20}
+                          color="blue"
+                          className="cursor-pointer"
+                        />
+                      </span>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
+          </div>
+
+          <div className="col-span-1">
+            <TransferRequestPanel
+              stationId={stationId}
+              selectedBatteryId={selectedBatteryId}
+              onSelectBattery={setSelectedBatteryId}
+            />
           </div>
         </div>
       </div>

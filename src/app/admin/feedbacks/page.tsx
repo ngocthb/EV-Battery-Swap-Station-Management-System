@@ -77,8 +77,6 @@ export default function FeedbackPage() {
           </div>
         </div>
 
-        <StatsList feedbackList={feedbackList} />
-
         {/*Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
           {/* Filters and Search */}

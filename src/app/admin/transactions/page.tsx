@@ -155,7 +155,7 @@ function AdminTransactionPage() {
   // Filter transactions by type (client-side)
   const filteredTransactions = useMemo(() => {
     if (!query.status) return transactionList;
-    
+
     return transactionList.filter((transaction) => {
       if (query.status === "MEMBERSHIP") {
         return transaction.userMembership != null;
@@ -180,8 +180,6 @@ function AdminTransactionPage() {
             </p>
           </div>
         </div>
-
-        <StatsList transactionList={transactionList} />
 
         {/*Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
@@ -280,10 +278,10 @@ function AdminTransactionPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span
                           className={`px-2 py-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getTransactionStatusStyle(
-                            transaction?.status
+                            transaction?.status ?? ""
                           )}`}
                         >
-                          {getTransactionStatusLabel(transaction?.status)}
+                          {getTransactionStatusLabel(transaction?.status ?? "")}
                         </span>
                       </td>
                     </tr>
