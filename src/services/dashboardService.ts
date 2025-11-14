@@ -50,3 +50,10 @@ export const getDashboardTransactionChartAPI = async <T>(params: T) => {
   });
   return res.data;
 };
+
+export const getDashboardUserMembershipAPI = async <T>(params: T) => {
+  const res = await api.get("/dashboard/user-membership", {
+    params,
+  });
+  return res.data;
+};

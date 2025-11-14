@@ -196,11 +196,12 @@ export interface Payment {
 }
 
 export interface Transaction {
-  id: string;
-  booking: Booking;
+  id: number | string;
+  booking?: Booking | number;
+  bookingId?: number;
   orderCode?: number | null;
   payment?: Payment;
-  status: "SUCCESS" | "PENDING" | "FAILED" | "CANCELLED";
+  status?: "SUCCESS" | "PENDING" | "FAILED" | "CANCELLED";
   dateTime?: string;
   totalPrice?: string;
   userMembership?: UserMemberShip;
@@ -274,16 +275,20 @@ export interface BookingDetail {
   price?: number | string | null;
   status: string;
   bookingId?: number;
+  reports?: any[];
 }
 
 export interface Booking {
   id: number;
   status?: string;
-  expectedPickupTime?: string;
+  station?: number | null;
+  isFree?: boolean;
+  expectedPickupTime?: string | null;
   createdAt?: string;
   user?: User;
   userVehicle?: UserVehicle;
   bookingDetails: BookingDetail[];
+  transaction?: Transaction;
 }
 
 export interface QueryParams {

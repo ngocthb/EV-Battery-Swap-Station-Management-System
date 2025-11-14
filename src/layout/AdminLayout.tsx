@@ -18,6 +18,8 @@ import {
   Calendar,
   BarChart2,
   Notebook,
+  Search,
+  UserStar,
 } from "lucide-react";
 import { RolePermission } from "@/hooks/rolePermission";
 import Image from "next/image";
@@ -41,32 +43,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       icon: BarChart3,
     },
     {
-      id: "stations",
-      label: "Trạm",
-      href: "/admin/stations",
-      icon: MapPin,
-    },
-    {
-      id: "feedbacks",
-      label: "Đánh giá của trạm",
-      href: "/admin/feedbacks",
-      icon: Notebook,
-    },
-    { id: "cabins", label: "Tủ pin", href: "/admin/cabins", icon: Zap },
-    { id: "slots", label: "Ô Sạc", href: "/admin/slots", icon: Box },
-    {
-      id: "battery-types",
-      label: "Loại Pin",
-      href: "/admin/battery-types",
-      icon: BatteryPlus,
-    },
-    {
-      id: "batteries",
-      label: "Pin",
-      href: "/admin/batteries",
-      icon: Battery,
-    },
-    {
       id: "users",
       label: "Người dùng",
       href: "/admin/users",
@@ -76,16 +52,34 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       id: "station-staff",
       label: "Nhân viên",
       href: "/admin/station-staff",
-      icon: Users,
+      icon: UserStar,
+    },
+
+    {
+      id: "transaction",
+      label: "Giao dịch",
+      href: "/admin/transactions",
+      icon: BarChart2,
     },
     {
-      id: "vehicle",
-      label: "Loại phương tiện",
-      href: "/admin/vehicle-types",
-      icon: Bike,
+      id: "stations",
+      label: "Trạm",
+      href: "/admin/stations",
+      icon: MapPin,
     },
+
+    { id: "cabins", label: "Tủ pin", href: "/admin/cabins", icon: Zap },
+    { id: "slots", label: "Ô Sạc", href: "/admin/slots", icon: Box },
+
     {
-      id: "booking",
+      id: "batteries",
+      label: "Pin",
+      href: "/admin/batteries",
+      icon: Battery,
+    },
+
+    {
+      id: "bookings",
       label: "Đặt lịch",
       href: "/admin/bookings",
       icon: Calendar,
@@ -95,13 +89,25 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
       id: "report",
       label: "Báo cáo",
       href: "/admin/reports",
-      icon: Calendar,
+      icon: Search,
     },
     {
-      id: "transaction",
-      label: "Giao dịch",
-      href: "/admin/transactions",
-      icon: BarChart2,
+      id: "feedbacks",
+      label: "Đánh giá của trạm",
+      href: "/admin/feedbacks",
+      icon: Notebook,
+    },
+    {
+      id: "battery-types",
+      label: "Loại Pin",
+      href: "/admin/battery-types",
+      icon: BatteryPlus,
+    },
+    {
+      id: "vehicle",
+      label: "Loại phương tiện",
+      href: "/admin/vehicle-types",
+      icon: Bike,
     },
     {
       id: "memberships",

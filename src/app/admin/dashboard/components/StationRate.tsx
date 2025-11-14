@@ -37,7 +37,7 @@ export default function StationRate() {
         {/* Trạm được đặt nhiều nhất */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
           <h3 className="font-semibold text-lg text-gray-800 mb-4 text-center">
-            🚉 Trạm được đặt nhiều nhất
+            Trạm được đặt nhiều nhất
           </h3>
           <div className="flex flex-col items-center">
             <div className="w-full h-44 rounded-xl overflow-hidden mb-3">
@@ -62,7 +62,7 @@ export default function StationRate() {
         {/* Trạm đánh giá cao nhất */}
         <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
           <h3 className="font-semibold text-lg text-gray-800 mb-4 text-center">
-            ⭐ Trạm đánh giá cao nhất
+            Trạm đánh giá cao nhất
           </h3>
           <div className="flex flex-col items-center">
             <div className="w-full h-44 rounded-xl overflow-hidden mb-3">

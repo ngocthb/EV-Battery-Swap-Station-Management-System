@@ -1,7 +1,7 @@
 "use client";
 import { StaffLayout } from "@/layout/StaffLayout";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { MapPin, Edit, Battery, Eye } from "lucide-react";
 import useQuery from "@/hooks/useQuery";
@@ -11,7 +11,7 @@ import { Cabinet, QueryParams, Slot, Station } from "@/types";
 import { getStationById } from "@/services/stationService";
 
 import { getAllSlotListAPI } from "@/services/slotService";
-import { getAllCabinetListAPI } from "@/services/cabinetService";
+import { getCabinetsByStationId } from "@/services/cabinetService";
 import FilterSearch from "./component/FilterSearch";
 import {
   getSlotStatusBGAndTextWhiteStyle,
@@ -21,10 +21,11 @@ import {
 } from "@/utils/formateStatus";
 import StatsList from "./component/StatsList";
 import SlotDetailModal from "./component/SlotDetailModal";
+import { useSelector } from "react-redux";
 
 function SlotAndBattery() {
   const [station, setStation] = useState<Station | null>(null);
-
+  const stationId = useSelector((state: any) => state?.auth?.user?.stationId);
   const [selectedSlotId, setSelectedSlotId] = useState<number | null>(null);
 
   const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
@@ -57,8 +58,15 @@ function SlotAndBattery() {
   } = useFetchList<Slot[], QueryParams>(getAllSlotListAPI, debouncedQuery);
 
   // 2. fetch all cabin để query
-  const { data: cabinList = [] } =
-    useFetchList<Cabinet[]>(getAllCabinetListAPI);
+  const fetchCabinetsByStation = useCallback(async (id?: number) => {
+    if (!id) return Promise.resolve({ data: [] } as any);
+    return getCabinetsByStationId(id);
+  }, []);
+
+  const { data: cabinList = [] } = useFetchList<Cabinet[], number>(
+    fetchCabinetsByStation,
+    stationId
+  );
 
   // 3. fetch station khi có cabinId để bt trạm nào
   const fetchStationDetail = async (id: number) => {

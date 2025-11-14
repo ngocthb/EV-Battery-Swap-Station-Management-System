@@ -75,10 +75,6 @@ export default function UsersPage() {
               Quản lý tất cả người dùng trong hệ thống
             </p>
           </div>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2">
-            <Plus className="w-4 h-4" />
-            <span>Thêm người dùng</span>
-          </button>
         </div>
 
         <StatsList userList={userList} />
@@ -117,9 +113,6 @@ export default function UsersPage() {
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Trạng thái
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Thao tác
                   </th>
                 </tr>
               </thead>
@@ -181,14 +174,6 @@ export default function UsersPage() {
                         >
                           {getUserStatusText(user?.status)}
                         </span>
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-2">
-                          <button className="text-blue-600 hover:text-blue-900 p-1 cursor-pointer">
-                            <Eye className="w-4 h-4" />
-                          </button>
-                        </div>
                       </td>
                     </tr>
                   ))

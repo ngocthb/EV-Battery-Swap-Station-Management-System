@@ -5,6 +5,7 @@ import { StaffLayout } from "@/layout/StaffLayout";
 import api from "@/lib/axios";
 import { toast } from "react-toastify";
 import { Check, X, User } from "lucide-react";
+import { useSelector } from "react-redux";
 
 type ReportItem = {
   id: number;
@@ -23,6 +24,7 @@ export default function StaffReportsPage() {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
+  const user = useSelector((state: any) => state?.auth?.user);
 
   // filters
   const [search, setSearch] = useState("");
@@ -30,7 +32,15 @@ export default function StaffReportsPage() {
     "ALL" | "PENDING" | "CONFIRMED" | "REJECTED"
   >("ALL");
 
-  const stationId = 1; // TODO: derive from staff context
+  // confirmation modal
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{
+    reportId: number;
+    action: "CONFIRMED" | "REJECTED";
+    reportTitle: string;
+  } | null>(null);
+
+  const stationId = user?.stationId; // TODO: derive from staff context
 
   const fetchReports = async () => {
     setLoading(true);
@@ -54,6 +64,27 @@ export default function StaffReportsPage() {
     fetchReports();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, search, statusFilter]);
+
+  const handleConfirmAction = (
+    reportId: number,
+    action: "CONFIRMED" | "REJECTED",
+    reportTitle: string
+  ) => {
+    setPendingAction({ reportId, action, reportTitle });
+    setShowConfirmModal(true);
+  };
+
+  const executeAction = async () => {
+    if (!pendingAction) return;
+    await updateReportStatus(pendingAction.reportId, pendingAction.action);
+    setShowConfirmModal(false);
+    setPendingAction(null);
+  };
+
+  const cancelAction = () => {
+    setShowConfirmModal(false);
+    setPendingAction(null);
+  };
 
   const updateReportStatus = async (id: number, newStatus: string) => {
     try {
@@ -249,7 +280,18 @@ export default function StaffReportsPage() {
                                   <button
                                     disabled={disabled}
                                     onClick={() =>
-                                      updateReportStatus(r.id, "CONFIRMED")
+                                      handleConfirmAction(
+                                        r.id,
+                                        "CONFIRMED",
+                                        `${
+                                          r.user?.fullName ||
+                                          r.user?.username ||
+                                          `User ${r.userId}`
+                                        } - ${r.description.substring(
+                                          0,
+                                          50
+                                        )}...`
+                                      )
                                     }
                                     className={`text-green-600 p-1 ${
                                       disabled
@@ -263,7 +305,18 @@ export default function StaffReportsPage() {
                                   <button
                                     disabled={disabled}
                                     onClick={() =>
-                                      updateReportStatus(r.id, "REJECTED")
+                                      handleConfirmAction(
+                                        r.id,
+                                        "REJECTED",
+                                        `${
+                                          r.user?.fullName ||
+                                          r.user?.username ||
+                                          `User ${r.userId}`
+                                        } - ${r.description.substring(
+                                          0,
+                                          50
+                                        )}...`
+                                      )
                                     }
                                     className={`text-red-600 p-1 ${
                                       disabled
@@ -312,6 +365,44 @@ export default function StaffReportsPage() {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmModal && pendingAction && (
+        <div className="fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">
+              Xác nhận{" "}
+              {pendingAction.action === "CONFIRMED" ? "chấp nhận" : "từ chối"}{" "}
+              báo cáo
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Bạn có chắc chắn muốn{" "}
+              {pendingAction.action === "CONFIRMED" ? "chấp nhận" : "từ chối"}{" "}
+              báo cáo từ:
+              <br />
+              <span className="font-medium">{pendingAction.reportTitle}</span>
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={cancelAction}
+                className="px-4 py-2 text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={executeAction}
+                className={`px-4 py-2 text-white rounded-lg ${
+                  pendingAction.action === "CONFIRMED"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
+              >
+                {pendingAction.action === "CONFIRMED" ? "Chấp nhận" : "Từ chối"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </StaffLayout>
   );
 }

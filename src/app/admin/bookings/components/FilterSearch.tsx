@@ -6,6 +6,7 @@ type FilterBarProps = {
   query: QueryParams;
   loading: boolean;
   resultCount?: number;
+  stations?: Station[];
   onSearch: (val: string) => void;
   onChangeStatus?: (val: string) => void;
   onUpdateQuery: (
@@ -20,6 +21,7 @@ function FilterSearch({
   query,
   loading,
   resultCount = 0,
+  stations = [],
   onSearch,
   onChangeStatus,
   onUpdateQuery,
@@ -30,7 +32,7 @@ function FilterSearch({
     query.page !== 1 ||
     query.limit !== 10 ||
     query.status !== "" ||
-    query.order !== "asc";
+    query.stationId;
   return (
     <div className="p-6 border-b border-gray-200">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -57,6 +59,26 @@ function FilterSearch({
           </div>
 
           <div className="flex gap-3">
+            {/* Station filter */}
+            <select
+              value={String(query.stationId || "")}
+              onChange={(e) =>
+                onUpdateQuery({
+                  stationId: e.target.value
+                    ? Number(e.target.value)
+                    : undefined,
+                })
+              }
+              disabled={loading}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[140px]"
+            >
+              <option value="">Tất cả trạm</option>
+              {stations.map((station) => (
+                <option key={station.id} value={station.id}>
+                  {station.name}
+                </option>
+              ))}
+            </select>
             {/* Status filter */}
             <select
               value={String(query.status)}
@@ -71,16 +93,6 @@ function FilterSearch({
               <option value="COMPLETED">Hoàn thành</option>
               <option value="CANCELLED">Đã hủy</option>
               <option value="EXPIRED">Hết hạn</option>
-            </select>
-            {/* Sort order */}
-            <select
-              value={query.order}
-              onChange={(e) => onUpdateQuery({ order: e.target.value })}
-              disabled={loading}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[120px]"
-            >
-              <option value="ASC">A → Z</option>
-              <option value="DESC">Z → A</option>
             </select>
 
             {/* Items per page */}

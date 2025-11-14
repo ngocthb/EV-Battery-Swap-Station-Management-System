@@ -57,18 +57,16 @@ function FilterSearch({
           </div>
 
           <div className="flex gap-3">
-            {/* Status filter */}
+            {/* Transaction Type filter */}
             <select
               value={String(query.status)}
               onChange={(e) => onChangeStatus?.(e.target.value)}
               disabled={loading}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[120px]"
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[160px]"
             >
-              <option value="">Trạng thái</option>
-              <option value="SUCCESS">Thành công</option>
-              <option value="PENDING">Chờ thanh toán</option>
-              <option value="FAILED">Lỗi giao dịch</option>
-              <option value="CANCELLED">Đã hủy</option>
+              <option value="">Loại giao dịch</option>
+              <option value="MEMBERSHIP">Mua gói thành viên</option>
+              <option value="BOOKING">Thanh toán booking</option>
             </select>
             {/* Sort order */}
             <select
