@@ -46,11 +46,19 @@ export default function BatteriesPage() {
     search: "",
     order: "asc",
     status: "AVAILABLE",
+    inUse: true,
   });
   const debouncedSearch = useDebounce(query.search, 500);
   const debouncedQuery = useMemo(
     () => ({ ...query, search: debouncedSearch }),
-    [query.page, query.limit, query.order, query.status, debouncedSearch]
+    [
+      query.page,
+      query.limit,
+      query.order,
+      query.status,
+      query.inUse,
+      debouncedSearch,
+    ]
   );
 
   const handleCloseHistoryModal = useCallback(() => {
@@ -140,6 +148,7 @@ export default function BatteriesPage() {
               resultCount={batteryList.length}
               onSearch={handleSearch}
               onChangeStatus={handleChangeStatus}
+              showInUse={true}
               onUpdateQuery={updateQuery}
               onReset={resetQuery}
             />
@@ -242,23 +251,23 @@ export default function BatteriesPage() {
                               <Edit className="w-4 h-4" />
                             </button>
 
-                          <button
-                            onClick={() =>
-                              setBatteryHistoryID(Number(battery?.id))
-                            }
-                            className="text-green-600 hover:text-green-900 p-1 disabled:opacity-50 cursor-pointer"
-                            title="Lịch sử sử dụng"
-                          >
-                            <Clock className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                            <button
+                              onClick={() =>
+                                setBatteryHistoryID(Number(battery?.id))
+                              }
+                              className="text-green-600 hover:text-green-900 p-1 disabled:opacity-50 cursor-pointer"
+                              title="Lịch sử sử dụng"
+                            >
+                              <Clock className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
 
             <PaginationTable
               data={batteryList}

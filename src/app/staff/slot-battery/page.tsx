@@ -50,6 +50,7 @@ function SlotAndBattery() {
   const [selectedBatteryId, setSelectedBatteryId] = useState<number | null>(
     null
   );
+  const [requestsRefreshSignal, setRequestsRefreshSignal] = useState<number>(0);
 
   const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
     page: 1,
@@ -207,6 +208,8 @@ function SlotAndBattery() {
       });
       refresh();
       setSelectedBatteryId(null);
+      // trigger right panel to refetch requests immediately
+      setRequestsRefreshSignal((s) => s + 1);
       toast.success("Đã bỏ pin vào slot thành công!");
     } catch (error) {
       toast.error("Pin không phù hợp với tủ pin này!");
@@ -372,6 +375,7 @@ function SlotAndBattery() {
               stationId={stationId}
               selectedBatteryId={selectedBatteryId}
               onSelectBattery={setSelectedBatteryId}
+              refreshSignal={requestsRefreshSignal}
             />
           </div>
         </div>
