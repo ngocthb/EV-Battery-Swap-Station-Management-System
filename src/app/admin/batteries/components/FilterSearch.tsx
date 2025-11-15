@@ -9,6 +9,7 @@ type FilterBarProps = {
   showStatus?: boolean;
   showOrder?: boolean;
   showStation?: boolean;
+  showInUse?: boolean;
   stationList?: Station[];
   onSearch: (val: string) => void;
   onChangeStatus?: (val: string) => void;
@@ -26,6 +27,7 @@ function FilterSearch({
   resultCount = 0,
   showStatus = true,
   showOrder = true,
+  showInUse = false,
   onSearch,
   onChangeStatus,
   onUpdateQuery,
@@ -37,6 +39,13 @@ function FilterSearch({
     query.limit !== 10 ||
     (showOrder && query.order !== "asc") ||
     (showStatus && query.status !== "AVAILABLE");
+  // include inUse in filtered detection
+  const inUseFiltered =
+    showInUse &&
+    query.inUse !== undefined &&
+    query.inUse !== null &&
+    String(query.inUse) !== "";
+  const finalIsFiltered = isFiltered || inUseFiltered;
   return (
     <div className="p-6 border-b border-gray-200">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -71,21 +80,33 @@ function FilterSearch({
               className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[120px]"
             >
               <option value="AVAILABLE">Hoạt động</option>
-              <option value="MAINTENANCE">Bảo trì</option>
+              <option value="DAMAGED">Bảo trì</option>
               <option value="CHARGING">Đang sạc</option>
               <option value="IN_USE">Đang sử dụng</option>
               <option value="RESERVED">Đã được đặt</option>
             </select>
+            {/* inUse filter */}
+            {showInUse && (
+              <select
+                value={
+                  query.inUse === undefined || query.inUse === null
+                    ? ""
+                    : String(query.inUse)
+                }
+                onChange={(e) => {
+                  const val = e.target.value;
+                  if (val === "") onUpdateQuery({ inUse: undefined, page: 1 });
+                  else onUpdateQuery({ inUse: val === "true", page: 1 });
+                }}
+                disabled={loading}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[160px]"
+              >
+                <option value="">Tất cả</option>
+                <option value="true">Pin đang hoạt động</option>
+                <option value="false">Pin không hoạt động</option>
+              </select>
+            )}
             {/* Sort order */}
-            <select
-              value={query.order}
-              onChange={(e) => onUpdateQuery({ order: e.target.value })}
-              disabled={loading}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white disabled:bg-gray-50 disabled:text-gray-500 min-w-[120px]"
-            >
-              <option value="ASC">A → Z</option>
-              <option value="DESC">Z → A</option>
-            </select>
 
             {/* Items per page */}
             <select
@@ -115,7 +136,7 @@ function FilterSearch({
               `Tìm thấy ${resultCount} trạm`
             )}
           </p>
-          {isFiltered && !loading && (
+          {finalIsFiltered && !loading && (
             <button
               onClick={onReset}
               className="text-sm text-blue-600 hover:text-blue-800 font-medium"

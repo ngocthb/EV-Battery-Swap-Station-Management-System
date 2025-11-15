@@ -22,6 +22,8 @@ export const getBatteryStatusBackground = (status?: string) => {
       return "bg-green-100 text-green-800";
     case "MAINTENANCE":
       return "bg-red-100 text-red-800";
+    case "DAMAGED":
+      return "bg-red-100 text-red-800";
     case "CHARGING":
       return "bg-yellow-100 text-yellow-800";
     case "IN_USE":
@@ -42,6 +44,8 @@ export const getBatteryStatusText = (status?: string) => {
     case "IN_USE":
       return "Đang sử dụng";
     case "MAINTENANCE":
+      return "Bảo trì";
+    case "DAMAGED":
       return "Bảo trì";
     case "RESERVED":
       return "Đã đặt trước";

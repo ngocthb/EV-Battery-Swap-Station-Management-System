@@ -307,6 +307,7 @@ export interface QueryParams {
   search?: string;
   order?: string;
   status?: boolean | string;
+  inUse?: boolean | string | null;
   stationId?: string | number | boolean | null | undefined;
   month?: number;
   year?: number;

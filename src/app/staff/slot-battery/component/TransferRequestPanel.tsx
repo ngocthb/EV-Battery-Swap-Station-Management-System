@@ -37,12 +37,14 @@ interface TransferRequestPanelProps {
   stationId?: number;
   selectedBatteryId: number | null;
   onSelectBattery: (batteryId: number | null) => void;
+  refreshSignal?: number;
 }
 
 export default function TransferRequestPanel({
   stationId,
   selectedBatteryId,
   onSelectBattery,
+  refreshSignal,
 }: TransferRequestPanelProps) {
   const [requests, setRequests] = useState<TransferRequest[]>([]);
   const [loading, setLoading] = useState(false);
@@ -84,7 +86,7 @@ export default function TransferRequestPanel({
     return () => {
       socket.disconnect();
     };
-  }, [stationId]);
+  }, [stationId, refreshSignal]);
 
   const incomingRequests = requests.filter(
     (req) => req.newStation.id === stationId && req.status === "TRANSFERRING"
