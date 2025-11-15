@@ -55,7 +55,7 @@ function FilterSearch({
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               type="text"
-              placeholder="Tìm kiếm theo tên trạm..."
+              placeholder="Tìm kiếm theo..."
               value={query.search}
               onChange={(e) => onSearch(e.target.value)}
               disabled={loading}
