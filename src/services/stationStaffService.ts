@@ -10,6 +10,11 @@ export const getAllStationStaffByStation = async <T>(params: T) => {
   return res.data;
 };
 
+export const getAllStaffMoveHistory = async <T>(params: T) => {
+  const res = await api.get("/history/staff/all", { params });
+  return res.data;
+};
+
 export const createStationStaffAPI = async <T>(data: T) => {
   const res = await api.post("/station-staff/import-excel", data, {
     headers: {
