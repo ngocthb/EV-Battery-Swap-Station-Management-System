@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
@@ -23,6 +23,9 @@ import {
 } from "lucide-react";
 import { RolePermission } from "@/hooks/rolePermission";
 import Image from "next/image";
+import AdminNotificationModal from "@/components/AdminNotificationModal";
+import { io, Socket } from "socket.io-client";
+
 interface AdminLayoutProps {
   children: React.ReactNode;
 }
@@ -30,9 +33,55 @@ interface AdminLayoutProps {
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
   const { user, logout } = useAuth();
   const pathname = usePathname();
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+  const [hasNewNotification, setHasNewNotification] = useState(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   const handleLogout = () => {
     logout();
+  };
+
+  // Socket connection for notification badge
+  useEffect(() => {
+    const socketUrl =
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    const newSocket = io(`https://amply.io.vn/request`, {
+      transports: ["websocket"],
+      auth: {
+        token: localStorage.getItem("accessToken"),
+      },
+    });
+
+    newSocket.on("connect", () => {
+      console.log("Admin layout socket connected to /request namespace");
+    });
+
+    // Show notification badge when staff creates request
+    newSocket.on("request_created", (data) => {
+      console.log("Admin received new request notification:", data);
+      setHasNewNotification(true);
+    });
+
+    // Show notification badge when request is updated
+    newSocket.on("request_updated", (data) => {
+      console.log("Admin received request update:", data);
+      setHasNewNotification(true);
+    });
+
+    newSocket.on("disconnect", () => {
+      console.log("Admin layout socket disconnected");
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.close();
+    };
+  }, []);
+
+  const handleNotificationClick = () => {
+    setIsNotificationOpen(true);
+    setHasNewNotification(false);
   };
 
   const navigation = [
@@ -139,6 +188,17 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               </div>
 
               <div className="flex items-center space-x-4">
+                {/* Notification Bell */}
+                <button
+                  onClick={handleNotificationClick}
+                  className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+                >
+                  <Bell className="w-6 h-6" />
+                  {hasNewNotification && (
+                    <span className="absolute top-1 right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
+                  )}
+                </button>
+
                 <div className="flex items-center space-x-3">
                   <div className="text-right">
                     <p className="text-sm font-medium text-gray-900">
@@ -188,6 +248,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           {/* Main Content */}
           <main className="flex-1 p-6">{children}</main>
         </div>
+
+        {/* Notification Modal */}
+        <AdminNotificationModal
+          isOpen={isNotificationOpen}
+          onClose={() => setIsNotificationOpen(false)}
+        />
       </div>
     </RolePermission>
   );

@@ -14,8 +14,12 @@ interface BatteryType {
 interface BatteryInfo {
   id: number;
   model: string;
-  status: string;
-  batteryType: BatteryType;
+  status?: string;
+  healthScore?: number;
+
+  // thêm mới
+  batteryTypeId?: number;
+  batteryType?: BatteryType;
 }
 
 interface Station {
@@ -28,9 +32,11 @@ interface TransferRequest {
   id: number;
   status: string;
   createdAt: string;
-  battery: BatteryInfo;
-  currentStation: Station;
-  newStation: Station;
+  battery?: BatteryInfo;
+  batteries?: BatteryInfo[];
+  batteryType?: BatteryType;
+  currentStation?: Station;
+  newStation?: Station;
 }
 
 interface TransferRequestPanelProps {
@@ -67,35 +73,56 @@ export default function TransferRequestPanel({
 
   useEffect(() => {
     fetchRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stationId, refreshSignal]);
 
-    // Connect to socket for real-time updates
-    const socket: Socket = io("https://amply.io.vn/request", {
-      path: "/socket.io",
-      transports: ["websocket", "polling"],
-    });
+  const availableBatteries = React.useMemo(() => {
+    const items: BatteryInfo[] = [];
 
-    socket.on("request_created", (data: any) => {
-      if (
-        data.currentStationId === stationId ||
-        data.newStationId === stationId
-      ) {
-        fetchRequests();
+    requests.forEach((r) => {
+      if (r.status === "TRANSFERRING") {
+        const typeId = r.batteryType?.id;
+        const typeInfo = r.batteryType;
+
+        // nếu có mảng batteries
+        if (Array.isArray(r.batteries)) {
+          r.batteries.forEach((b) =>
+            items.push({
+              ...b,
+              batteryTypeId: typeId,
+              batteryType: typeInfo,
+            })
+          );
+        }
+
+        // nếu API có field legacy `battery`
+        if (r.battery) {
+          items.push({
+            ...r.battery,
+            batteryTypeId: typeId,
+            batteryType: typeInfo,
+          });
+        }
       }
     });
 
-    return () => {
-      socket.disconnect();
-    };
-  }, [stationId, refreshSignal]);
+    // dedupe by id
+    const map = new Map<number, BatteryInfo>();
+    items.forEach((b) => map.set(b.id, b));
+    return Array.from(map.values());
+  }, [requests]);
 
-  const incomingRequests = requests.filter(
-    (req) => req.newStation.id === stationId && req.status === "TRANSFERRING"
-  );
+  // local copy so we can remove items from UI when user discards a battery
+  const [localBatteries, setLocalBatteries] = useState<BatteryInfo[]>([]);
 
+  // sync local copy whenever fetched availableBatteries changes
+  React.useEffect(() => {
+    setLocalBatteries(availableBatteries);
+  }, [availableBatteries]);
   return (
     <div className="bg-white rounded-r-lg shadow-sm border border-gray-100 h-full flex flex-col">
       <div className="p-8 border-b border-gray-200 ">
-        <h3 className="font-semibold text-gray-900">Pin yêu cầu</h3>
+        <h3 className="font-semibold text-gray-900">Pin khả dụng</h3>
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -103,22 +130,29 @@ export default function TransferRequestPanel({
           <div className="flex items-center justify-center py-8">
             <LoadingSpinner />
           </div>
-        ) : incomingRequests.length === 0 ? (
+        ) : availableBatteries.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Package className="w-10 h-10 mx-auto mb-2 text-gray-300" />
-            <p className="text-sm">Không có pin cần nhận</p>
+            <p className="text-sm">Không có pin khả dụng</p>
           </div>
         ) : (
           <div className="p-3 space-y-3">
-            {/* Incoming Requests Only */}
-            {incomingRequests.map((request) => {
-              const isSelected = selectedBatteryId === request.battery.id;
+            {localBatteries.map((batt) => {
+              const isSelected = selectedBatteryId === batt.id;
               return (
                 <div
-                  key={request.id}
-                  onClick={() =>
-                    onSelectBattery(isSelected ? null : request.battery.id)
-                  }
+                  key={batt.id}
+                  onClick={() => {
+                    if (isSelected) {
+                      // if un-selecting an already selected battery, remove it from the list
+                      setLocalBatteries((prev) =>
+                        prev.filter((p) => p.id !== batt.id)
+                      );
+                      onSelectBattery(null);
+                    } else {
+                      onSelectBattery(batt.id);
+                    }
+                  }}
                   className={`border-2 rounded-lg p-3 relative cursor-pointer transition-all ${
                     isSelected
                       ? "border-blue-500 bg-blue-100 ring-2 ring-blue-300"
@@ -134,13 +168,13 @@ export default function TransferRequestPanel({
                   </div>
                   <div className="text-center">
                     <p className="text-xs text-gray-700 font-medium">
-                      {request.battery.model}
+                      {batt.model}
                     </p>
                     <p className="text-xs text-blue-600 font-medium mt-1">
-                      #Pin loại: {request.battery.batteryType.id}
+                      #Pin loại: {batt.batteryType?.id ?? "-"}
                     </p>
                     <p className="text-xs text-gray-500 mt-1">
-                      {new Date(request.createdAt).toLocaleString("vi-VN")}
+                      Sức khỏe: {batt.healthScore ?? "-"}
                     </p>
                   </div>
                   {isSelected && (

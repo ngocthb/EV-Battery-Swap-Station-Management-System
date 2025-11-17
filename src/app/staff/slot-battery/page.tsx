@@ -2,7 +2,7 @@
 import { StaffLayout } from "@/layout/StaffLayout";
 
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { Battery, Eye } from "lucide-react";
+import { Battery, Eye, Plus } from "lucide-react";
 import useQuery from "@/hooks/useQuery";
 import { useDebounce } from "@/hooks/useDebounce";
 import useFetchList from "@/hooks/useFetchList";
@@ -11,6 +11,7 @@ import { getStationById } from "@/services/stationService";
 
 import { getAllSlotListAPI } from "@/services/slotService";
 import { getCabinetsByStationId } from "@/services/cabinetService";
+// use cabinet list to populate battery type options
 import FilterSearch from "./component/FilterSearch";
 import {
   getSlotStatusBGAndTextWhiteStyle,
@@ -51,6 +52,11 @@ function SlotAndBattery() {
     null
   );
   const [requestsRefreshSignal, setRequestsRefreshSignal] = useState<number>(0);
+  const [showCreateRequestModal, setShowCreateRequestModal] = useState(false);
+  const [selectedBatteryTypeId, setSelectedBatteryTypeId] = useState<
+    number | null
+  >(null);
+  const [requestQuantity, setRequestQuantity] = useState<number>(1);
 
   const { query, updateQuery, resetQuery } = useQuery<QueryParams>({
     page: 1,
@@ -100,69 +106,6 @@ function SlotAndBattery() {
       console.error(err);
     }
   };
-
-  // Fetch outgoing transfer requests
-  const fetchRequests = useCallback(async () => {
-    if (!stationId) return;
-    try {
-      const response = await api.get(`/request/station/${stationId}`, {
-        params: { page: 1, limit: 50 },
-      });
-      const requests = response.data.data || [];
-      const outgoing = requests.filter(
-        (req: TransferRequest) => req.currentStation.id === stationId
-      );
-      setOutgoingRequests(outgoing);
-    } catch (error) {
-      console.error("Error fetching requests:", error);
-    }
-  }, [stationId]);
-
-  useEffect(() => {
-    fetchRequests();
-  }, [fetchRequests]);
-
-  // Setup socket for real-time updates
-  useEffect(() => {
-    if (!stationId) return;
-
-    const socket: Socket = io("https://amply.io.vn/request", {
-      path: "/socket.io",
-      transports: ["websocket", "polling"],
-    });
-
-    socket.on("connect", () => {
-      console.log("Staff slot-battery socket connected");
-    });
-
-    socket.on("request_created", (data: any) => {
-      console.log("New request created:", data);
-      if (
-        data.currentStationId === stationId ||
-        data.newStationId === stationId
-      ) {
-        // Reload slots and requests
-        refresh();
-        fetchRequests();
-      }
-    });
-
-    socket.on("request_updated", (data: any) => {
-      console.log("Request updated:", data);
-      if (
-        data.currentStationId === stationId ||
-        data.newStationId === stationId
-      ) {
-        // Reload slots and requests
-        refresh();
-        fetchRequests();
-      }
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [stationId, refresh, fetchRequests]);
 
   useEffect(() => {
     if (slotList.length > 0) {
@@ -228,6 +171,33 @@ function SlotAndBattery() {
       toast.error("Lỗi khi lấy pin ra khỏi slot");
     }
   };
+
+  // Create supply request handlers
+  const handleCreateRequest = async () => {
+    if (!selectedBatteryTypeId || !requestQuantity) {
+      toast.warning(
+        "Vui lòng chọn loại pin, số lượng và đảm bảo bạn thuộc một trạm"
+      );
+      return;
+    }
+
+    try {
+      const payload = {
+        batteryTypeId: Number(selectedBatteryTypeId),
+        quantity: Number(requestQuantity),
+        stationId: Number(stationId),
+      };
+
+      await api.post("/request", payload);
+      toast.success("Tạo yêu cầu thêm pin thành công");
+      setShowCreateRequestModal(false);
+    } catch (err) {
+      console.error("Error creating request", err);
+      toast.error("Không thể tạo yêu cầu, thử lại sau");
+    }
+  };
+
+  console.log(cabinList);
   return (
     <StaffLayout>
       <div className="space-y-6">
@@ -238,6 +208,21 @@ function SlotAndBattery() {
             <p className="text-gray-600 mt-1">
               Quản lý tất cả các ô sạc pin trong hệ thống
             </p>
+          </div>
+          <div>
+            <button
+              onClick={() => {
+                // preselect first cabinet's battery type if available
+                if (cabinList && cabinList.length > 0) {
+                  setSelectedBatteryTypeId(cabinList[0].batteryTypeId || null);
+                }
+                setShowCreateRequestModal(true);
+              }}
+              className="px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              <span className="text-sm">Tạo yêu cầu thêm pin</span>
+            </button>
           </div>
         </div>
 
@@ -380,6 +365,65 @@ function SlotAndBattery() {
           </div>
         </div>
       </div>
+
+      {/* Create supply request modal */}
+      {showCreateRequestModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg shadow-lg w-full max-w-md p-6">
+            <h3 className="text-lg font-semibold mb-4">Tạo yêu cầu thêm pin</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">
+                  Loại pin
+                </label>
+                <select
+                  value={selectedBatteryTypeId ?? ""}
+                  onChange={(e) =>
+                    setSelectedBatteryTypeId(Number(e.target.value) || null)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                >
+                  {cabinList.map((cab: any) => (
+                    <option key={cab.id} value={cab.batteryTypeId}>
+                      {cab.name} - Loại pin {cab.batteryTypeId}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm text-gray-700 mb-1">
+                  Số lượng pin yêu cầu
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  value={requestQuantity}
+                  onChange={(e) =>
+                    setRequestQuantity(Number(e.target.value) || 1)
+                  }
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  onClick={() => setShowCreateRequestModal(false)}
+                  className="px-4 py-2 bg-gray-200 rounded-lg"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleCreateRequest}
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg"
+                >
+                  Tạo yêu cầu
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedSlotId && (
         <SlotDetailModal
