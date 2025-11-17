@@ -254,6 +254,17 @@ export interface StationStaff {
   user: User;
 }
 
+export interface StationHistoryRecord {
+  id: number;
+  stationStaffId: number;
+  date: string;
+  status: boolean;
+  user: User;
+  currentStation: Station;
+  newStation: Station;
+  createdAt: string;
+}
+
 export interface Cabinet {
   id: number;
   name: string;
