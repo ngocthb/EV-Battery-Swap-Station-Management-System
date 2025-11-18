@@ -16,6 +16,7 @@ interface BatteryInfo {
   model: string;
   status?: string;
   healthScore?: number;
+  detailStatus?: string;
 
   // thêm mới
   batteryTypeId?: number;
@@ -86,17 +87,20 @@ export default function TransferRequestPanel({
 
         // nếu có mảng batteries
         if (Array.isArray(r.batteries)) {
-          r.batteries.forEach((b) =>
-            items.push({
-              ...b,
-              batteryTypeId: typeId,
-              batteryType: typeInfo,
-            })
-          );
+          r.batteries.forEach((b) => {
+            // only include batteries that are actually transferring for this request
+            if (b.detailStatus === "TRANSFERRING") {
+              items.push({
+                ...b,
+                batteryTypeId: typeId,
+                batteryType: typeInfo,
+              });
+            }
+          });
         }
 
         // nếu API có field legacy `battery`
-        if (r.battery) {
+        if (r.battery && r.battery.detailStatus === "TRANSFERRING") {
           items.push({
             ...r.battery,
             batteryTypeId: typeId,
