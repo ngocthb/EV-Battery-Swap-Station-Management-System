@@ -43,8 +43,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   // Socket connection for notification badge
   useEffect(() => {
-    const socketUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    // const socketUrl =
+    //   process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
     const newSocket = io(`https://amply.io.vn/request`, {
       transports: ["websocket"],
       auth: {

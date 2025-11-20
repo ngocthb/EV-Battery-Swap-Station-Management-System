@@ -57,3 +57,17 @@ export const getDashboardUserMembershipChartAPI = async <T>(params: T) => {
   });
   return res.data;
 };
+
+export const getStaffDashboardTransactionChartAPI = async <T>(params: T) => {
+  const res = await api.get("/staff-dashboard/transaction-chart", {
+    params,
+  });
+  return res.data;
+};
+
+export const getStaffDashboardRevenueChartAPI = async <T>(params: T) => {
+  const res = await api.get("/staff-dashboard/revenue-chart", {
+    params,
+  });
+  return res.data;
+};

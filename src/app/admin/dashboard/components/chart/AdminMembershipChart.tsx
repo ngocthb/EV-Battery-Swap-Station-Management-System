@@ -1,4 +1,3 @@
-
 import { getDashboardUserMembershipChartAPI } from "@/services/dashboardService";
 import React, { useEffect, useState } from "react";
 import {
@@ -9,7 +8,6 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
-
 
 interface MembershipStat {
   membershipId: number;
@@ -33,7 +31,6 @@ interface MembershipChartItem {
 }
 
 const AdminMembershipChart = () => {
-
   const [chartData, setChartData] = useState<MembershipChartItem[]>([]);
   const [month, setMonth] = useState(11);
   const [year, setYear] = useState(2025);
@@ -81,17 +78,13 @@ const AdminMembershipChart = () => {
   };
 
   useEffect(() => {
-
     fetchUserMembershipChart();
   }, [month, year]);
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-6 transition-colors duration-300 hover:border-gray-300">
-
       <div className="mb-6 flex items-center gap-4">
-        <h3 className="text-lg font-semibold text-gray-900">
-          Đăng ký thành viên
-        </h3>
+        <h3 className="text-md font-bold text-gray-900">Thành viên</h3>
         <div className="ml-auto gap-2 flex">
           <select
             value={month}
@@ -120,7 +113,6 @@ const AdminMembershipChart = () => {
       </div>
 
       <div className="h-[300px] w-full">
-
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie

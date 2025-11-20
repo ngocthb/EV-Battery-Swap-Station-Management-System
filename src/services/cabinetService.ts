@@ -10,6 +10,16 @@ export const getCabinetsByStationId = async (id: number) => {
   return res.data;
 };
 
+export const getCabinetsByStationIdAndBatteryTypeId = async <T>(
+  id: number,
+  params: T
+) => {
+  const res = await api.get(`/cabinet/public/by-station-and-type/${id}`, {
+    params,
+  });
+  return res.data;
+};
+
 export const getAllCabinetListAPI = async <T>(params: T) => {
   const res = await api.get("/cabinet", { params });
   return res.data;

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useMemo } from "react";
-import { X, Battery, MapPin, Clock, Bell } from "lucide-react";
+import { X, Bell } from "lucide-react";
 import { io, Socket } from "socket.io-client";
 import api from "@/lib/axios";
 import { LoadingSpinner } from "./LoadingSpinner";
@@ -41,7 +41,6 @@ export const StaffNotificationModal: React.FC<StaffNotificationModalProps> = ({
   isOpen,
   onClose,
   stationId,
-  hasNewNotification,
   onNotificationRead,
 }) => {
   const [requests, setRequests] = useState<Request[]>([]);

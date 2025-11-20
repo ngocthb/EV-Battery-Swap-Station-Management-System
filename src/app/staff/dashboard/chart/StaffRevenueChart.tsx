@@ -1,12 +1,12 @@
 "use client";
 import useFetchList from "@/hooks/useFetchList";
-import { getDashboardRevenueChartAPI } from "@/services/dashboardService";
-import { getAllStationList } from "@/services/stationService";
-import { QueryParams, Station } from "@/types";
+import {
+  getStaffDashboardRevenueChartAPI,
+} from "@/services/dashboardService";
 import React, { useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
 
-export default function AdminRevenueChart() {
+export default function StaffRevenueChart() {
   const today = new Date();
 
   const sevenDaysAgo = new Date(today);
@@ -17,27 +17,19 @@ export default function AdminRevenueChart() {
 
   const [fromDate, setFromDate] = useState<string>(formatDate(sevenDaysAgo));
   const [toDate, setToDate] = useState<string>(formatDate(today));
-  const [station, setStation] = useState<number>(0);
-
-  // fetch all station
-  const { data: stationList = [] } = useFetchList<Station[], QueryParams>(
-    getAllStationList
-  );
 
   const fetchRevenueChart = async (
     from: string,
     to: string,
-    stationId: number
   ) => {
     try {
-      const res = await getDashboardRevenueChartAPI({
+      const res = await getStaffDashboardRevenueChartAPI({
         from,
         to,
-        stationId,
       });
 
       const data = res.data || [];
-      const months = data.map((i: any) => i.date); 
+      const months = data.map((i: any) => i.date);
       const revenues = data.map((i: any) => i.revenue);
 
       setChartData((prev: any) => ({
@@ -45,13 +37,13 @@ export default function AdminRevenueChart() {
         series: [
           {
             name: "Doanh thu",
-            data: revenues.length > 0 ? revenues : [], 
+            data: revenues.length > 0 ? revenues : [],
           },
         ],
         options: {
           ...prev.options,
           xaxis: {
-            categories: months.length > 0 ? months : [], 
+            categories: months.length > 0 ? months : [],
           },
         },
       }));
@@ -61,8 +53,8 @@ export default function AdminRevenueChart() {
   };
 
   useEffect(() => {
-    fetchRevenueChart(fromDate, toDate, station);
-  }, [fromDate, toDate, station]);
+    fetchRevenueChart(fromDate, toDate);
+  }, [fromDate, toDate]);
 
   const [chartData, setChartData] = useState<any>({
     series: [{ name: "Doanh thu", data: [] }],
@@ -114,19 +106,6 @@ export default function AdminRevenueChart() {
             onChange={(e) => setToDate(e.target.value)}
             className="border border-gray-300 rounded-full px-3 py-1 text-sm bg-gray-100"
           />
-
-          <select
-            value={Number(station || 0)}
-            onChange={(e) => setStation(Number(e.target.value))}
-            className="border border-gray-300 rounded-full px-3 py-1 text-sm focus:outline-none bg-gray-100"
-          >
-            <option value="">Tìm theo trạm</option>
-            {stationList.map((station) => (
-              <option key={station.id} value={station.id}>
-                {station.name}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 

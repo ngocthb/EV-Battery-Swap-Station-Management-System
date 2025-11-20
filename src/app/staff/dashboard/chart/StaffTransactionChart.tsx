@@ -1,5 +1,7 @@
-import { getDashboardTransactionChartAPI } from "@/services/dashboardService";
-import React, { useEffect, useState, useRef } from "react";
+import {
+  getStaffDashboardTransactionChartAPI,
+} from "@/services/dashboardService";
+import React, { useEffect, useState } from "react";
 import {
   LineChart,
   Line,
@@ -9,14 +11,8 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import { io, Socket } from "socket.io-client";
-import { toast } from "react-toastify";
-import useFetchList from "@/hooks/useFetchList";
-import { QueryParams, Station } from "@/types";
-import { getAllStationList } from "@/services/stationService";
 
-const AdminTransactionChart = () => {
-  const socketRef = useRef<Socket | null>(null);
+const StaffTransactionChart = () => {
   const [chartData, setChartData] = useState<{ date: string; total: number }[]>(
     []
   );
@@ -31,21 +27,14 @@ const AdminTransactionChart = () => {
   const [fromDate, setFromDate] = useState<string>(formatDate(sevenDaysAgo));
   const [toDate, setToDate] = useState<string>(formatDate(today));
   const [loading, setLoading] = useState<boolean>(true);
-  const [station, setStation] = useState<number>(0);
-
-  // fetch all station
-  const { data: stationList = [] } = useFetchList<Station[], QueryParams>(
-    getAllStationList
-  );
 
   const fetchTransactionChartAPI = async () => {
     try {
       setLoading(true);
 
-      const res = await getDashboardTransactionChartAPI({
+      const res = await getStaffDashboardTransactionChartAPI({
         from: fromDate,
         to: toDate,
-        stationId: station,
       });
 
       const data = res?.data || [];
@@ -67,74 +56,7 @@ const AdminTransactionChart = () => {
     if (fromDate && toDate) {
       fetchTransactionChartAPI();
     }
-  }, [fromDate, toDate, station]);
-
-  // Socket connection for real-time updates
-  useEffect(() => {
-    const baseURL =
-      process.env.NEXT_PUBLIC_API_URL || "https://amply.io.vn/api/v1/";
-    const socketURL = baseURL.replace("/api/v1/", "");
-
-    const socket = io(`${socketURL}/transaction`, {
-      transports: ["websocket"],
-      withCredentials: true,
-    });
-
-    socketRef.current = socket;
-
-    socket.on("connect", () => {
-      console.log("✅ [Chart] Connected to /transaction namespace:", socket.id);
-    });
-
-    socket.on(
-      "payment_confirmed",
-      (data: {
-        transactionId: number;
-        bookingId?: number;
-        userMembershipId?: number;
-        status: string;
-        totalPrice: number;
-      }) => {
-        console.log("🔔 [Chart] Payment confirmed:", data);
-        toast.success(
-          `Giao dịch mới: ${
-            data.bookingId
-              ? `Booking #${data.bookingId}`
-              : `Membership #${data.userMembershipId}`
-          } - ${data.totalPrice.toLocaleString("vi-VN")} VND`,
-          { autoClose: 3000 }
-        );
-
-        // Refresh chart data to include new transaction
-        if (fromDate && toDate) {
-          fetchTransactionChartAPI();
-        }
-      }
-    );
-
-    socket.on(
-      "payment_failed",
-      (data: { transactionId: number; reason: string }) => {
-        console.log("❌ [Chart] Payment failed:", data);
-        toast.error(`Thanh toán thất bại: Transaction #${data.transactionId}`, {
-          autoClose: 3000,
-        });
-
-        // Refresh chart data
-        if (fromDate && toDate) {
-          fetchTransactionChartAPI();
-        }
-      }
-    );
-
-    socket.on("disconnect", () => {
-      console.log("🔌 [Chart] Disconnected from /transaction namespace");
-    });
-
-    return () => {
-      socket.disconnect();
-    };
-  }, [fromDate, toDate, station]);
+  }, [fromDate, toDate]);
 
   return (
     <div className="col-span-2 bg-white border border-gray-200 rounded-xl p-6 transition-colors duration-300 hover:border-gray-300">
@@ -162,19 +84,6 @@ const AdminTransactionChart = () => {
             }}
             className="border border-gray-300 rounded-full px-3 py-1 text-sm focus:outline-none bg-gray-100"
           />
-
-          <select
-            value={Number(station || 0)}
-            onChange={(e) => setStation(Number(e.target.value))}
-            className="border border-gray-300 rounded-full px-3 py-1 text-sm focus:outline-none bg-gray-100"
-          >
-            <option value="">Tìm theo tên trạm</option>
-            {stationList.map((station) => (
-              <option key={station.id} value={station.id}>
-                {station.name}
-              </option>
-            ))}
-          </select>
         </div>
       </div>
 
@@ -223,4 +132,4 @@ const AdminTransactionChart = () => {
   );
 };
 
-export default AdminTransactionChart;
+export default StaffTransactionChart;

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
 import { RootState } from "@/store";
 import authService from "@/services/authService";
 

@@ -1,14 +1,10 @@
 import { useDebounce } from "@/hooks/useDebounce";
 import useFetchList from "@/hooks/useFetchList";
 import useQuery from "@/hooks/useQuery";
-import {
-  getAllNearestStationList,
-  getAllPublicStationList,
-} from "@/services/stationService";
+import { getAllNearestStationList } from "@/services/stationService";
 import { QueryParams, Station } from "@/types";
 import { isStationOpen } from "@/utils/format";
 import {
-  Battery,
   Calendar,
   Clock,
   Loader,
@@ -19,6 +15,7 @@ import {
 } from "lucide-react";
 import React, { memo, useEffect, useMemo, useState } from "react";
 import BookingModal from "./BookingModal";
+import { toast } from "react-toastify";
 
 interface AsideStationProps {
   setOpenStationDetail: React.Dispatch<React.SetStateAction<Station | null>>;
@@ -33,12 +30,18 @@ function AsideStation({
   handleGetDirection,
 }: AsideStationProps) {
   const [openBookingModal, setOpenBookingModal] = useState(false);
-  const [bookingData, setBookingData] = useState({
+  const [bookingData, setBookingData] = useState<{
+    userVehicleId: number;
+    stationId: number;
+    userLat: number;
+    userLng: number;
+    bookingDetails: Array<{ batteryId: number }>;
+  }>({
     userVehicleId: 0,
     stationId: 0,
     userLat: 0,
     userLng: 0,
-    bookingDetails: [{ batteryId: 0 }],
+    bookingDetails: [],
   });
 
   // query
@@ -67,7 +70,7 @@ function AsideStation({
   // phuc vu map
   const handleGetInstructionDirection = async (lat: number, long: number) => {
     if (!navigator.geolocation) {
-      alert("Không tìm thấy vị trí của bạn");
+      toast.warn("Không tìm thấy vị trí của bạn");
       return;
     }
 
@@ -78,7 +81,7 @@ function AsideStation({
 
         await handleGetDirection([userLng, userLat], [long, lat]);
       },
-      () => alert("Không lấy được vị trí"),
+      () => toast.warn("Không lấy được vị trí"),
       { enableHighAccuracy: true }
     );
   };
@@ -116,7 +119,7 @@ function AsideStation({
         stationId: Number(station.id),
         userLat: lat,
         userLng: lng,
-        bookingDetails: [{ batteryId: 0 }],
+        bookingDetails: [],
       });
 
       setOpenBookingModal(true);
@@ -216,20 +219,6 @@ function AsideStation({
                             : "Đóng cửa"}
                         </span>
                       </span>
-                      {/* <span
-                        className={`inline-flex items-center space-x-1 text-xs font-medium ${
-                          Number(station?.slotAvailable) > 0
-                            ? "text-orange-700 bg-orange-50"
-                            : "text-gray-500 bg-gray-100"
-                        } px-2 py-1 rounded-full`}
-                      >
-                        <Battery className="w-3 h-3" />
-                        <span>
-                          {Number(station?.slotAvailable) > 0
-                            ? `${station?.slotAvailable} Pin`
-                            : "Hết pin"}
-                        </span>
-                      </span> */}
                     </div>
                     {/*Name */}
                     <h3

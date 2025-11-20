@@ -1,8 +1,5 @@
 "use client";
 
-import RevenueChart from "@/components/Charts/BarChart";
-import UserGrowthChart from "@/components/Charts/LineChart";
-import UserDistributionChart from "@/components/Charts/PieChart";
 import { StaffLayout } from "@/layout/StaffLayout";
 import { getStationById } from "@/services/stationService";
 import { RootState } from "@/store";
@@ -10,6 +7,7 @@ import { Station } from "@/types";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { io } from "socket.io-client";
+import dynamic from "next/dynamic";
 
 export default function StaffDashboard() {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -55,6 +53,16 @@ export default function StaffDashboard() {
     fetchStationData();
   }, [user]);
 
+  const StaffTransactionChart = dynamic(
+    () => import("./chart/StaffTransactionChart"),
+    {
+      ssr: false,
+    }
+  );
+  const StaffRevenueChart = dynamic(() => import("./chart/StaffRevenueChart"), {
+    ssr: false,
+  });
+
   return (
     <StaffLayout>
       <div className="min-h-screen space-y-4">
@@ -70,27 +78,14 @@ export default function StaffDashboard() {
               </p>
             </div>
           </div>
-
-          {/*thông báo socket */}
-          <div className="bg-white rounded-xl p-6 shadow mt-4">
-            <h2 className="text-xl font-bold text-blue-700 mb-4">Thông báo</h2>
-          </div>
         </div>
 
         {/*Chart */}
-        <div>
-          <UserGrowthChart
-            heading={"Biểu đồ tăng trưởng người dùng"}
-            subHeading={"Hàng tháng"}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-5">
-          <RevenueChart heading={"Doanh thu"} subHeading={"Hàng ngày"} />
-          <UserDistributionChart
-            heading={"Phân bố người dùng"}
-            subHeading={"Hàng tháng"}
-          />
+        <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 gap-4 grid grid-cols-1">
+          <StaffRevenueChart />
+          <div className="grid grid-cols-3 gap-4">
+            <StaffTransactionChart />
+          </div>
         </div>
       </div>
     </StaffLayout>

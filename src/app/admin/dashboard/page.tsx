@@ -36,7 +36,7 @@ export default function AdminDashboard() {
         {/*Chart */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 gap-4 grid grid-cols-1">
           <AdminRevenueChart />
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <AdminTransactionChart />
             <AdminMembershipChart />
           </div>
@@ -45,11 +45,9 @@ export default function AdminDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
           {/* Summary 2/4 bên trái */}
           <StationRate />
-
-          {/* Map 2/4 bên phải */}
-          <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100">
-            <AdminStationMap />
-          </div>
+        </div>
+        <div className="col-span-2 bg-white rounded-xl shadow-sm border border-gray-100">
+          <AdminStationMap />
         </div>
       </div>
     </AdminLayout>
