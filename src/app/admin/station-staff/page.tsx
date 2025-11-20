@@ -77,16 +77,18 @@ export default function AdminStaffPage() {
   const {
     data: staffList = [],
     loading,
-    refresh,
+    refresh: staffRefresh,
   } = useFetchList<StationStaff[], QueryParams>(
     getAllStationStaffAPI,
     debouncedQuery
   );
 
   // fetch all history
-  const { data: historyList = [], loading: loadingHistory } = useFetchList<
-    StationHistoryRecord[]
-  >(getAllStaffMoveHistory);
+  const {
+    data: historyList = [],
+    loading: loadingHistory,
+    refresh: historyRefresh,
+  } = useFetchList<StationHistoryRecord[]>(getAllStaffMoveHistory);
 
   // fetch all station
   const { data: stationList = [] } = useFetchList<Station[], QueryParams>(
@@ -95,6 +97,11 @@ export default function AdminStaffPage() {
 
   const handleSearch = (data: string) => {
     updateQuery({ search: data });
+  };
+
+  const handleRefresh = () => {
+    historyRefresh();
+    staffRefresh();
   };
 
   return (
@@ -121,29 +128,29 @@ export default function AdminStaffPage() {
 
         {/*Content */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100">
-        {/*tab */}
-        <div className="flex gap-2 border-b border-gray-200 bg-white rounded-t-lg">
-          <button
-            onClick={() => setTabName("staff")}
-            className={`px-6 py-3 font-medium text-sm transition-all duration-200 border-b-2 ${
-              tabName === "staff"
-                ? "border-blue-600 text-blue-600 bg-blue-50"
-                : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-            }`}
-          >
-            Danh sách nhân viên
-          </button>
-          <button
-            onClick={() => setTabName("history")}
-            className={`px-6 py-3 font-medium text-sm transition-all duration-200 border-b-2 ${
-              tabName === "history"
-                ? "border-blue-600 text-blue-600 bg-blue-50"
-                : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
-            }`}
-          >
-            Lịch sử chuyển trạm
-          </button>
-        </div>
+          {/*tab */}
+          <div className="flex gap-2 border-b border-gray-200 bg-white rounded-t-lg">
+            <button
+              onClick={() => setTabName("staff")}
+              className={`px-6 py-3 font-medium text-sm transition-all duration-200 border-b-2 ${
+                tabName === "staff"
+                  ? "border-blue-600 text-blue-600 bg-blue-50"
+                  : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              Danh sách nhân viên
+            </button>
+            <button
+              onClick={() => setTabName("history")}
+              className={`px-6 py-3 font-medium text-sm transition-all duration-200 border-b-2 ${
+                tabName === "history"
+                  ? "border-blue-600 text-blue-600 bg-blue-50"
+                  : "border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+              }`}
+            >
+              Lịch sử chuyển trạm
+            </button>
+          </div>
           {/* Filters and Search */}
           <FilterSearch
             query={query}
@@ -162,6 +169,7 @@ export default function AdminStaffPage() {
                 stationId: null,
               })
             }
+            refresh={handleRefresh}
           />
 
           {/* staff Table */}
@@ -315,21 +323,21 @@ export default function AdminStaffPage() {
       <DeleteConfirmModal
         user={deleteModal.data as IUser | null}
         onConfirmAPI={DeleteStaffAPI}
-        refreshList={refresh}
+        refreshList={staffRefresh}
       />
 
       {/* Restore Confirmation Modal */}
       <RestoreConfirmModal
         user={restoreModal.data as IUser | null}
         onConfirmAPI={restoreStaffAPI}
-        refreshList={refresh}
+        refreshList={staffRefresh}
       />
 
       {openCreateModal && (
         <CreateStaffModal
           openCreateModal={openCreateModal}
           setOpenCreateModal={setOpenCreateModal}
-          refresh={refresh}
+          refresh={staffRefresh}
         />
       )}
 
@@ -337,7 +345,7 @@ export default function AdminStaffPage() {
         <MoveStaffStationModal
           staffId={staffMoveStationId}
           setStaffMoveStationId={setStaffMoveStationId}
-          refresh={refresh}
+          refresh={staffRefresh}
         />
       )}
     </AdminLayout>

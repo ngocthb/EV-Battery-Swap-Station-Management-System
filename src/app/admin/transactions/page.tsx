@@ -200,6 +200,7 @@ function AdminTransactionPage() {
                 status: "",
               })
             }
+            refresh={refresh}
           />
 
           {/* battery type Table */}
@@ -284,7 +285,6 @@ function AdminTransactionPage() {
                           {getTransactionStatusLabel(
                             String(transaction?.status)
                           )}
-
                         </span>
                       </td>
                     </tr>

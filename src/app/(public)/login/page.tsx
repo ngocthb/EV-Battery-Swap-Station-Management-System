@@ -213,7 +213,7 @@ const LoginPage: React.FC = () => {
             </div>
           </form>
 
-          {/* Social Login */}
+          {/* Social Login
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -260,7 +260,7 @@ const LoginPage: React.FC = () => {
                 <span className="ml-2">Facebook</span>
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 

@@ -310,6 +310,7 @@ export interface Booking {
   userVehicle?: UserVehicle;
   bookingDetails: BookingDetail[];
   transaction?: Transaction;
+  userMembership?: UserMemberShip;
 }
 
 export interface QueryParams {

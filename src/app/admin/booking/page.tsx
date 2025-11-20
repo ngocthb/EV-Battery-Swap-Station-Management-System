@@ -18,8 +18,9 @@ import { formatDateHCM } from "@/utils/format";
 import {
   getBookingStatusLabel,
   getBookingStatusStyle,
+  getTransactionStatusLabel,
 } from "@/utils/formateStatus";
-import { Eye, X } from "lucide-react";
+import { Eye, LoaderCircle, LoaderCircleIcon, X } from "lucide-react";
 
 function AdminBookingPage() {
   const router = useRouter();
@@ -131,6 +132,7 @@ function AdminBookingPage() {
                 stationId: undefined,
               })
             }
+            refresh={refresh}
           />
 
           {/* battery type Table */}
@@ -145,7 +147,7 @@ function AdminBookingPage() {
                     Xe người đặt
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Pin ID
+                    Loại
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Tổng tiền (VND)
@@ -201,14 +203,17 @@ function AdminBookingPage() {
                           {booking?.userVehicle?.name}
                         </div>
                       </td>
-                      {/*Pin id */}
+                      {/*free */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {booking?.bookingDetails?.[0]?.batteryId}
+                        {booking?.isFree ? "Bảo hành" : "Bình thường"}
                       </td>
                       {/*price */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {booking?.bookingDetails?.[0]?.price ||
-                          "Không có dữ liệu"}
+                        {booking?.transaction?.totalPrice
+                          ? booking?.transaction?.totalPrice
+                          : booking?.userMembership
+                          ? "Thành viên"
+                          : "Không có dữ liệu"}
                       </td>
                       {/*Status */}
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -405,7 +410,9 @@ function AdminBookingPage() {
                           Trạng thái thanh toán:
                         </span>
                         <span className="text-sm font-medium text-green-900">
-                          {selectedBooking.transaction.status}
+                          {getTransactionStatusLabel(
+                            selectedBooking.transaction.status
+                          )}
                         </span>
                       </div>
                     )}

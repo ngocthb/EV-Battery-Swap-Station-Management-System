@@ -113,9 +113,9 @@ export default function HistoryStationTable({
                       Thành công
                     </span>
                   ) : (
-                    <span className="flex items-center px-3 py-1 rounded-full bg-red-100 text-red-800 text-xs font-semibold w-fit">
+                    <span className="flex items-center px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-xs font-semibold w-fit">
                       <XCircle className="w-3 h-3 mr-1" />
-                      Thất bại
+                      Đang chờ chuyển
                     </span>
                   )}
                 </td>

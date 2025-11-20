@@ -1,6 +1,6 @@
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { QueryParams, Station } from "@/types";
-import { Search, X } from "lucide-react";
+import { Loader2Icon, Search, X } from "lucide-react";
 
 type FilterBarProps = {
   query: QueryParams;
@@ -14,6 +14,7 @@ type FilterBarProps = {
     >
   ) => void;
   onReset: () => void;
+  refresh: () => void;
 };
 
 function FilterSearch({
@@ -24,6 +25,7 @@ function FilterSearch({
   onChangeStatus,
   onUpdateQuery,
   onReset,
+  refresh,
 }: FilterBarProps) {
   const isFiltered =
     query.search ||
@@ -115,6 +117,13 @@ function FilterSearch({
               Xóa bộ lọc
             </button>
           )}
+          <span
+            title="Tải lại"
+            onClick={refresh}
+            className="text-gray-400 hover:text-black bg-gray-200 hover:bg-gray-300 p-1 rounded-full"
+          >
+            <Loader2Icon className="w-5 h-5" />
+          </span>
         </div>
       </div>
     </div>
